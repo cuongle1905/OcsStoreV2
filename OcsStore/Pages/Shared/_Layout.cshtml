@@ -1,0 +1,797 @@
+﻿<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>OcsStore</title>
+    <link href="~/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Roboto+Condensed" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wdth,wght@75,700;100,700&amp;display=swap" rel="stylesheet">
+
+    @* Uncomment to use the HtmlEditor control *@
+    @* <script src="https://unpkg.com/devextreme-quill@22_2/dist/dx-quill.min.js"></script> *@
+
+    @* Uncomment to use the Gantt control *@
+    @*<link href="~/css/devextreme/dx-gantt.css" rel="stylesheet" />*@
+
+    @* Uncomment to use the Diagram control *@
+    @*<link href="~/css/devextreme/dx-diagram.css" rel="stylesheet" />*@
+
+    <link href="~/css/devextreme/bootstrap.css" rel="stylesheet" />
+
+    @* Predefined themes: https://js.devexpress.com/DevExtreme/Guide/Themes_and_Styles/Predefined_Themes/ *@
+    <link href="~/css/devextreme/dx.light.css" rel="stylesheet" />
+
+    <link rel="stylesheet" href="~/css/Site.css?v1.5" />
+    <link rel="stylesheet" href="~/css/controls.css?v1.6" />
+
+    @* Uncomment to use the Gantt control *@
+    @*<script src="~/js/devextreme/dx-gantt.js"></script>*@
+
+    @* Uncomment to use the Diagram control *@
+    @*<script src="~/js/devextreme/dx-diagram.js"></script>*@
+
+    <script src="~/js/devextreme/jquery.js"></script>
+    <script src="~/js/devextreme/bootstrap.js"></script>
+
+    @* Uncomment to use Globalize for localization *@
+    @* Docs: https://docs.devexpress.com/AspNetCore/400577#globalize *@
+    @*<script src="~/js/devextreme/cldr.js"></script>*@
+    @*<script src="~/js/devextreme/cldr/event.js"></script>*@
+    @*<script src="~/js/devextreme/cldr/supplemental.js"></script>*@
+    @*<script src="~/js/devextreme/cldr/unresolved.js"></script>*@
+    @*<script src="~/js/devextreme/globalize.js"></script>*@
+    @*<script src="~/js/devextreme/globalize/message.js"></script>*@
+    @*<script src="~/js/devextreme/globalize/number.js"></script>*@
+    @*<script src="~/js/devextreme/globalize/currency.js"></script>*@
+    @*<script src="~/js/devextreme/globalize/date.js"></script>*@
+
+    @* Uncomment to enable client-side export *@
+    @*<script src="~/js/devextreme/jszip.js"></script>*@
+
+    <script src="~/js/devextreme/dx.all.js"></script>
+
+    @* Uncomment to provide geo-data for the VectorMap control *@
+    @* Docs: https://js.devexpress.com/DevExtreme/Guide/Widgets/VectorMap/Providing_Data/#Data_for_Areas *@
+    @*<script src="~/js/devextreme/vectormap-data/world.js"></script>*@
+
+    <script src="~/js/devextreme/aspnet/dx.aspnet.mvc.js"></script>
+    <script src="~/js/devextreme/aspnet/dx.aspnet.data.js"></script>
+
+    <link href="~/css/devextreme/bootstrap.css" rel="stylesheet" />
+    <link href="~/css/devextreme/dx.light.css" rel="stylesheet" />
+
+    <link rel="stylesheet" href="/assets/bootstrap-icons.css?v1.1">
+    <link rel="stylesheet" href="~/css/Site.css?v1.5" />
+    <link rel="stylesheet" href="~/css/controls.css?v1.6" />
+    
+    @RenderSection("HeadSection", false)
+
+    <style>
+        :root {
+            --bs-body-color: black;
+            --bs-font-sans-serif: Arial, Roboto, sans-serif /* , Arial, "Segoe UI", "Helvetica Neue" */;
+            /* --common-color-main: #9f224e;
+            --common-color-main-dark: #801B3E;
+            --common-color-main-light: #CD2B64; */
+        }
+        .dx-button-mode-contained.dx-button-default.dx-state-hover {
+            background-color: var(--common-color-main-light);
+        }
+        .dx-button-mode-contained.dx-button-default.dx-state-active, .dx-button-mode-contained.dx-button-default.dx-state-focused {
+            background-color: var(--common-color-main-dark);
+        }
+
+        html {
+            height: 100%;
+            margin: 0px;
+            padding: 0px;
+            position: relative;
+            font-size: 13.6px;
+            font-family: Arial, Roboto, sans-serif /* , Arial, "Segoe UI", "Helvetica Neue" */;
+        }
+
+        .dx-widget {
+            font-family: Arial, Roboto, sans-serif;
+        }
+
+        @@media (max-width: 1280px) {
+            html {
+                font-size: 13.6px;
+            }
+        }
+
+        @@media (max-width: 1080px) {
+            html {
+                font-size: 13.6px;
+            }
+        }
+
+        h6, .h6, h5, .h5, h4, .h4, h3, .h3, h2, .h2, h1, .h1 {
+            font-weight: 600;
+        }
+
+        .bold {
+            font-weight: 600;
+        }
+
+        .italic {
+            font-style: italic;
+        }
+
+        .red {
+            color: #fa3c4b;
+        }
+
+        .dark-red {
+            color: #a51030;
+        }
+
+        .gold {
+            color: #c57d05;
+        }
+
+        .dark-green {
+            color: #0a452f;
+        }
+
+        .green {
+            color: #249851;
+        }
+
+        .green2 {
+            color: #006b2d;
+        }
+
+        .blue {
+            color: #0e1d80; /*#0a1459*/
+        }
+
+        .dark-blue {
+            color: #010125;
+        }
+
+        .orange {
+            color: #ffa624;
+        }
+
+        .brown {
+            color: #994c00;
+        }
+
+        .gray {
+            color: #707780;
+        }
+
+        .font-weight-600 {
+            font-weight: 600;
+        }
+
+        .font-size-large1 {
+            font-size: 1.1rem;
+        }
+
+        .outside-border, .border-outside, .border-all {
+            border: 1px solid #e4e3e5;
+            /*border-radius: 4px;*/
+        }
+
+        .top-border, .border-top {
+            border-top: 1px solid #e4e3e5;
+        }
+
+        .left-border, .border-left {
+            border-left: 1px solid #e4e3e5;
+        }
+
+        .right-border, .border-right {
+            border-right: 1px solid #e4e3e5;
+        }
+
+        .bottom-border, .border-bottom {
+            border-bottom: 1px solid #e4e3e5;
+        }
+        
+        #my-container {
+            position: absolute;
+            top: 0px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+        }
+        #top-bar {
+            background-color:var(--common-color-main-dark);
+            font-weight: 600;
+            height: 48px;
+        }
+        #top-bar, #top-bar a {
+            color: white;
+            text-align: center;
+        }
+        #language-button .dx-button-mode-text .dx-icon {
+            color: white;
+        }
+
+        #home-container {
+            position: absolute;
+            top: 48px;
+            right: 0;
+            bottom: 0;
+            left: 0;
+        }
+
+        #home-left-panel {
+            position: fixed;
+            top: 48px;
+            bottom: 0;
+            left: 0;
+            width: 12rem;
+            color: white;
+            border-right: 1px solid #f1f1f3;
+            background-color: var(--common-color-main-dark);
+            /*box-shadow: 0 1px 3px 1px rgba(60, 64, 67, 0.4);*/
+            z-index: 500;
+        }
+
+        #home-right-panel {
+            position: absolute;
+            top: 0px;
+            right: 0;
+            bottom: 0;
+            left: 12rem;
+        }
+        @@media (max-width: 768px) {
+            #top-bar { height: 40px; }
+            #home-container, #home-left-panel { top: 41px; }
+            #home-left-panel { left: 1px; width: 12rem; bottom: auto; visibility: hidden; }
+            #home-right-panel { left: 0; }
+        }
+        a.menu-link, a.menu-link:hover, a.menu-link:active, a.menu-link:visited {
+            color: white;
+            text-decoration: none;
+        }
+        #home-left-panel a.menu-link:hover .home-left-item {
+            background-color: #ebf5fd !important; /*#25547a*/
+            color: #1e2dbe !important;
+        }
+
+        #home-left-scrollview {
+            margin: 0;
+        }
+
+        .home-left-item {
+            display: flex;
+            align-items: center;
+            padding: 0.8rem 0.5rem 0.8rem 0.5rem;
+            border-bottom: solid #698faf 0.1px;
+            font-weight: 600;
+        }
+        .home-left-item-text {
+            margin-left: 0.3rem;
+            padding: 0.2rem 0.2rem 0.2rem 0.3rem;
+            width: 18rem;
+        }
+
+        .item-active, #home-left-panel a.menu-link:hover .item-active {
+            font-weight: 600;
+            background-color: #ebf5fd !important;
+            color: #1e2dbe !important
+        }
+
+        #main-content {
+            padding: 1.5rem 2rem;
+        }
+        @@media (max-width: 1080px) {
+            #main-content {
+                padding: 1rem 1rem;
+            }
+        }
+        @@media (max-width: 480px) {
+            #main-content {
+                padding: 1rem 1rem;
+            }
+        }
+        .dx-radio-value-container {
+            padding-right: 0.3rem;
+        }
+
+        .dx-radiogroup-horizontal .dx-radiobutton {
+            margin-right: 1.5rem;
+        }
+
+        .dx-widget {
+            font-size: 1rem;
+        }
+
+        .dx-datagrid-headers {
+            color: #333;
+            font-weight: 600;
+        }
+
+        .dx-datagrid .dx-row > td {
+            padding: 4px;
+        }
+
+        .dx-datagrid-content .dx-overlay-wrapper.dx-invalid-message.dx-datagrid-invalid-message .dx-overlay-content,
+        .dx-datagrid-text-content,
+        .dx-datagrid-rowsview .dx-row > td,
+        .dx-datagrid-rowsview .dx-row > tr > td {
+            overflow: visible;
+            text-overflow: initial;
+            word-wrap: break-word;
+        }
+
+        .dx-button-has-text .dx-button-content {
+            padding: 0.3rem 0.35rem;
+        }
+
+        .dx-popup-content {
+            padding: 20px;
+        }
+
+        .dx-button-has-text .dx-icon {
+            margin-right: 6px;
+        }
+
+        .dx-datagrid-total-footer > .dx-datagrid-content {
+            padding-top: 0.1rem;
+            padding-bottom: 0.1rem;
+        }
+
+        .dx-datagrid-header-panel .dx-toolbar {
+            margin-bottom: 0.1rem;
+        }
+
+        .dx-toolbar-text-auto-hide .dx-button .dx-button-content {
+            padding: 0.3rem;
+        }
+
+        .dx-show-clear-button .dx-icon-clear {
+            font-size: 1rem;
+        }
+
+        .dx-texteditor-input {
+            padding: 0.5rem 0.6rem 0.6rem;
+            font-size: 1em;
+        }
+
+        #caption {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3rem;
+            background-color: var(--common-color-main);
+            color: white;
+            font-weight: 600;
+            font-size: 1.2rem;
+            padding-top: 0.7rem;
+            text-align: center;
+            z-index: 99;
+        }
+
+        .dx-button-mode-contained.dx-button-default, .dx-radiobutton-icon-checked .dx-radiobutton-icon-dot {
+            background-color: var(--common-color-main);
+        }
+
+        .dx-datagrid-content .dx-datagrid-table .dx-row .dx-command-expand {
+            min-width: 0;
+            width: 0;
+        }
+        .dx-datagrid-table .dx-row .dx-command-expand.dx-datagrid-group-space {
+            padding-top: 4px;
+        }
+        
+        .dx-datagrid-content .dx-datagrid-table .dx-group-cell {
+            padding-left: 16px;
+        }
+
+        .dx-datagrid-rowsview .dx-row.dx-group-row:not(.dx-row-focused) {
+            color: #333;
+            background-color: #f7f7f7;
+            font-size: 0.9rem;
+        }
+
+        .dx-datagrid-content .dx-header-row {
+            font-size: 0.8rem;
+        }
+
+        .dx-datagrid-content .dx-widget {
+            font-size: 0.9rem;
+        }
+
+        .dx-datagrid-content .delete-button .dx-button-content {
+            padding-left: 0.2rem;
+            padding-right: 0.2rem;
+        }
+
+        .dx-datagrid-content .dx-button-content .dx-icon-trash {
+            margin-right: 2px;
+        }
+        
+        a.back-arrow, a.back-arrow:visited {
+            color: #333;
+            text-decoration: none;
+            margin-right: 0.8rem;
+        }
+        a.back-arrow i {
+            font-size: 1.2rem;
+        }
+        a.back-arrow .dx-icon-arrowleft::before {
+            vertical-align: -2px;
+        }
+    </style>
+</head>
+@{
+    bool hasToken = !string.IsNullOrEmpty(Session.Token(Context.Request));
+    string fullName = "admin";
+}
+<body style="padding-top: 0.3rem;" spellcheck="false">
+    <script>
+        var isShowingUserMenu = false;
+        var isShowingMobileMenu = false;
+        
+        function menuContainerOnClick() {
+            console.log("menuContainerOnClick");
+            if (!isClickingMenuItem)
+                showMenu(false);
+        }
+
+        function menuButtonClick() {
+            showMenu(!isShowingMenuContent);
+        }
+
+        function menuItemClick(e) {
+            console.log("menuItemClick");
+            isClickingMenuItem = true;
+            window.location.href = e.itemData.Link;
+            showMenu(false);
+        }
+
+        function showMenu(show) {
+            isShowingMenuContent = show;
+            //var menu = $("#menu").dxMenu("instance").option("visible", show);
+            $("#menu-container").css("visibility", show ? "visible" : "hidden");
+            if (!show)
+                $(':focus').blur();
+        }
+
+        function showHideMenu() {
+            isShowingMobileMenu = !isShowingMobileMenu;
+            $("#home-left-panel").css("visibility", isShowingMobileMenu ? "visible" : "hidden");
+        }
+
+        function menuItemTemplate(itemData, itemIndex, itemElement) {
+            var div = $("<div>").addClass("menu-item").appendTo(itemElement);
+            if (itemData.Id == 0) {
+                div.html("<i class='dx-icon-menu'></i>")
+            } else {
+                div.text(itemData.text);
+            }
+        }
+
+        function goBack() {
+            history.go(-1);
+        }
+
+        function displayUserMenu() {
+            var popup = $("#user-menu-popup").dxPopup("instance");
+            if (!isShowingUserMenu) {
+                popup.show();
+                isShowingUserMenu = true;
+            }
+        }
+
+        function userMenuPopupOnHidden() {
+            setTimeout(function () {
+                isShowingUserMenu = false;
+            }, 300)
+        
+            $("#user-menu-popup").dxPopup("instance").hide();
+            var popup = $("#change-user-password-popup").dxPopup("instance");
+            popup.show();
+        }
+
+        function changeUserPasswordPopupOnShow() {
+            var form = $("#change-user-password-popup-form").dxForm("instance");
+            form.resetValues();
+        }
+
+        function saveUserPassword() {
+            var form = $("#change-user-password-popup-form").dxForm("instance");
+            var validationResult = form.validate();
+            if (!validationResult.isValid)
+                return;
+
+            var currentPassword = form.getEditor("CurrentPassword").option("value").trim();
+            var newPassword = form.getEditor("NewPassword").option("value").trim();
+            var retypePassword = form.getEditor("RetypePassword").option("value").trim();
+            if (newPassword == currentPassword) {
+                DevExpress.ui.dialog.alert("Mật khẩu mới không được trùng với Mật khẩu cũ.", "Cảnh báo");
+                return;
+            }
+            if (retypePassword != newPassword) {
+                DevExpress.ui.dialog.alert("Gõ lại mật khẩu chưa đúng.", "Cảnh báo");
+                return;
+            }
+            $.ajax({
+                url: '@Url.Action("UpdatePassword", "Token")',
+                method: "POST",
+                data: { "newPassword": newPassword, "oldPassword": currentPassword },
+                success: function (result) {
+                    isSavingUser = false;
+                    DevExpress.ui.dialog.alert("Đã cập nhật Mật khẩu thành công.", "Thông báo");
+                    $("#change-user-password-popup").dxPopup("instance").hide();
+                },
+                error: function (xhr, status, error) {
+                    console.log(xhr);
+                    if (xhr.responseText == "incorrect old password") {
+                        DevExpress.ui.dialog.alert("Mật khẩu cũ không chính xác.", "Cảnh báo");
+                        return;
+                    }
+                    isSavingUser = false;
+                    DevExpress.ui.dialog.alert("Không thể cập nhật Mật khẩu. Xin hãy thử lại sau.", "Cảnh báo");
+                }
+            });
+        }
+
+        function logoutButtonClicked() {
+            $.ajax({
+                url: '@Url.Action("Logout", "Token")',
+                method: "POST",
+                success: function (result) {
+                    location.href = 'Index';
+                },
+                error: function (xhr, status, error) {
+                }
+            });
+        }
+
+        Date.prototype.ddMM = function() {
+            const dd = this.getDate().toString().padStart(2, '0');
+            // JavaScript months are 0-indexed, so we add 1
+            const MM = (this.getMonth() + 1).toString().padStart(2, '0');
+            return `${dd}${MM}`;
+        };
+        
+        function processingCellTemplate(container, options) {
+            let itemIsInput = options.data.ItemIsInput;
+            let itemIsOutput = options.data.ItemIsOutput;
+            let isInOutColumn = (options.column.dataField == "InOut");
+            let cssClass = (itemIsInput ? "green2" : (itemIsOutput ? "dark-blue" : "brown"));
+            let style = "";
+            let text = "";
+            if (isInOutColumn) {
+                cssClass += " bold";
+                style = "font-size:0.8rem; padding-top:0.2rem";
+                if (options.text == "IN")
+                    text = "<i class='dx-icon-minus' style='font-size:0.8rem'></i>";
+                else
+                    text = "<i class='dx-icon-add' style='font-size:0.8rem'></i>"; // "<span style='font-size:0.8rem; margin-right:0.2rem;'>●</span>"
+            } else {
+                text = options.text;
+            }
+            let html = `<div class='${cssClass}' style='${style}'>${text}</div>`
+            container.html(html);
+        }
+    </script>
+    <div style="position: fixed; left: 0; right: 0; top: 0; background-color: white; z-index: 1000; border-bottom: solid #698faf 0.1px;">
+        <div id="top-bar" class="d-flex align-items-center">
+            <a href="~/index" class="menu-link p-2"><i class="dx-icon-home m-1"></i></a>
+            @if (hasToken)
+            {
+                <a id="menu-icon" href="#" class="menu-link pt-1" onclick="showHideMenu()"><i class="dx-icon-menu m-1"></i></a>
+            }
+            <div class="text-center flex-fill" style="padding-right:3rem;">
+                UNI COFFEE
+            </div>
+        </div>
+    </div>
+    <main id="my-container" role="main">
+        <div id="home-container">
+            <div id="home-left-panel">
+                @(Html.DevExtreme().ScrollView()
+                    .ID("home-left-scrollview")
+                    .ScrollByContent(true)
+                    .ScrollByThumb(true)
+                    .ShowScrollbar(ShowScrollbarMode.Never)
+                    .Content(@<text>
+                        <div id="home-left-scrollview-content" style="">
+                        @if (hasToken)
+                        {
+                            <a class="menu-link" href='~/receiving'>
+                                <div class="home-left-item">
+                                    <i class="dx-icon-cart"></i>
+                                    <div class="home-left-item-text">
+                                        <span>NHẬP KHO</span>
+                                    </div>
+                                </div>
+                            </a>
+                            <a class="menu-link" href='~/processing?type=1'>
+                                <div class="home-left-item">
+                                    <i class="dx-icon-preferences"></i>
+                                    <div class="home-left-item-text">
+                                        <span>CHẾ BIẾN - RANG</span>
+                                    </div>
+                                </div>
+                            </a>
+                            <a class="menu-link" href='~/processing?type=2'>
+                                <div class="home-left-item">
+                                    <i class="dx-icon-filter"></i>
+                                    <div class="home-left-item-text">
+                                        <span>CHẾ BIẾN - TRỘN</span>
+                                    </div>
+                                </div>
+                            </a>
+                            <a class="menu-link" href='~/sales'>
+                                <div class="home-left-item">
+                                    <i class="dx-icon-coffee"></i>
+                                    <div class="home-left-item-text">
+                                        <span>BÁN HÀNG</span>
+                                    </div>
+                                </div>
+                            </a>
+                            <a class="menu-link" href='~/stock'>
+                                <div class="home-left-item">
+                                    <i class="dx-icon-box"></i>
+                                    <div class="home-left-item-text">
+                                        <span>TỒN KHO</span>
+                                    </div>
+                                </div>
+                            </a>
+                            <a class="menu-link" href='~/report'>
+                                <div class="home-left-item">
+                                    <i class="dx-icon-chart"></i>
+                                    <div class="home-left-item-text">
+                                        <span>BÁO CÁO</span>
+                                    </div>
+                                </div>
+                            </a>
+                        }
+                        </div>
+                    </text>)
+                )
+            </div>
+            <div id="home-right-panel">
+                @(Html.DevExtreme().Popup()
+                    .ID("user-menu-popup")
+                    .Position(config => config.My(HorizontalAlignment.Right, VerticalAlignment.Top).At(HorizontalAlignment.Right, VerticalAlignment.Top).Offset(-10, 52))
+                    .Shading(false)
+                    .Width(280)
+                    .Height(190)
+                    .ShowTitle(false)
+                    .ShowCloseButton(false)
+                    .HideOnOutsideClick(true)
+                    .Animation(config => config.Show(s => s.Duration(400)))
+                    .OnHidden("userMenuPopupOnHidden")
+                    .ContentTemplate(@<text>
+                        <div id="user-menu-popup-fullname">@fullName</div>
+                        @(Html.DevExtreme().Button()
+                            .ID("change-password-button")
+                            .Text("Đổi mật khẩu")
+                            .Icon("key")
+                            .Type(ButtonType.Normal)
+                            .StylingMode(ButtonStylingMode.Contained)
+                            .OnClick("changeUserPassword")
+                        )
+                        @(Html.DevExtreme().Button()
+                            .ID("logout-button")
+                            .Text("Đăng xuất")
+                            .Icon("export")
+                            .Type(ButtonType.Default)
+                            .StylingMode(ButtonStylingMode.Contained)
+                            .OnClick("logoutButtonClicked")
+                        )
+                    </text>)
+                )
+            <div>
+            @(Html.DevExtreme().Popup()
+                .ID("change-user-password-popup")
+                .Title("Đổi mật khẩu")
+                .Width(400)
+                .Height(300)
+                .Animation(config => config.Show(s => s.Duration(400)))
+                .HideOnOutsideClick(false)
+                .ShowCloseButton(true)
+                .ToolbarItems(barItems =>
+                {
+                    barItems.Add()
+                        .Toolbar(Toolbar.Bottom)
+                        .Location(ToolbarItemLocation.Center)
+                        .Widget(widget => widget.Button()
+                        .Text("Bỏ qua")
+                        .OnClick(@<text>
+                            function () {
+                            $("#change-user-password-popup").dxPopup("instance").hide();
+                            }
+                        </text>)
+                    );
+                    barItems.Add()
+                        .Toolbar(Toolbar.Bottom)
+                        .Location(ToolbarItemLocation.Center)
+                        .Widget(widget => widget.Button()
+                        .Icon("save")
+                        .Text("Lưu")
+                        .Type(ButtonType.Default)
+                        .OnClick("saveUserPassword")
+                        );
+                })
+                .OnShown("changeUserPasswordPopupOnShow")
+                .ContentTemplate(@<text>
+                    <form>
+                    <input name="username" value="@fullName" type="hidden" />
+                    @(Html.DevExtreme().Form()
+                        .ID("change-user-password-popup-form")
+                        .Items(items =>
+                        {
+                            items.AddSimple().DataField("CurrentPassword")
+                                .Label(l => l.Alignment(HorizontalAlignment.Left).Text("Mật khẩu cũ"))
+                                .Editor(e => e
+                                .TextBox()
+                                .Placeholder("Nhập vào Mật khẩu cũ")
+                                .Mode(TextBoxMode.Password)
+                                .ShowClearButton(true)
+                                .HoverStateEnabled(true)
+                                )
+                                .ValidationRules(r => r.AddRequired().Message("Nhập vào Mật khẩu hiện tại"));
+                            items.AddSimple().DataField("NewPassword")
+                                .Label(l => l.Alignment(HorizontalAlignment.Left).Text("Mật khẩu mới"))
+                                .Editor(e => e
+                                .TextBox()
+                                .Placeholder("Nhập vào Mật khẩu mới")
+                                .Mode(TextBoxMode.Password)
+                                .ShowClearButton(true)
+                                .HoverStateEnabled(true)
+                                )
+                                .ValidationRules(r => r.AddRequired().Message("Nhập vào Mật khẩu mới"));
+                            items.AddSimple().DataField("RetypePassword")
+                                .Label(l => l.Alignment(HorizontalAlignment.Left).Text("Gõ lại mật khẩu"))
+                                .Editor(e => e
+                                .TextBox()
+                                .Placeholder("Gõ lại mật khẩu mới")
+                                .Mode(TextBoxMode.Password)
+                                .ShowClearButton(true)
+                                .HoverStateEnabled(true)
+                                )
+                            .ValidationRules(r => r.AddRequired().Message("Gõ lại mật khẩu"));
+                        })
+                    )
+                    </form>
+                </text>)
+            )
+            </div>
+            <div id="main-content">
+                @RenderBody()
+            </div>
+        </div>
+    </div>
+    </main>
+@*<a id="scroll-to-top-button" class="my-floating-button" href="#" onclick="scrollToTop()"><i class="dx-icon-chevronup"></i></a>*@
+
+<script>
+    $(function () {
+        console.log("location.href", location.href);
+        let links = $("#home-left-scrollview-content a.menu-link");
+        for (const link of links) {
+            const href = $(link).attr("href");
+            console.log("link", link, "href", href);
+            if (location.href.toLowerCase().replace("/new?", "?").replace("/stockcard", "/stock").includes(href)) {
+                console.log("link.children[0]", link.children[0]);
+                link.children[0].classList.add("item-active");
+                break;
+            }
+        }
+    });
+</script>
+</body>
+
+</html>

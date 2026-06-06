@@ -1,0 +1,154 @@
+﻿@page
+@using OcsStore.Models
+@model OcsStore.Pages.IndexModel
+@{
+    IdName idName = new IdName();
+}
+<style>
+    #content {
+        margin-left: auto;
+        margin-right: auto;
+    }
+    .note-label {
+        padding-top: 0 !important;
+    }
+    .dx-field-item-label {
+        padding-top: 0.5rem;
+        padding-bottom: 0.4rem;
+    }
+    .flex-direction-column {
+        flex-direction: column !important;
+    }
+</style>
+
+<script>
+    function inputValueChanged(e) {
+        updateTextBoxBackground();
+    }
+
+    function inputKeyDown(e) {
+        updateTextBoxBackground();
+    }
+
+    function updateTextBoxBackground() {
+        let input = $("#username input")[0];
+        let cssObj = window.getComputedStyle(input, null);
+        let bgColor = cssObj.getPropertyValue("background-color");
+        $("#username").css("background-color", bgColor);
+
+        input = $("#password input")[0];
+        cssObj = window.getComputedStyle(input, null);
+        bgColor = cssObj.getPropertyValue("background-color");
+        $("#password").css("background-color", bgColor);
+    }
+</script>
+
+<div id="content" style="width: 21rem;">
+    @if (string.IsNullOrEmpty(Session.Token(Request)))
+    {
+        <div id="login-container">
+            <div id="form-container" style="text-align:center;">
+                <img class="login-icon" src="~/images/login-icon2.png" style="width: 100px;" />
+                @(Html.DevExtreme().Form<User>()
+                    .ID("login-form")
+                    .LabelLocation(FormLabelLocation.Top)
+                    .Items(items => {
+                        items.AddSimpleFor(m => m.Username)
+                            .Label(l => l.Alignment(HorizontalAlignment.Left).Text("User name"))
+                            .Editor(e => e
+                                .TextBox()
+                                .ID("username")
+                                .Placeholder("Nhập vào User name")
+                                .ShowClearButton(true)
+                                .HoverStateEnabled(true)
+                                .OnValueChanged("inputValueChanged")
+                                .OnKeyDown("inputKeyDown")
+                                .Value("admin")
+                            );
+                        items.AddSimpleFor(m => m.Password)
+                            .Label(l => l.Alignment(HorizontalAlignment.Left).Text("Mật khẩu"))
+                            .Editor(e => e
+                                .TextBox()
+                                .ID("password")
+                                .Placeholder("Nhập vào Mật khẩu")
+                                .Mode(TextBoxMode.Password)
+                                .ShowClearButton(true)
+                                .HoverStateEnabled(true)
+                                .OnValueChanged("inputValueChanged")
+                                .OnKeyDown("inputKeyDown")
+                                .Value("1")
+                            );
+                        items.AddButton()
+                            .HorizontalAlignment(HorizontalAlignment.Center)
+                            .ButtonOptions(b => b.Text("Đăng nhập")
+                            .Width("100%")
+                            .Type(ButtonType.Default)
+                            .Template(@<text>
+                                @(Html.DevExtreme().LoadIndicator()
+                                .ID("button-indicator")
+                                .IndicatorSrc("images/white-spinner.gif")
+                                .ElementAttr("style", "width: 16px; height: 16px; vertical-align: middle; margin-right: 6px")
+                                .Visible(false)
+                                )
+                                <span class="dx-button-text"><%- text %></span>
+                            </text>)
+                            .OnClick("login")
+                            );
+                        })
+                    .OnContentReady(@<text>
+                    function (e) { }
+                    </text>)
+                )
+            </div>
+        </div>
+    }
+</div>
+
+<script>
+    let isShowingPassword = false;
+
+    $(function () {
+        let textEditorContainer = $("#password .dx-texteditor-container");
+        console.log(textEditorContainer);
+        textEditorContainer.append("<div class='d-flex align-items-center'><a id='eye-link' href='#' onclick='showHidePassword()'><i id='eye-icon' class='bi bi-eye'></i></a></div>");
+
+        setTimeout(() => {
+            updateTextBoxBackground();
+        }, "500");
+    });
+
+    function showHidePassword() {
+        isShowingPassword = !isShowingPassword;
+        let passwordTextBox = $("#password").dxTextBox("instance");
+        console.log(passwordTextBox);
+        passwordTextBox.option("mode", isShowingPassword ? "text" : "password");
+        let eyeIcon = $("#eye-icon");
+        if (isShowingPassword) {
+            eyeIcon.removeClass("bi-eye");
+            eyeIcon.addClass("bi-eye-slash");
+        } else {
+            eyeIcon.removeClass("bi-eye-slash");
+            eyeIcon.addClass("bi-eye");
+        }
+    }
+
+    function login() {
+        $("#button-indicator").dxLoadIndicator("option", "visible", true);
+        var form = $("#login-form").dxForm("instance");
+        var formData = form.option('formData');
+        $.ajax({
+            url: '@Url.Action("Post", "Token")',
+            method: "POST",
+            data: formData,
+            success: function (result) {
+                location.href = "/sales";
+                // location.reload()
+            },
+            error: function (xhr, status, error) {
+                console.log("xhr", xhr, "status", status, "error", error);
+                $("#button-indicator").dxLoadIndicator("option", "visible", false);
+                DevExpress.ui.dialog.alert("Đăng nhập không thành công.", "Cảnh báo");
+            }
+        });
+    }
+</script>

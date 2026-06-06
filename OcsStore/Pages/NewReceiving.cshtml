@@ -1,0 +1,140 @@
+﻿@page "/receiving/new"
+@using OcsStore.Models
+@model OcsStore.Pages.NewReceivingModel
+@{
+}
+<style>
+    #gridReceiving .dx-data-row td {
+        color: #006b2d;
+    }
+    #gridReceiving .dx-toolbar-items-container {
+        display: none;
+    }
+    #timeBox {
+        margin-left: 0.5rem;
+    }
+</style>
+<div class="d-flex align-items-center mb-3">
+    <a class="back-arrow" href="/receiving"><i class="dx-icon-arrowleft"></i></a>
+    <h4>NHẬP KHO</h4>
+</div>
+<div class="d-flex align-items-center mb-3">
+    <span class="me-2">Ngày:</span>
+    @(Html.DevExtreme().DateBox()
+        .ID("dateBox")
+        .Width("9rem")
+        .Height("2rem")
+        .InputAttr("aria-label", "Date")
+        .Type(DateBoxType.Date)
+        .Value(DateTime.Today)
+        .DisplayFormat("dd/MM/yyyy")
+    )
+    @(Html.DevExtreme().DateBox()
+        .ID("timeBox")
+        .Width("7rem")
+        .Height("2rem")
+        .Type(DateBoxType.Time)
+        .Value(DateTime.Now)
+        .DisplayFormat("HH:mm")
+    )
+</div>
+@(
+Html.DevExtreme().DataGrid<ReceivingDetailView>()
+    .ID("gridReceiving")
+    .DataSource(Model.Details)
+    .RemoteOperations(false)
+    .ShowBorders(true)
+    .ShowRowLines(true)
+    .WordWrapEnabled(true)
+    .Sorting(s => s.Mode(GridSortingMode.None))
+    .Paging(p => p.PageSize(100))
+    .Pager(p => p.Visible(false))
+    .OnContentReady("gridContentReady")
+    .Columns(columns =>
+    {
+        columns.AddFor(m => m.ItemName).Caption("Hàng hóa").Width(140).Alignment(HorizontalAlignment.Left).AllowEditing(false);
+        columns.AddFor(m => m.Quantity).Caption("Số lượng").Width(60).Alignment(HorizontalAlignment.Right)
+            .DataType(GridColumnDataType.Number) // Tells the grid to use dxNumberBox
+            .Format("#,##0.00") // How the number displays outside of edit mode
+            .EditorOptions(new { format = "#,##0.00", min = 0, max = 10000, step = 1, showSpinButtons = false });
+        columns.AddFor(m => m.UnitName).Caption("").Width(40).Alignment(HorizontalAlignment.Left).AllowEditing(false);
+        columns.AddFor(m => m.Price).Caption("Giá").Width(80).Alignment(HorizontalAlignment.Right)
+            .DataType(GridColumnDataType.Number) // Tells the grid to use dxNumberBox
+            .Format("#,##0") // How the number displays outside of edit mode
+            .EditorOptions(new { format = "#,##0", min = 0, max = 10000000, step = 1000, showSpinButtons = false });
+        columns.AddFor(m => m.Note).Caption("Ghi chú").Width(140).Alignment(HorizontalAlignment.Left);
+    })
+    .Editing(e => e.AllowUpdating(true).Mode(GridEditMode.Batch))
+)
+
+<div id="divButtons" class="pt-3 text-end">
+    @(Html.DevExtreme().Button()
+        .Text("Lưu")
+        .Width(80)
+        .Type(ButtonType.Default)
+        .StylingMode(ButtonStylingMode.Contained)
+        .Icon("save")
+        .OnClick("save")
+    )
+</div>
+
+<script>
+    $(function () {
+        $("#gridReceiving").first().append($("#divButtons"));
+    });
+
+    function gridContentReady() {
+        let cells = $(".dx-header-row > td");
+        // console.log(cells);
+        cells.css("text-align", "center");
+    }
+
+    // function itemCellTemplate(container, options) {
+    //     let item = options.data.ItemName;
+    //     let unit = options.data.UnitName;
+    //     let html = item + "<div class='italic gray'>" + unit + "</div>"
+    //     container.html(html);
+    // }
+
+    function save() {
+        let grid = $("#gridReceiving").dxDataGrid("instance");
+        // grid.saveEditData();
+
+        var details = []
+        let rows = grid.getVisibleRows();
+        for (const row of rows) {
+            if (row.rowType == "data" && row.data.Quantity > 0) {
+                // console.log(row.data); // The raw data object for this row
+                details.push(row.data);
+            }
+        }
+        console.log(details);
+
+        if (details.length == 0) {
+            DevExpress.ui.dialog.alert("Hãy nhập vào chi tiết nhập kho.", "Cảnh báo");
+            return;
+        }
+
+        DevExpress.ui.dialog.confirm("<i>Bạn có chắc chắn lưu thông tin nhập kho?</i>", "Xác nhận").then(function(dialogResult) {
+            if (dialogResult) {
+                let date = $("#dateBox").dxDateBox("instance").option("value").toISOString();
+                let time = $("#timeBox").dxDateBox("instance").option("text");
+
+                $.ajax({
+                    url: '@Url.Action("Save", "Receiving")',
+                    method: "POST",
+                    data: { date: date, time: time, details: details },
+                    success: function (result) {
+                        DevExpress.ui.dialog.alert("Đã lưu dữ liệu nhập kho.", "Thông báo").then(function(dialogResult) {
+                            location.href = "/receiving";
+                        });
+                    },
+                    error: function (xhr, status, error) {
+                        console.log("xhr", xhr, "status", status, "error", error);
+                        DevExpress.ui.dialog.alert("Có lỗi xảy ra. Vui lòng thử lại sau.", "Cảnh báo");
+                    }
+                });
+            }
+        });
+    }
+</script>

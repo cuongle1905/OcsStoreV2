@@ -1,0 +1,96 @@
+﻿@page "/stockcard"
+@using OcsStore.Models
+@model OcsStore.Pages.StockCardModel
+@{
+    bool useLot = !string.IsNullOrEmpty(Model.Lot) && Model.Year > 0;
+}
+<style>
+    #gridStock .dx-toolbar-items-container {
+        display: none;
+    }
+    #timeBox {
+        margin-left: 0.5rem;
+    }
+    a.stock-link {
+        padding-left: 0.1rem;
+        padding-right: 0.2rem;
+    }
+    a.stock-link:active, a.stock-link:hover {
+        color: inherit;
+        text-decoration: none;
+    }
+</style>
+
+<div id="divCaption" class="d-flex align-items-center pb-3">
+    <a class="back-arrow" href="/stock"><i class="dx-icon-arrowleft"></i></a>
+    <h5>THẺ KHO - @(Model.ItemName) @(Model.Lot)</h5>
+</div>
+
+@(
+Html.DevExtreme().DataGrid<StockCardView>()
+    .ID("gridStock")
+    .DataSource(d => d.Mvc().Controller("Stock").LoadAction("GetStockCard").LoadMethod("POST").Key("Id").LoadParams(new { ItemId = Model.ItemId, Lot = Model.Lot, Year = Model.Year }))
+    .RemoteOperations(false)
+    .ShowBorders(true)
+    .ShowRowLines(true)
+    .WordWrapEnabled(true)
+    .Sorting(s => s.Mode(GridSortingMode.None))
+    .Paging(p => p.PageSize(100))
+    .Pager(p => p.Visible(false))
+    .OnContentReady("gridContentReady")
+    .Columns(columns =>
+    {
+        columns.AddFor(m => m.Date).Caption("Ngày").Width(80).Alignment(HorizontalAlignment.Center).Format("dd/MM/yyyy").CellTemplate(new JS("stockCellTemplate")).GroupIndex(0);
+        columns.AddFor(m => m.Time).Caption("Giờ").Width(46).Alignment(HorizontalAlignment.Center).CellTemplate(new JS("stockCellTemplate"));
+        columns.AddFor(m => m.Description).Caption("Mô tả").Width(110).Alignment(HorizontalAlignment.Left).CellTemplate(new JS("stockCellTemplate"));
+        columns.AddFor(m => m.Lot).Caption("Lô").Width(46).Alignment(HorizontalAlignment.Center).CellTemplate(new JS("stockCellTemplate"));
+        columns.AddFor(m => m.Quantity).Caption("Số lượng").Width(60).Alignment(HorizontalAlignment.Right).Format("#,##0.00").CellTemplate(new JS("stockCellTemplate"));
+        columns.AddFor(m => m.Price).Caption("Giá").Width(64).Alignment(HorizontalAlignment.Right).Format("#,##0").CellTemplate(new JS("stockCellTemplate"));
+        columns.Add().Caption("Tồn kho " + Model.ItemName + " " + Model.Lot).Columns(cols =>
+        {
+            if (useLot)
+            {
+                cols.AddFor(m => m.LotSoh).Caption("SL tồn").Width(55).Alignment(HorizontalAlignment.Right).Format("#,##0.00").CellTemplate(new JS("stockCellTemplate"));
+                cols.AddFor(m => m.LotAve).Caption("Giá TB").Width(64).Alignment(HorizontalAlignment.Right).Format("#,##0").CellTemplate(new JS("stockCellTemplate"));
+                cols.AddFor(m => m.LotValue).Caption("Giá trị").Width(86).Alignment(HorizontalAlignment.Right).Format("#,##0").CellTemplate(new JS("stockCellTemplate"));
+            }
+            else
+            {
+                cols.AddFor(m => m.Soh).Caption("SL").Width(55).Alignment(HorizontalAlignment.Right).Format("#,##0.00").CellTemplate(new JS("stockCellTemplate"));
+                cols.AddFor(m => m.Ave).Caption("Giá TB").Width(64).Alignment(HorizontalAlignment.Right).Format("#,##0").CellTemplate(new JS("stockCellTemplate"));
+                cols.AddFor(m => m.Value).Caption("Giá trị").Width(86).Alignment(HorizontalAlignment.Right).Format("#,##0").CellTemplate(new JS("stockCellTemplate"));
+            }
+        });
+    })
+    .Editing(e => e.AllowUpdating(false))
+    .Paging(p => p.Enabled(true).PageSize(100))
+)
+
+<script>
+    $(function () {
+        $("#gridStock").first().prepend($("#divCaption"));
+    });
+
+    function gridContentReady() {
+        $(".dx-header-row > td").css("text-align", "center");
+    }
+
+    function onCellPrepared(e) {
+        if (e.rowType === 'group' && e.column.command === 'expand') {
+            e.cellElement.css('display', 'none');
+        }
+    }
+
+    function stockCellTemplate(container, options) {
+        let tranType = options.data.Type;
+        let quantityOut = (options.data.Quantity < 0);
+        let cssClass = (quantityOut ? "brown" : "green2");
+        let text = options.text;
+        if (options.column.dataField == "Quantity") {
+            if (options.data.Quantity > 0)
+                text = "+" + options.text;
+        }
+        let html = `<div class='${cssClass}'>${text}</div>`
+        container.html(html);
+    }
+</script>

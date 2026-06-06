@@ -1,0 +1,70 @@
+﻿@page "/receiving"
+@using OcsStore.Models
+@model OcsStore.Pages.ReceivingsModel
+@{
+}
+<style>
+    #gridReceiving .dx-data-row td {
+        color: #006b2d;
+    }
+</style>
+
+<div id="divCaption" class="d-flex align-items-center pb-3">
+    <h5>DANH SÁCH NHẬP KHO</h5>
+    <div id="divButtons" class="text-end ms-auto">
+        @(Html.DevExtreme().Button()
+            .Text("Thêm")
+            .Width(80)
+            .Type(ButtonType.Default)
+            .StylingMode(ButtonStylingMode.Contained)
+            .Icon("add")
+            .OnClick("addNew")
+        )
+    </div>
+</div>
+
+@(
+Html.DevExtreme().DataGrid<ReceivingDetailView>()
+    .ID("gridReceiving")
+    .DataSource(d => d.Mvc().Controller("Receiving").LoadAction("GetReceivings").LoadMethod("POST").Key("Id"))
+    .RemoteOperations(false)
+    .ShowBorders(true)
+    .ShowRowLines(true)
+    .WordWrapEnabled(true)
+    .Sorting(s => s.Mode(GridSortingMode.None))
+    .Paging(p => p.PageSize(100))
+    .Pager(p => p.Visible(false))
+    .OnContentReady("gridContentReady")
+    .Columns(columns =>
+    {
+        columns.AddFor(m => m.Date).Caption("Ngày").Width(90).Alignment(HorizontalAlignment.Center).Format("dd/MM/yyyy").GroupIndex(0);
+        columns.AddFor(m => m.Time).Caption("Giờ").Width(50).Alignment(HorizontalAlignment.Center).GroupIndex(1);
+        columns.AddFor(m => m.ItemName).Caption("Hàng hóa").Width(140).Alignment(HorizontalAlignment.Left);
+        columns.AddFor(m => m.Quantity).Caption("Số lượng").Width(60).Alignment(HorizontalAlignment.Right).Format("#,##0.00");
+        columns.AddFor(m => m.UnitName).Caption("").Width(40).Alignment(HorizontalAlignment.Left);
+        columns.AddFor(m => m.Price).Caption("Giá").Width(70).Alignment(HorizontalAlignment.Right).Format("#,##0");
+        columns.AddFor(m => m.Note).Caption("Ghi chú").Width(140).Alignment(HorizontalAlignment.Left);
+    })
+    .Editing(e => e.AllowUpdating(false))
+    .Paging(p => p.Enabled(true).PageSize(100))
+)
+
+<script>
+    $(function () {
+        $("#gridReceiving").first().prepend($("#divCaption"));
+    });
+
+    function gridContentReady() {
+        $(".dx-header-row > td").css("text-align", "center");
+    }
+
+    function addNew() {
+        location.href = "receiving/new";
+    }
+
+    function onCellPrepared(e) {
+        if (e.rowType === 'group' && e.column.command === 'expand') {
+            e.cellElement.css('display', 'none');
+        }
+    }
+</script>
