@@ -7,6 +7,7 @@ using OcsStore.Models;
 using System.Net;
 using System.Net.Http;
 using System.Net.Mail;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 
@@ -37,7 +38,7 @@ namespace OcsStore.Controllers
             List<BillDetailView> details = new List<BillDetailView>();
             foreach (var stock in stocks)
             {
-                var detail = new BillDetailView() { Item = stock.Item, ItemName = stock.ItemName, Unit = stock.Unit, UnitName = stock.UnitName, Soh = stock.Soh, Ave = stock.Ave, StockUnit = stock.Unit, StockUnitName = stock.UnitName };
+                var detail = new BillDetailView() { Item = stock.Item, ItemName = stock.ItemName, Unit = stock.Unit, UnitName = stock.UnitName, Soh = stock.Soh, Ave = stock.Ave, StockUnit = stock.Unit, StockUnitName = stock.UnitName, Ordinal = 1 };
                 details.Add(detail);
             }
             return Ok(details);
@@ -45,43 +46,94 @@ namespace OcsStore.Controllers
 
 
         [HttpPost]
-        public IActionResult Save(DateTime date, string time, ReceivingDetail[] details)
+        public IActionResult Save(DateTime date, string time, BillDetail[] details, Customer customer, bool debit)
         {
             date = Common.GetLocalDateWithoutTime(date); // Remove hour, minute...
-            int receivingId;
+            DateTime currentDate = DateTime.Today;
+            string currentTime = DateTime.Now.ToString("HH:mm");
+            short currentUser = Session.UserId(Request);
+
+            if (customer.Id <= 0 && !string.IsNullOrEmpty(customer.Name))
+            {
+                try
+                {
+                    customer.Id = (short)(_context.Customers.Max(i => i.Id) + 1);
+                }
+                catch
+                {
+                    customer.Id = 1;
+                }
+                _context.Customers.Add(customer);
+            }
+            else
+            {
+                var existingCustomer = _context.Customers.FirstOrDefault(i => i.Id == customer.Id);
+                if (existingCustomer != null)
+                {
+                    existingCustomer.Name = customer.Name;
+                    existingCustomer.Phone = customer.Phone;
+                    existingCustomer.Address = customer.Address;
+                    existingCustomer.Email = customer.Email;
+                }
+                else
+                {
+                    customer.Id = 0; // Unknown customer
+                }
+                _context.Customers.Update(existingCustomer);
+            }
+
+            int billId;
             try
             {
-                receivingId = _context.Receivings.Max(i => i.Id) + 1;
+                billId = _context.Bills.Max(i => i.Id) + 1;
             }
             catch
             {
-                receivingId = 1;
+                billId = 1;
             }
 
-            var receiving = new Receiving() { Id = receivingId, Date = date, Time = time, User = Session.UserId(Request) };
-            _context.Receivings.Add(receiving);
+            var bill = new Bill() { Id = billId, Date = date, Time = time, DateCreated = currentDate, TimeCreated = currentTime, UserCreated = currentUser, CustomerName = customer.Name, CustomerPhone = customer.Phone, CustomerAddress = customer.Address, CustomerEmail = customer.Email };
+            if (customer.Id > 0)
+            {
+                bill.Customer = customer.Id;
+            }
+
+            if (!debit)
+            {
+                bill.DatePaid = currentDate;
+                bill.TimePaid = currentTime;
+                bill.UserPaid = currentUser;
+            }
+            _context.Bills.Add(bill);
             
             int detailId;
             try
             {
-                detailId = _context.ReceivingDetails.Max(i => i.Id) + 1;
+                detailId = _context.BillDetails.Max(i => i.Id) + 1;
             }
             catch
             {
                 detailId = 1;
             }
 
-            foreach (var detail in details)
+            for (int i = 0; i < details.Length; i++)
             {
-                var receivingDetail = new ReceivingDetail() { Id = detailId++, Receiving = receivingId, Item = detail.Item, Unit = detail.Unit, Quantity = detail.Quantity, Price = detail.Price, Note = detail.Note, Ordinal = detail.Ordinal };
-                _context.ReceivingDetails.AddRange(receivingDetail);
+                var detail = details[i];
+                var billDetail = new BillDetail() { Id = detailId++, Bill = billId, Item = detail.Item, Unit = detail.Unit, Quantity = detail.Quantity, Price = detail.Price, Discount = detail.Discount, Note = detail.Note, Ordinal = i + 1 };
+                _context.BillDetails.AddRange(billDetail);
             }
 
             _context.SaveChanges();
 
-            _context.Database.ExecuteSqlRaw("call calculate_strans_receiving(" + receivingId + ");");
-
             return Ok();
+        }
+
+
+        [HttpPost]
+        public IActionResult GetCustomers(DataSourceLoadOptions loadOptions)
+        {
+            var result = DataSourceLoader.Load(_context.Customers, loadOptions);
+            return Ok(result);
         }
     }
 }

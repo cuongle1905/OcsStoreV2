@@ -47,13 +47,14 @@ namespace OcsStore.Controllers
             List<ProcessingDetailView> details = new List<ProcessingDetailView>();
             foreach (var md in modelDetails)
             {
-                if (!md.IsOutput && md.UseLot)
+                if (!md.IsOutput && md.Soh > 0 && md.UseLot)
                 {
                     var stocks = _context.StockViews.Where(i => i.Store == md.Store && i.Item == md.Item && i.Unit == md.Unit && !string.IsNullOrEmpty(i.Lot) && i.Soh > 0).ToArray();
+
                     foreach (var stock in stocks)
                     {
-                        var detail = new ProcessingDetailView() { Item = md.Item, ItemName = md.ItemName, Unit = md.Unit, UnitName = md.UnitName, Lot = stock.Lot, Year = stock.Year, InOut = md.InOut, IsOutput = md.IsOutput, UseLot = md.UseLot, ItemIsInput = md.ItemIsInput, ItemIsOutput = md.ItemIsOutput, Store = md.Store, Soh = stock.Soh };
-                        details.Add(detail);
+                        var detailByLot = new ProcessingDetailView() { Item = md.Item, ItemName = md.ItemName, Unit = md.Unit, UnitName = md.UnitName, Lot = stock.Lot, Year = stock.Year, InOut = md.InOut, IsOutput = md.IsOutput, UseLot = md.UseLot, ItemIsInput = md.ItemIsInput, ItemIsOutput = md.ItemIsOutput, Store = md.Store, Soh = stock.Soh };
+                        details.Add(detailByLot);
                     }
                 }
                 else
@@ -62,18 +63,6 @@ namespace OcsStore.Controllers
                     details.Add(detail);
                 }
             }
-            return Ok(details);
-        }
-
-        [HttpPost]
-        public IActionResult GetNewDetailsByLot(int model)
-        {
-            var modelDetails = _context.ProcessingModelDetailViews.Where(i => i.Model == model && i.IsOutput == false).ToArray();
-            List<ProcessingDetailView> details = new List<ProcessingDetailView>();
-            foreach (var md in modelDetails)
-            {
-            }
-
             return Ok(details);
         }
 

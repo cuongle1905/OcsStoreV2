@@ -13,5 +13,7 @@ public partial class ProcessingModel
 
     public short Ordinal { get; set; }
 
+    public string Description { get; set; }
+
     public virtual ICollection<Processing> Processings { get; set; } = new List<Processing>();
 }

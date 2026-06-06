@@ -9,6 +9,8 @@ public partial class BillDetail
 
     public int Bill { get; set; }
 
+    public short Store { get; set; }
+
     public int Item { get; set; }
 
     public short Unit { get; set; }
@@ -17,5 +19,9 @@ public partial class BillDetail
 
     public decimal Price { get; set; }
 
+    public decimal Discount { get; set; }
+
     public string Note { get; set; }
+
+    public int Ordinal { get; set; }
 }

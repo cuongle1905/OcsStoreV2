@@ -10,6 +10,13 @@
     #timeBox {
         margin-left: 0.5rem;
     }
+    .field-title {
+        width: 7rem;
+    }
+    #check-box-debit {
+        margin-left: auto;
+        margin-right: 1rem;
+    }
 </style>
 <div class="d-flex align-items-center mb-3">
     <a class="back-arrow" href="/sales"><i class="dx-icon-arrowleft"></i></a>
@@ -49,13 +56,13 @@ Html.DevExtreme().DataGrid<BillDetailView>()
     .OnContentReady("gridContentReady")
     .Columns(columns =>
     {
-        columns.AddFor(m => m.ItemName).Caption("Hàng hóa").Width(110).Alignment(HorizontalAlignment.Left).AllowEditing(false);
-        columns.AddFor(m => m.Quantity).Caption("Số lượng").Width(60).Alignment(HorizontalAlignment.Right).SetCellValue("calculateRowTotal")
+        columns.AddFor(m => m.ItemName).Caption("Hàng hóa").Width(90).Alignment(HorizontalAlignment.Left).FixedPosition(HorizontalEdge.Left).Fixed(true).AllowEditing(false);
+        columns.AddFor(m => m.Quantity).Caption("Số lượng").Width(55).Alignment(HorizontalAlignment.Right).SetCellValue("calculateRowTotal")
             .DataType(GridColumnDataType.Number) // Tells the grid to use dxNumberBox
             .Format("#,##0.00") // How the number displays outside of edit mode
             .EditorOptions(new { format = "#,##0.00", min = 0, max = 10000, step = 1, showSpinButtons = false });
 
-        columns.AddFor(m => m.Unit).Caption("Đơn vị").Width(100).Alignment(HorizontalAlignment.Left)
+        columns.AddFor(m => m.Unit).Caption("Đơn vị").Width(70).Alignment(HorizontalAlignment.Left)
             .Lookup(lookup => lookup
                 .DataSource(ds => ds.Mvc().Controller("Item").LoadAction("GetUnits").LoadMethod("POST").Key("Id"))
                 .ValueExpr("Id")
@@ -64,12 +71,17 @@ Html.DevExtreme().DataGrid<BillDetailView>()
             )
             .EditorOptions(new { acceptCustomValue = false, searchEnabled = false });
             
-        columns.AddFor(m => m.Price).Caption("Giá").Width(80).Alignment(HorizontalAlignment.Right).SetCellValue("calculateRowTotal")
+        columns.AddFor(m => m.Price).Caption("Giá").Width(70).Alignment(HorizontalAlignment.Right).SetCellValue("calculateRowTotal")
             .DataType(GridColumnDataType.Number) // Tells the grid to use dxNumberBox
             .Format("#,##0") // How the number displays outside of edit mode
             .EditorOptions(new { format = "#,##0", min = 0, max = 10000000, step = 1000, showSpinButtons = false });
 
-        columns.AddFor(m => m.Value).Caption("Thành tiền").Width(80).Alignment(HorizontalAlignment.Right).Format("#,##0").AllowEditing(false);
+        columns.AddFor(m => m.Discount).Caption("G.Giá").Width(50).Alignment(HorizontalAlignment.Right).SetCellValue("calculateRowTotal")
+            .DataType(GridColumnDataType.Number) // Tells the grid to use dxNumberBox
+            .Format("#,##0") // How the number displays outside of edit mode
+            .EditorOptions(new { format = "#,##0", min = 0, max = 10000000, step = 1000, showSpinButtons = false });
+
+        columns.AddFor(m => m.Value).Caption("Thành tiền").Width(75).Alignment(HorizontalAlignment.Right).Format("#,##0").AllowEditing(false);
 
         columns.Add().Caption("Tồn kho").CssClass("blue").Columns(cols =>
         {
@@ -92,8 +104,73 @@ Html.DevExtreme().DataGrid<BillDetailView>()
     )
 )
 
-<div id="divButtons" class="pt-3 text-end">
-    <div id="divTotalAmount">Tổng tiền: 0</div>
+<div id="divCustomer" class="pt-4">
+    <div class="d-flex align-items-baseline">
+        <div class="field-title bold">Khách hàng:</div>
+        @(Html.DevExtreme().SelectBox()
+            .Width(260).Height(28)
+            .ID("select-customer")
+            .InputAttr("aria-label", "Customer")
+            .DataSource(d => d
+                .Mvc().Controller("Sales")
+                .LoadAction("GetCustomers").LoadMethod("POST")
+                .LoadMode(DataSourceLoadMode.Raw)
+                .Key("Id")
+            )
+            .DisplayExpr("Name")
+            .ValueExpr("Id")
+            .Placeholder("Chọn khách hàng cũ")
+            .SearchEnabled(true)
+            .DropDownOptions(options => options.Width(300))
+            .OnValueChanged("customerSelectionChanged")
+            .ItemTemplate(@<text>
+                <div class="d-flex align-items-baseline">
+                    <div class="customer-name"><%- Name %></div>
+                    <div class="customer-phone ms-auto"><%- Phone %></div>
+                </div>
+            </text>)
+        )
+    </div>
+    <div class="d-flex align-items-baseline mt-3">
+        <div class="field-title">Tên KH:</div>
+        @(Html.DevExtreme().TextBox()
+            .Width(260).Height(28)
+            .ID("customer-name")
+            .ShowClearButton(true)
+        )
+    </div>
+    <div class="d-flex align-items-baseline mt-3">
+        <div class="field-title">Điện thoại:</div>
+        @(Html.DevExtreme().TextBox()
+            .Width(260).Height(28)
+            .ID("customer-phone")
+            .ShowClearButton(true)
+        )
+    </div>
+    <div class="d-flex align-items-baseline mt-3">
+        <div class="field-title">Địa chỉ:</div>
+        @(Html.DevExtreme().TextBox()
+            .Width(260).Height(28)
+            .ID("customer-address")
+            .ShowClearButton(true)
+        )
+    </div>
+    <div class="d-flex align-items-baseline mt-3">
+        <div class="field-title">Email:</div>
+        @(Html.DevExtreme().TextBox()
+            .Width(260).Height(28)
+            .ID("customer-email")
+            .ShowClearButton(true)
+        )
+    </div>
+</div>
+
+
+<div id="divButtons" class="pt-3 text-end d-flex align-items-center">
+    @(Html.DevExtreme().CheckBox()
+        .ID("check-box-debit")
+        .Text("Ghi nợ")
+    )
     @(Html.DevExtreme().Button()
         .Text("Lưu")
         .Width(80)
@@ -106,6 +183,7 @@ Html.DevExtreme().DataGrid<BillDetailView>()
 
 <script>
     $(function () {
+        $("#gridBill").first().append($("#divCustomer"));
         $("#gridBill").first().append($("#divButtons"));
     });
 
@@ -121,9 +199,18 @@ Html.DevExtreme().DataGrid<BillDetailView>()
         // 2. Derive dependent values
         var quantity = newData.Quantity !== undefined ? newData.Quantity : currentRowData.Quantity;
         var price = newData.Price !== undefined ? newData.Price : currentRowData.Price;
+        var discount = newData.Discount !== undefined ? newData.Discount : currentRowData.Discount;
 
         // 3. Set the calculated field
-        newData.Value = quantity * price;
+        newData.Value = quantity * (price - discount);
+    }
+    
+    function customerSelectionChanged(e) {
+        var customer = e.component.option("selectedItem");
+        $("#customer-name").dxTextBox("instance").option("value", customer != null ? customer.Name : "");
+        $("#customer-phone").dxTextBox("instance").option("value", customer != null ? customer.Phone : "");
+        $("#customer-address").dxTextBox("instance").option("value", customer != null ? customer.Address : "");
+        $("#customer-email").dxTextBox("instance").option("value", customer != null ? customer.Email : "");
     }
 
     function save() {
@@ -133,16 +220,35 @@ Html.DevExtreme().DataGrid<BillDetailView>()
         let rows = grid.getVisibleRows();
         for (const row of rows) {
             if (row.rowType == "data" && row.data.Quantity > 0) {
-                // console.log(row.data); // The raw data object for this row
+                if (row.data.Price <= 0) {
+                    DevExpress.ui.dialog.alert(`Hãy nhập vào Giá cho sản phẩm '${row.data.ItemName}'.`, "Cảnh báo");
+                    return;
+                }
                 details.push(row.data);
             }
         }
-        console.log(details);
+        // console.log(details);
 
         if (details.length == 0) {
-            DevExpress.ui.dialog.alert("Hãy nhập vào chi tiết.", "Cảnh báo");
+            DevExpress.ui.dialog.alert("Hãy nhập vào chi tiết bán hàng.", "Cảnh báo");
             return;
         }
+
+        let debit = $("#check-box-debit").dxCheckBox("instance").option("value");
+        let customer = {};
+        customer.Id = $("#select-customer").dxSelectBox("instance").option("value");
+        if (customer.Id == null)
+            customer.Id = 0;
+
+        customer.Name = $("#customer-name").dxTextBox("instance").option("value");
+        customer.Phone = $("#customer-phone").dxTextBox("instance").option("value");
+        customer.Address = $("#customer-address").dxTextBox("instance").option("value");
+        customer.Email = $("#customer-email").dxTextBox("instance").option("value");
+        if (debit && (customer.Name == null || customer.Name.length == 0)) { // || customer.Phone == null || customer.Phone.length == 0
+            DevExpress.ui.dialog.alert("Hãy nhập vào thông tin khách hàng cần Ghi nợ.", "Cảnh báo");
+            return;
+        }
+
 
         DevExpress.ui.dialog.confirm("<i>Bạn có chắc chắn lưu thông tin?</i>", "Xác nhận").then(function(dialogResult) {
             if (dialogResult) {
@@ -152,7 +258,7 @@ Html.DevExtreme().DataGrid<BillDetailView>()
                 $.ajax({
                     url: '@Url.Action("Save", "Sales")',
                     method: "POST",
-                    data: { date: date, time: time, details: details },
+                    data: { date: date, time: time, details: details, customer: customer, debit: debit },
                     success: function (result) {
                         DevExpress.ui.dialog.alert("Đã lưu dữ liệu.", "Thông báo").then(function(dialogResult) {
                             location.href = "/sales";

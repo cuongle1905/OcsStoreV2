@@ -62,6 +62,7 @@
         .ValueExpr("Id")
         .OnValueChanged("modelValueChanged")
     )
+    <span id="model-description" class="ms-2"></span>
 </div>
 @(
 Html.DevExtreme().DataGrid<ProcessingDetailView>()
@@ -138,6 +139,11 @@ Html.DevExtreme().DataGrid<ProcessingDetailView>()
 
     function modelValueChanged(e) {
         processingModel = e.value;
+
+        var model = e.component.option("selectedItem");
+        console.log(model);
+        $("#model-description").text(model.Description);
+
         $("#gridProcessing").dxDataGrid("instance").refresh();
     }
 
@@ -163,7 +169,7 @@ Html.DevExtreme().DataGrid<ProcessingDetailView>()
         for (const row of rows) {
             if (row.rowType == "data" && row.data.Quantity > 0) {
                 if (!row.data.IsOutput && row.data.Quantity > row.data.Soh) {
-                    DevExpress.ui.dialog.alert(`[${row.data.ItemName + ' ' + row.data.Lot}] Số lượng ${row.data.Quantity} vượt quá tồn kho ${row.data.Soh}.`, "Cảnh báo");
+                    DevExpress.ui.dialog.alert(`[${row.data.ItemName + (row.data.Lot.length > 0 ? ' ' + row.data.Lot : '')}] Số lượng ${row.data.Quantity} vượt quá tồn kho ${row.data.Soh}.`, "Cảnh báo");
                     return;
                 }
                 details.push(row.data);

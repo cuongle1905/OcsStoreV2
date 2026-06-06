@@ -105,10 +105,8 @@ public partial class MyDbContext : DbContext
                 .UseCollation("utf8mb3_general_ci")
                 .HasCharSet("utf8mb3");
             entity.Property(e => e.CustomerPhone)
-                .HasMaxLength(50)
-                .HasColumnName("customer_phone")
-                .UseCollation("utf8mb3_general_ci")
-                .HasCharSet("utf8mb3");
+                .HasMaxLength(15)
+                .HasColumnName("customer_phone");
             entity.Property(e => e.Date)
                 .HasColumnType("datetime")
                 .HasColumnName("date");
@@ -173,12 +171,18 @@ public partial class MyDbContext : DbContext
                 .ValueGeneratedNever()
                 .HasColumnName("id");
             entity.Property(e => e.Bill).HasColumnName("bill");
+            entity.Property(e => e.Discount)
+                .HasPrecision(10, 2)
+                .HasColumnName("discount");
             entity.Property(e => e.Item).HasColumnName("item");
             entity.Property(e => e.Note)
                 .HasMaxLength(100)
                 .HasColumnName("note")
                 .UseCollation("utf8mb3_general_ci")
                 .HasCharSet("utf8mb3");
+            entity.Property(e => e.Ordinal)
+                .HasDefaultValueSql("'1'")
+                .HasColumnName("ordinal");
             entity.Property(e => e.Price)
                 .HasPrecision(10, 2)
                 .HasColumnName("price");
@@ -186,6 +190,9 @@ public partial class MyDbContext : DbContext
                 .HasPrecision(10, 2)
                 .HasDefaultValueSql("'1.00'")
                 .HasColumnName("quantity");
+            entity.Property(e => e.Store)
+                .HasDefaultValueSql("'1'")
+                .HasColumnName("store");
             entity.Property(e => e.Unit)
                 .HasDefaultValueSql("'1'")
                 .HasColumnName("unit");
@@ -201,6 +208,9 @@ public partial class MyDbContext : DbContext
                 .HasPrecision(10, 2)
                 .HasColumnName("ave");
             entity.Property(e => e.Bill).HasColumnName("bill");
+            entity.Property(e => e.Discount)
+                .HasPrecision(10, 2)
+                .HasColumnName("discount");
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.Item).HasColumnName("item");
             entity.Property(e => e.ItemName)
@@ -214,6 +224,9 @@ public partial class MyDbContext : DbContext
                 .HasColumnName("note")
                 .UseCollation("utf8mb3_general_ci")
                 .HasCharSet("utf8mb3");
+            entity.Property(e => e.Ordinal)
+                .HasDefaultValueSql("'1'")
+                .HasColumnName("ordinal");
             entity.Property(e => e.Price)
                 .HasPrecision(10, 2)
                 .HasColumnName("price");
@@ -242,7 +255,7 @@ public partial class MyDbContext : DbContext
                 .UseCollation("utf8mb3_general_ci")
                 .HasCharSet("utf8mb3");
             entity.Property(e => e.Value)
-                .HasPrecision(20, 4)
+                .HasPrecision(21, 4)
                 .HasColumnName("value");
         });
 
@@ -271,10 +284,8 @@ public partial class MyDbContext : DbContext
                 .UseCollation("utf8mb3_general_ci")
                 .HasCharSet("utf8mb3");
             entity.Property(e => e.CustomerPhone)
-                .HasMaxLength(50)
-                .HasColumnName("customer_phone")
-                .UseCollation("utf8mb3_general_ci")
-                .HasCharSet("utf8mb3");
+                .HasMaxLength(15)
+                .HasColumnName("customer_phone");
             entity.Property(e => e.Date)
                 .HasColumnType("datetime")
                 .HasColumnName("date");
@@ -347,10 +358,8 @@ public partial class MyDbContext : DbContext
                 .UseCollation("utf8mb3_general_ci")
                 .HasCharSet("utf8mb3");
             entity.Property(e => e.Phone)
-                .HasMaxLength(50)
-                .HasColumnName("phone")
-                .UseCollation("utf8mb3_general_ci")
-                .HasCharSet("utf8mb3");
+                .HasMaxLength(15)
+                .HasColumnName("phone");
         });
 
         modelBuilder.Entity<Item>(entity =>
@@ -698,6 +707,13 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.Id)
                 .ValueGeneratedNever()
                 .HasColumnName("id");
+            entity.Property(e => e.Description)
+                .IsRequired()
+                .HasMaxLength(100)
+                .HasDefaultValueSql("''")
+                .HasColumnName("description")
+                .UseCollation("utf8mb3_general_ci")
+                .HasCharSet("utf8mb3");
             entity.Property(e => e.Name)
                 .IsRequired()
                 .HasMaxLength(50)

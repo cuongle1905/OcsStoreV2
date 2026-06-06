@@ -17,9 +17,13 @@ public partial class BillDetailView
 
     public decimal Price { get; set; }
 
+    public decimal Discount { get; set; }
+
     public decimal Value { get; set; }
 
     public string Note { get; set; }
+
+    public int Ordinal { get; set; }
 
     public string ItemName { get; set; }
 

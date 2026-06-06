@@ -33,5 +33,5 @@ public partial class ProcessingModelDetailView
 
     public string InOut { get; set; }
 
-    public decimal? Soh { get; set; }
+    public decimal Soh { get; set; }
 }
