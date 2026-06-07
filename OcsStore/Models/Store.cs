@@ -9,6 +9,8 @@ public partial class Store
 
     public string Name { get; set; }
 
+    public virtual ICollection<Bill> Bills { get; set; } = new List<Bill>();
+
     public virtual ICollection<LastStoreTransaction> LastStoreTransactions { get; set; } = new List<LastStoreTransaction>();
 
     public virtual ICollection<Receiving> Receivings { get; set; } = new List<Receiving>();

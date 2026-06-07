@@ -7,6 +7,8 @@ public partial class BillView
 {
     public int Id { get; set; }
 
+    public short Store { get; set; }
+
     public DateTime Date { get; set; }
 
     public string Time { get; set; }
@@ -42,4 +44,8 @@ public partial class BillView
     public string TimeModified { get; set; }
 
     public short? UserModified { get; set; }
+
+    public bool? Paid { get; set; }
+
+    public bool Deleted { get; set; }
 }

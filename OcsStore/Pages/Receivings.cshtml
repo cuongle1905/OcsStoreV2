@@ -39,14 +39,24 @@ Html.DevExtreme().DataGrid<ReceivingDetailView>()
     {
         columns.AddFor(m => m.Date).Caption("Ngày").Width(90).Alignment(HorizontalAlignment.Center).Format("dd/MM/yyyy").GroupIndex(0);
         columns.AddFor(m => m.Time).Caption("Giờ").Width(50).Alignment(HorizontalAlignment.Center).GroupIndex(1);
-        columns.AddFor(m => m.ItemName).Caption("Hàng hóa").Width(140).Alignment(HorizontalAlignment.Left);
+        columns.AddFor(m => m.ItemName).Caption("Hàng hóa").Width(110).Alignment(HorizontalAlignment.Left);
         columns.AddFor(m => m.Quantity).Caption("Số lượng").Width(60).Alignment(HorizontalAlignment.Right).Format("#,##0.00");
         columns.AddFor(m => m.UnitName).Caption("").Width(40).Alignment(HorizontalAlignment.Left);
         columns.AddFor(m => m.Price).Caption("Giá").Width(70).Alignment(HorizontalAlignment.Right).Format("#,##0");
         columns.AddFor(m => m.Note).Caption("Ghi chú").Width(140).Alignment(HorizontalAlignment.Left);
+        columns.AddFor(m => m.Value).Caption("Thành tiền").Width(90).Alignment(HorizontalAlignment.Right).Fixed(true).FixedPosition(HorizontalEdge.Right).Format("#,##0");
     })
     .Editing(e => e.AllowUpdating(false))
     .Paging(p => p.Enabled(true).PageSize(100))
+    .Summary(s => s
+        .TotalItems(items =>
+        {
+            items.AddFor(m => m.Value)
+                 .SummaryType(SummaryType.Sum)
+                 .DisplayFormat("{0}")
+                 .ValueFormat("#,##0");
+        })
+    )
 )
 
 <script>

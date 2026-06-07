@@ -31,6 +31,13 @@ namespace OcsStore.Controllers
         }
 
         [HttpPost]
+        public IActionResult GetCustomerViews(DataSourceLoadOptions loadOptions)
+        {
+            var result = DataSourceLoader.Load(_context.CustomerViews, loadOptions);
+            return Ok(result);
+        }
+
+        [HttpPost]
         public IActionResult GetNewBillDetails()
         {
             var stocks = _context.StockViews.Where(i => i.ItemIsOutput == true && i.Soh > 0).ToArray();
@@ -39,6 +46,11 @@ namespace OcsStore.Controllers
             foreach (var stock in stocks)
             {
                 var detail = new BillDetailView() { Item = stock.Item, ItemName = stock.ItemName, Unit = stock.Unit, UnitName = stock.UnitName, Soh = stock.Soh, Ave = stock.Ave, StockUnit = stock.Unit, StockUnitName = stock.UnitName, Ordinal = 1 };
+
+                var lastBillPrice = _context.BillDetailViews.Where(i => i.Item == stock.Item && i.Unit == stock.Unit).OrderByDescending(j => j.Date).OrderByDescending(k => k.Time).OrderByDescending(l => l.Id).FirstOrDefault();
+                if (lastBillPrice != null)
+                    detail.Price = lastBillPrice.Price;
+
                 details.Add(detail);
             }
             return Ok(details);
@@ -92,7 +104,9 @@ namespace OcsStore.Controllers
                 billId = 1;
             }
 
-            var bill = new Bill() { Id = billId, Date = date, Time = time, DateCreated = currentDate, TimeCreated = currentTime, UserCreated = currentUser, CustomerName = customer.Name, CustomerPhone = customer.Phone, CustomerAddress = customer.Address, CustomerEmail = customer.Email };
+            var billTotal = details.Sum(i => i.Quantity * (i.Price - i.Discount));
+
+            var bill = new Bill() { Id = billId, Date = date, Time = time, DateCreated = currentDate, TimeCreated = currentTime, UserCreated = currentUser, CustomerName = customer.Name, CustomerPhone = customer.Phone, CustomerAddress = customer.Address, CustomerEmail = customer.Email, Paid = !debit, TotalValue = billTotal };
             if (customer.Id > 0)
             {
                 bill.Customer = customer.Id;
@@ -124,6 +138,8 @@ namespace OcsStore.Controllers
             }
 
             _context.SaveChanges();
+
+            _context.Database.ExecuteSqlRaw("call calculate_strans_bill(" + billId + ");");
 
             return Ok();
         }

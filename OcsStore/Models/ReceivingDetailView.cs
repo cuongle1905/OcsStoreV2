@@ -28,4 +28,6 @@ public partial class ReceivingDetailView
     public int Ordinal { get; set; }
 
     public string Note { get; set; }
+
+    public decimal Value { get; set; }
 }

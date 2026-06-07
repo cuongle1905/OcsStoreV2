@@ -23,6 +23,8 @@ public partial class StockView
 
     public decimal? Ave { get; set; }
 
+    public decimal? NoSlotValue { get; set; }
+
     public long Ordinal { get; set; }
 
     public DateTime Date { get; set; }

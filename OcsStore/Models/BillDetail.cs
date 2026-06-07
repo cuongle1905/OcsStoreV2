@@ -9,8 +9,6 @@ public partial class BillDetail
 
     public int Bill { get; set; }
 
-    public short Store { get; set; }
-
     public int Item { get; set; }
 
     public short Unit { get; set; }

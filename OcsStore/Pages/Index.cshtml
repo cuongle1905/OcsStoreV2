@@ -19,6 +19,24 @@
     .flex-direction-column {
         flex-direction: column !important;
     }
+    .widget {
+        border-top: solid 4px #333;
+        border-left: solid 1px #ccc;
+        border-right: solid 1px #ccc;
+        border-bottom: solid 1px #ccc;
+        border-radius: 4px;
+        margin: 0.5rem;
+        padding: 1rem;
+        text-align: center;
+    }
+    .widget-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+    }
+    .widget-value {
+        font-size: 1.6rem;
+        font-weight: 600;
+    }
 </style>
 
 <script>
@@ -43,9 +61,9 @@
     }
 </script>
 
-<div id="content" style="width: 21rem;">
-    @if (string.IsNullOrEmpty(Session.Token(Request)))
-    {
+@if (string.IsNullOrEmpty(Session.Token(Request)))
+{
+    <div id="content" style="width: 21rem;">
         <div id="login-container">
             <div id="form-container" style="text-align:center;">
                 <img class="login-icon" src="~/images/login-icon2.png" style="width: 100px;" />
@@ -101,8 +119,51 @@
                 )
             </div>
         </div>
-    }
-</div>
+    </div>
+}
+else
+{
+    <div class="container">
+        <div class="row">
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="widget" style="border-top: solid 4px #010125;">
+                    <div class="widget-title">TỔNG DOANH THU</div>
+                    <div class="widget-value">@(Model.BillTotal.ToString("N0") + " đ")</div>
+                </div>
+            </div>
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="widget" style="border-top: solid 4px #006b2d;">
+                    <div class="widget-title">GIÁ TRỊ NHÂN XANH</div>
+                    <div class="widget-value">@(Model.RecevingItemTotalValue.ToString("N0") + " đ")</div>
+                </div>
+            </div>
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="widget" style="border-top: solid 4px #994c00;">
+                    <div class="widget-title">GIÁ TRỊ RANG</div>
+                    <div class="widget-value">@(Model.ProcessingItemTotalValue.ToString("N0") + " đ")</div>
+                </div>
+            </div>
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="widget" style="border-top: solid 4px #a51030;">
+                    <div class="widget-title">CÔNG NỢ KHÁCH HÀNG</div>
+                    <div class="widget-value">@(Model.CustomerDebtTotal.ToString("N0") + " đ")</div>
+                </div>
+            </div>
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="widget" style="border-top: solid 4px #006b2d;">
+                    <div class="widget-title">TỔNG CHI</div>
+                    <div class="widget-value">@(Model.RecevingTotalValue.ToString("N0") + " đ")</div>
+                </div>
+            </div>
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="widget" style="border-top: solid 4px #010125;">
+                    <div class="widget-title">LỢI NHUẬN RÒNG</div>
+                    <div class="widget-value">@(Model.TotalProfit.ToString("N0") + " đ")</div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
 
 <script>
     let isShowingPassword = false;
@@ -141,8 +202,8 @@
             method: "POST",
             data: formData,
             success: function (result) {
-                location.href = "/sales";
-                // location.reload()
+                // location.href = "/customer";
+                location.reload()
             },
             error: function (xhr, status, error) {
                 console.log("xhr", xhr, "status", status, "error", error);

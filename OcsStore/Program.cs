@@ -25,6 +25,7 @@ builder.Services.AddHttpClient();
 
 builder.Services.AddTransient<ItemController>();
 builder.Services.AddTransient<ProcessingController>();
+builder.Services.AddTransient<ReportController>();
 
 builder.Services.AddSession(options =>
 {

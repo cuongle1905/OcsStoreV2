@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace OcsStore.Models;
 
-public partial class Customer
+public partial class CustomerView
 {
     public short Id { get; set; }
 
@@ -17,5 +17,5 @@ public partial class Customer
 
     public string Note { get; set; }
 
-    public virtual ICollection<Bill> Bills { get; set; } = new List<Bill>();
+    public decimal? Debt { get; set; }
 }

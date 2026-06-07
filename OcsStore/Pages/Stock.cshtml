@@ -55,6 +55,17 @@ Html.DevExtreme().DataGrid<StockView>()
     })
     .Editing(e => e.AllowUpdating(false))
     .Paging(p => p.Enabled(true).PageSize(100))
+    .Summary(s => s
+        .CalculateCustomSummary("calculateCustomSummary")
+        .TotalItems(items =>
+        {
+            items.Add().ShowInColumn("Value")
+                .Name("ValueSummary")
+                .SummaryType(SummaryType.Custom)
+                .DisplayFormat("{0}")
+                .ValueFormat("#,##0");
+        })
+    )
 )
 
 <script>
@@ -96,11 +107,20 @@ Html.DevExtreme().DataGrid<StockView>()
         container.html(html);
     }
 
-    // function stockLinkCellTemplate(container, options) {
-    //     let itemIsInput = options.data.ItemIsInput;
-    //     let itemIsOutput = options.data.ItemIsOutput;
-    //     let cssClass = (itemIsInput ? "green2" : (itemIsOutput ? "dark-blue" : "brown"));
-    //     let html = `<a class='stock-link' href='/stockcard?item=${options.data.Item}&lot=${options.data.Lot}&year=${options.data.Year}'><i class='dx-icon-find ${cssClass}'></i></a>`;
-    //     container.html(html);
-    // }
+    function calculateCustomSummary(options) {
+        console.log(options);
+        if (options.name === "ValueSummary") {
+            if (options.summaryProcess === "start") {
+                options.totalValue = 0;
+            }
+            if (options.summaryProcess === "calculate") {
+                if (options.value.Lot == "") {
+                    options.totalValue += options.value.Value;
+                }
+            }
+            if (options.summaryProcess === "finalize") {
+                //
+            }
+        }
+    }
 </script>

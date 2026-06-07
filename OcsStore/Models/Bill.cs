@@ -7,6 +7,8 @@ public partial class Bill
 {
     public int Id { get; set; }
 
+    public short Store { get; set; }
+
     public DateTime Date { get; set; }
 
     public string Time { get; set; }
@@ -24,6 +26,8 @@ public partial class Bill
     public string Note { get; set; }
 
     public decimal TotalValue { get; set; }
+
+    public bool? Paid { get; set; }
 
     public DateTime? DatePaid { get; set; }
 
@@ -43,7 +47,13 @@ public partial class Bill
 
     public short? UserModified { get; set; }
 
+    public bool Deleted { get; set; }
+
     public virtual Customer CustomerNavigation { get; set; }
+
+    public virtual Store StoreNavigation { get; set; }
+
+    public virtual User UserCreatedNavigation { get; set; }
 
     public virtual User UserModifiedNavigation { get; set; }
 }

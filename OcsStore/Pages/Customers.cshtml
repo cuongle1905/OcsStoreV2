@@ -1,17 +1,17 @@
-﻿@page "/sales"
+﻿@page "/customer"
 @using OcsStore.Models
-@model OcsStore.Pages.SalesModel
+@model OcsStore.Pages.CustomersModel
 @{
 }
 <style>
 </style>
 
 <div id="divCaption" class="d-flex align-items-center pb-3">
-    <h5>BÁN HÀNG</h5>
+    <h5>KHÁCH HÀNG</h5>
     <div id="divButtons" class="text-end ms-auto">
         @(Html.DevExtreme().Button()
-            .Text("Tạo Bill")
-            .Width(90)
+            .Text("Thêm KH mới")
+            .Width(120)
             .Type(ButtonType.Default)
             .StylingMode(ButtonStylingMode.Contained)
             .Icon("add")
@@ -21,9 +21,9 @@
 </div>
 
 @(
-Html.DevExtreme().DataGrid<BillView>()
-    .ID("gridSales")
-    .DataSource(d => d.Mvc().Controller("Sales").LoadAction("GetBills").LoadMethod("POST").Key("Id"))
+Html.DevExtreme().DataGrid<CustomerView>()
+    .ID("gridCustomers")
+    .DataSource(d => d.Mvc().Controller("Sales").LoadAction("GetCustomerViews").LoadMethod("POST").Key("Id"))
     .RemoteOperations(false)
     .ShowBorders(true)
     .ShowRowLines(true)
@@ -34,21 +34,20 @@ Html.DevExtreme().DataGrid<BillView>()
     .OnContentReady("gridContentReady")
     .Columns(columns =>
     {
-        columns.AddFor(m => m.Date).Caption("Ngày").Width(90).Alignment(HorizontalAlignment.Center).Format("dd/MM/yyyy").GroupIndex(0);
         columns.AddFor(m => m.Id).Caption("#").Width(40).Alignment(HorizontalAlignment.Center);
-        columns.AddFor(m => m.Time).Caption("Giờ").Width(50).Alignment(HorizontalAlignment.Center);
-        columns.AddFor(m => m.CustomerName).Caption("Khách hàng").Width(100).Alignment(HorizontalAlignment.Left);
-        columns.AddFor(m => m.CustomerPhone).Caption("Điện thoại").Width(100).Alignment(HorizontalAlignment.Left);
+        columns.AddFor(m => m.Name).Caption("Khách hàng").Width(100).Alignment(HorizontalAlignment.Left);
+        columns.AddFor(m => m.Phone).Caption("Điện thoại").Width(100).Alignment(HorizontalAlignment.Left);
+        columns.AddFor(m => m.Address).Caption("Địa chỉ").Width(150).Alignment(HorizontalAlignment.Left);
+        columns.AddFor(m => m.Email).Caption("Email").Width(140).Alignment(HorizontalAlignment.Left);
         columns.AddFor(m => m.Note).Caption("Ghi chú").Width(140).Alignment(HorizontalAlignment.Left);
-        columns.AddFor(m => m.Paid).Caption("Đã thanh toán").Width(60).Alignment(HorizontalAlignment.Center).Fixed(true).FixedPosition(HorizontalEdge.Right);
-        columns.AddFor(m => m.TotalValue).Caption("Tổng tiền").Width(90).Alignment(HorizontalAlignment.Right).Fixed(true).FixedPosition(HorizontalEdge.Right).Format("#,##0");
+        columns.AddFor(m => m.Debt).Caption("Công nợ").Width(90).Alignment(HorizontalAlignment.Right).Fixed(true).FixedPosition(HorizontalEdge.Right).Format("#,##0");
     })
     .Editing(e => e.AllowUpdating(false))
     .Paging(p => p.Enabled(true).PageSize(100))
     .Summary(s => s
         .TotalItems(items =>
         {
-            items.AddFor(m => m.TotalValue)
+            items.AddFor(m => m.Debt)
                  .SummaryType(SummaryType.Sum)
                  .DisplayFormat("{0}")
                  .ValueFormat("#,##0");
@@ -58,7 +57,7 @@ Html.DevExtreme().DataGrid<BillView>()
 
 <script>
     $(function () {
-        $("#gridSales").first().prepend($("#divCaption"));
+        $("#gridCustomers").first().prepend($("#divCaption"));
     });
 
     function gridContentReady() {
@@ -66,7 +65,7 @@ Html.DevExtreme().DataGrid<BillView>()
     }
 
     function addNew() {
-        location.href = "sales/new";
+        location.href = "customer/new";
     }
 
     function onCellPrepared(e) {
