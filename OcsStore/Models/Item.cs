@@ -25,11 +25,17 @@ public partial class Item
 
     public bool UseLot { get; set; }
 
+    public decimal MinSoh { get; set; }
+
+    public virtual ICollection<ItemMaterial> ItemMaterialItemNavigations { get; set; } = new List<ItemMaterial>();
+
+    public virtual ICollection<ItemMaterial> ItemMaterialMaterialNavigations { get; set; } = new List<ItemMaterial>();
+
     public virtual ICollection<LastStoreTransaction> LastStoreTransactions { get; set; } = new List<LastStoreTransaction>();
 
-    public virtual ICollection<ProcessingDetail> ProcessingDetails { get; set; } = new List<ProcessingDetail>();
+    public virtual ICollection<ProcessingInput> ProcessingInputs { get; set; } = new List<ProcessingInput>();
 
-    public virtual ICollection<ProcessingModelDetail> ProcessingModelDetails { get; set; } = new List<ProcessingModelDetail>();
+    public virtual ICollection<Processing> Processings { get; set; } = new List<Processing>();
 
     public virtual ICollection<ReceivingDetail> ReceivingDetails { get; set; } = new List<ReceivingDetail>();
 

@@ -40,7 +40,7 @@ namespace OcsStore.Controllers
         [HttpPost]
         public IActionResult GetNewBillDetails()
         {
-            var stocks = _context.StockViews.Where(i => i.ItemIsOutput == true && i.Soh > 0).ToArray();
+            var stocks = _context.StockViews.Where(i => i.Soh > 0).ToArray();
 
             List<BillDetailView> details = new List<BillDetailView>();
             foreach (var stock in stocks)

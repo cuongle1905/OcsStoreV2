@@ -26,42 +26,38 @@ namespace OcsStore.Controllers
         [HttpPost]
         public IActionResult GetProcessings(int type, DataSourceLoadOptions loadOptions)
         {
-            var result = DataSourceLoader.Load(_context.ProcessingDetailViews.Where(i => i.Type == type), loadOptions);
+            var result = DataSourceLoader.Load(_context.ProcessingViews, loadOptions);
             return Ok(result);
         }
 
-        public ProcessingType GetProcessingType(int typeId)
+        public string GetProcessingName(short typeId)
         {
-            return _context.ProcessingTypes.FirstOrDefault(i => i.Id == typeId);
-        }
-
-        public ProcessingModel[] GetModels(int typeId)
-        {
-            return _context.ProcessingModels.Where(i => i.Type == typeId).ToArray();
+            return _context.ItemGroups.FirstOrDefault(i => i.Id == typeId + 1).ProcessingName;
         }
 
         [HttpPost]
-        public IActionResult GetNewDetails(int model)
+        public IActionResult GetNewDetails(int itemId)
         {
-            var modelDetails = _context.ProcessingModelDetailViews.Where(i => i.Model == model).ToArray();
-            List<ProcessingDetailView> details = new List<ProcessingDetailView>();
-            foreach (var md in modelDetails)
+            short storeId = 1;
+            var materials = _context.ItemMaterials.Where(i => i.Item == itemId).ToArray();
+            List<ProcessingInputView> details = new List<ProcessingInputView>();
+            foreach (var m in materials)
             {
-                if (!md.IsOutput && md.Soh > 0 && md.UseLot)
-                {
-                    var stocks = _context.StockViews.Where(i => i.Store == md.Store && i.Item == md.Item && i.Unit == md.Unit && !string.IsNullOrEmpty(i.Lot) && i.Soh > 0).ToArray();
+                //if (m.Soh > 0 && m.UseLot)
+                //{
+                //    var stocks = _context.StockViews.Where(i => i.Store == m.Store && i.Item == m.Item && i.Unit == m.Unit && !string.IsNullOrEmpty(i.Lot) && i.Soh > 0).ToArray();
 
-                    foreach (var stock in stocks)
-                    {
-                        var detailByLot = new ProcessingDetailView() { Item = md.Item, ItemName = md.ItemName, Unit = md.Unit, UnitName = md.UnitName, Lot = stock.Lot, Year = stock.Year, InOut = md.InOut, IsOutput = md.IsOutput, UseLot = md.UseLot, ItemIsInput = md.ItemIsInput, ItemIsOutput = md.ItemIsOutput, Store = md.Store, Soh = stock.Soh };
-                        details.Add(detailByLot);
-                    }
-                }
-                else
-                {
-                    var detail = new ProcessingDetailView() { Item = md.Item, ItemName = md.ItemName, Unit = md.Unit, UnitName = md.UnitName, Lot = "", Year = (sbyte)(DateTime.Today.Year % 100), InOut = md.InOut, IsOutput = md.IsOutput, UseLot = md.UseLot, ItemIsInput = md.ItemIsInput, ItemIsOutput = md.ItemIsOutput, Store = md.Store, Soh = md.Soh };
-                    details.Add(detail);
-                }
+                //    foreach (var stock in stocks)
+                //    {
+                //        var detailByLot = new ProcessingDetailView() { Item = m.Item, ItemName = m.ItemName, Unit = m.Unit, UnitName = m.UnitName, Lot = stock.Lot, Year = stock.Year, InOut = m.InOut, IsOutput = m.IsOutput, UseLot = m.UseLot, ItemIsInput = m.ItemIsInput, ItemIsOutput = m.ItemIsOutput, Store = m.Store, Soh = stock.Soh };
+                //        details.Add(detailByLot);
+                //    }
+                //}
+                //else
+                //{
+                //    var detail = new ProcessingDetailView() { Item = m.Item, ItemName = m.ItemName, Unit = m.Unit, UnitName = m.UnitName, Lot = "", Year = (sbyte)(DateTime.Today.Year % 100), InOut = m.InOut, IsOutput = m.IsOutput, UseLot = m.UseLot, ItemIsInput = m.ItemIsInput, ItemIsOutput = m.ItemIsOutput, Store = m.Store, Soh = m.Soh };
+                //    details.Add(detail);
+                //}
             }
             return Ok(details);
         }
@@ -80,13 +76,13 @@ namespace OcsStore.Controllers
                 processingId = 1;
             }
 
-            var processing = new Processing() { Id = processingId, Date = date, Time = time, Model = (short)model, User = Session.UserId(Request) };
+            var processing = new Processing() { Id = processingId, Date = date, Time = time, User = Session.UserId(Request) };
             _context.Processings.Add(processing);
 
             int detailId;
             try
             {
-                detailId = _context.ProcessingDetails.Max(i => i.Id) + 1;
+                detailId = _context.ProcessingInputs.Max(i => i.Id) + 1;
             }
             catch
             {
@@ -95,8 +91,8 @@ namespace OcsStore.Controllers
 
             foreach (var detail in details)
             {
-                var processingDetail = new ProcessingDetail() { Id = detailId++, Processing = processingId, Lot = detail.Lot, Item = detail.Item, Unit = detail.Unit, IsOutput = detail.IsOutput, Quantity = detail.Quantity, Note = detail.Note };
-                _context.ProcessingDetails.AddRange(processingDetail);
+                var processingInput = new ProcessingInput() { Id = detailId++, Processing = processingId, Lot = detail.Lot, Item = detail.Item, Unit = detail.Unit, Quantity = detail.Quantity, Note = detail.Note };
+                _context.ProcessingInputs.AddRange(processingInput);
             }
 
             _context.SaveChanges();

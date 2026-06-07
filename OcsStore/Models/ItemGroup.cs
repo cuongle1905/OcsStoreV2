@@ -12,4 +12,8 @@ public partial class ItemGroup
     public bool IsInput { get; set; }
 
     public bool IsOutput { get; set; }
+
+    public string ProcessingName { get; set; }
+
+    public sbyte Ordinal { get; set; }
 }

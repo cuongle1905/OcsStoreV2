@@ -8,7 +8,7 @@ namespace OcsStore.Pages
     public class ProcessingsModel : PageModel
     {
         [FromQuery(Name = "type")]
-        public int Type { get; set; }
+        public short Type { get; set; }
         public string TypeName;
 
         private readonly ProcessingController _processingController;
@@ -24,7 +24,7 @@ namespace OcsStore.Pages
             {
                 Type = 1;
             }
-            TypeName = _processingController.GetProcessingType(Type).Name;
+            TypeName = _processingController.GetProcessingName(Type);
         }
     }
 }

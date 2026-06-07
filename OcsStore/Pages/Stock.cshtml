@@ -52,6 +52,7 @@ Html.DevExtreme().DataGrid<StockView>()
         });
         columns.AddFor(m => m.Date).Caption("Ngày").Width(90).Alignment(HorizontalAlignment.Center).Format("dd/MM/yyyy").CellTemplate(new JS("stockCellTemplate"));
         columns.AddFor(m => m.Time).Caption("Giờ").Width(50).Alignment(HorizontalAlignment.Center).CellTemplate(new JS("stockCellTemplate"));
+        columns.Add().Width(50).Alignment(HorizontalAlignment.Center).CellTemplate(new JS("addDataCellTemplate"));
     })
     .Editing(e => e.AllowUpdating(false))
     .Paging(p => p.Enabled(true).PageSize(100))
@@ -84,14 +85,13 @@ Html.DevExtreme().DataGrid<StockView>()
     }
 
     function stockCellTemplate(container, options) {
-        let itemIsInput = options.data.ItemIsInput;
-        let itemIsOutput = options.data.ItemIsOutput;
-        let isInOutColumn = (options.column.dataField == "InOut");
-        let cssClass = (itemIsInput ? "green2" : (itemIsOutput ? "dark-blue" : "brown"));
+        let isInput = options.data.IsInput;
+        let isOutput = options.data.IsOutput;
+        let cssClass = (isInput ? "green2" : (isOutput ? "blue" : "brown"));
         let style = "";
         let text = options.text;
         let lot = options.data.Lot;
-        if (lot != "") {
+        if (lot != null && lot != "") {
             cssClass += " ps-1";
             style = "font-size: 0.9rem;"
             if (options.column.dataField == "ItemName") {
@@ -101,9 +101,22 @@ Html.DevExtreme().DataGrid<StockView>()
         
         if (options.column.dataField == "ItemName") {
             text = `<a class='stock-link' href='/stockcard?item=${options.data.Item}&lot=${options.data.Lot}&year=${options.data.Year}'><span class='${cssClass}'>${text}</span></a>`;
+        } else if (options.column.dataField == "Soh") {
+            if (options.data.SohWarning)
+                cssClass = "red";
         }
         
         let html = `<div class='${cssClass}' style='${style}'>${text}</div>`
+        container.html(html);
+    }
+
+    function addDataCellTemplate(container, options) {
+        let isInput = options.data.IsInput;
+        let isOutput = options.data.IsOutput;
+        let cssClass = (isInput ? "green2" : (isOutput ? "blue" : "brown"));
+        let hint = (isInput ? "Nhập kho" : (isOutput ? "Bán hàng" : "Chế biến"));
+        let link = (isInput ? "receiving/new" : (isOutput ? "bill/new" : "processing/new")) + "?item=" + options.data.Item;
+        let html = `<a class="stock-link" href="${link}" title="${hint}"><i class='dx-icon-add ${cssClass}'></a>`
         container.html(html);
     }
 

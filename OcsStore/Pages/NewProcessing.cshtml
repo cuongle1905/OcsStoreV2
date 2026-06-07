@@ -57,7 +57,6 @@
         .ID("modelSelectBox")
         .Width("12rem")
         .Height("2rem")
-        .DataSource(Model.Models)
         .DisplayExpr("Name")
         .ValueExpr("Id")
         .OnValueChanged("modelValueChanged")
@@ -65,7 +64,7 @@
     <span id="model-description" class="ms-2"></span>
 </div>
 @(
-Html.DevExtreme().DataGrid<ProcessingDetailView>()
+Html.DevExtreme().DataGrid<ProcessingInputView>()
     .ID("gridProcessing")
     .DataSource(d => d.Mvc().Controller("Processing").LoadAction("GetNewDetails").LoadMethod("POST").LoadParams(new { Model = new JS("function () { return processingModel; }") }).OnLoaded("gridDataLoaded"))
     .RemoteOperations(false)
@@ -78,8 +77,6 @@ Html.DevExtreme().DataGrid<ProcessingDetailView>()
     .OnContentReady("gridContentReady")
     .Columns(columns =>
     {
-        columns.AddFor(m => m.InOut).Caption("").Width(30).Alignment(HorizontalAlignment.Center).AllowEditing(false).CellTemplate(new JS("processingCellTemplate"));
-        @* columns.AddFor(m => m.StoreName).Caption("Kho").Width(90).Alignment(HorizontalAlignment.Left).CellTemplate(new JS("processingCellTemplate")); *@
         columns.AddFor(m => m.ItemName).Caption("Hàng hóa").Width(110).Alignment(HorizontalAlignment.Left).AllowEditing(false).CellTemplate(new JS("processingCellTemplate"));
         columns.AddFor(m => m.Lot).Caption("Lô").Width(50).Alignment(HorizontalAlignment.Center).AllowEditing(true).CellTemplate(new JS("processingCellTemplate"));
         columns.AddFor(m => m.Quantity).Caption("Số lượng").Width(60).Alignment(HorizontalAlignment.Right).CellTemplate(new JS("processingCellTemplate"))
@@ -112,7 +109,6 @@ Html.DevExtreme().DataGrid<ProcessingDetailView>()
 
     $(function () {
         $("#gridProcessing").first().append($("#divButtons"));
-        $("#modelSelectBox").dxSelectBox("instance").option("value", @(Model.Models[0].Id));
     });
 
     function gridContentReady() {

@@ -3,17 +3,11 @@ using System.Collections.Generic;
 
 namespace OcsStore.Models;
 
-public partial class ProcessingModelDetail
+public partial class ItemMaterial
 {
-    public short Model { get; set; }
-
     public int Item { get; set; }
 
-    public short Unit { get; set; }
-
-    public short Store { get; set; }
-
-    public bool IsOutput { get; set; }
+    public int Material { get; set; }
 
     public decimal Quantity { get; set; }
 
@@ -21,5 +15,5 @@ public partial class ProcessingModelDetail
 
     public virtual Item ItemNavigation { get; set; }
 
-    public virtual Unit UnitNavigation { get; set; }
+    public virtual Item MaterialNavigation { get; set; }
 }

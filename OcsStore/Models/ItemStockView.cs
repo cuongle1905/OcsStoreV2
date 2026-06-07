@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace OcsStore.Models;
 
-public partial class StockView
+public partial class ItemStockView
 {
     public short? Store { get; set; }
 
@@ -17,7 +17,7 @@ public partial class StockView
 
     public int? LastTransaction { get; set; }
 
-    public decimal? Soh { get; set; }
+    public decimal Soh { get; set; }
 
     public decimal? Ave { get; set; }
 
@@ -31,21 +31,11 @@ public partial class StockView
 
     public sbyte ItemGroup { get; set; }
 
-    public sbyte UseLot { get; set; }
-
-    public string LotOrdinal { get; set; }
+    public bool UseLot { get; set; }
 
     public int ItemOrdinal { get; set; }
 
-    public string GroupName { get; set; }
-
-    public sbyte Ordinal { get; set; }
-
-    public bool IsInput { get; set; }
-
-    public bool IsOutput { get; set; }
-
-    public string UnitName { get; set; }
+    public string LotOrdinal { get; set; }
 
     public bool? SohWarning { get; set; }
 }

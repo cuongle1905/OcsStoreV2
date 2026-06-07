@@ -11,12 +11,10 @@ namespace OcsStore.Pages
         private readonly ProcessingController _processingController;
         
         [FromQuery(Name = "type")]
-        public int Type { get; set; }
+        public short Type { get; set; }
         public string TypeName;
 
-        public ProcessingModel[] Models = [];
-
-        public List<ProcessingDetailView> Details = new List<ProcessingDetailView>();
+        public List<ProcessingInputView> Inputs = new List<ProcessingInputView>();
 
         public NewProcessingModel(ProcessingController controller)
         {
@@ -29,8 +27,7 @@ namespace OcsStore.Pages
             {
                 Type = 1;
             }
-            TypeName = _processingController.GetProcessingType(Type).Name;
-            Models = _processingController.GetModels(Type);
+            TypeName = _processingController.GetProcessingName(Type);
         }
     }
 }

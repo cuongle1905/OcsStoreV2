@@ -27,7 +27,7 @@
 </div>
 
 @(
-Html.DevExtreme().DataGrid<ProcessingDetailView>()
+Html.DevExtreme().DataGrid<ProcessingView>()
     .ID("gridProcessing")
     .DataSource(d => d.Mvc().Controller("Processing").LoadAction("GetProcessings").LoadMethod("POST").Key("Id").LoadParams(new { Type = Model.Type }))
     .RemoteOperations(false)
@@ -42,8 +42,6 @@ Html.DevExtreme().DataGrid<ProcessingDetailView>()
     {
         columns.AddFor(m => m.Date).Caption("Ngày").Width(90).Alignment(HorizontalAlignment.Center).Format("dd/MM/yyyy").GroupIndex(0);
         columns.AddFor(m => m.Time).Caption("Giờ").Width(50).Alignment(HorizontalAlignment.Center).GroupIndex(1);
-        columns.AddFor(m => m.InOut).Caption("").Width(30).Alignment(HorizontalAlignment.Center).CellTemplate(new JS("processingCellTemplate"));
-        @* columns.AddFor(m => m.StoreName).Caption("Kho").Width(90).Alignment(HorizontalAlignment.Left).CellTemplate(new JS("processingCellTemplate")); *@
         columns.AddFor(m => m.ItemName).Caption("Hàng hóa").Width(110).Alignment(HorizontalAlignment.Left).CellTemplate(new JS("processingCellTemplate"));
         columns.AddFor(m => m.Lot).Caption("Lô").Width(50).Alignment(HorizontalAlignment.Center).CellTemplate(new JS("processingCellTemplate"));
         columns.AddFor(m => m.Quantity).Caption("Số lượng").Width(60).Alignment(HorizontalAlignment.Right).Format("#,##0.00").CellTemplate(new JS("processingCellTemplate"));

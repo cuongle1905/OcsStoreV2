@@ -30,6 +30,30 @@ namespace OcsStore.Controllers
         }
 
         [HttpPost]
+        public IActionResult GetNewDetails(int itemId, DataSourceLoadOptions loadOptions)
+        {
+            var data = _context.StockViews.Where(i => i.IsInput).ToList();
+            if (itemId > 0)
+            {
+                var item = data.FirstOrDefault(i => i.Item == itemId);
+                if (item != null)
+                {
+                    data.Remove(item);
+                    data.Insert(0, item);
+                }
+            }
+
+            List<ReceivingDetailView> details = new List<ReceivingDetailView>();
+            foreach (var d in data)
+            {
+                var detail = new ReceivingDetailView() { Item = d.Item, ItemName = d.ItemName, Unit = d.Unit, UnitName = d.UnitName, Soh = d.Soh, SohWarning = d.SohWarning };
+                details.Add(detail);
+            }
+
+            return Ok(details);
+        }
+
+        [HttpPost]
         public IActionResult Save(DateTime date, string time, ReceivingDetail[] details)
         {
             date = Common.GetLocalDateWithoutTime(date); // Remove hour, minute...

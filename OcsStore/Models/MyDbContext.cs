@@ -30,25 +30,25 @@ public partial class MyDbContext : DbContext
 
     public virtual DbSet<ItemGroup> ItemGroups { get; set; }
 
+    public virtual DbSet<ItemMaterial> ItemMaterials { get; set; }
+
+    public virtual DbSet<ItemStockView> ItemStockViews { get; set; }
+
     public virtual DbSet<ItemView> ItemViews { get; set; }
 
     public virtual DbSet<LastStoreTransaction> LastStoreTransactions { get; set; }
+
+    public virtual DbSet<LotStockView> LotStockViews { get; set; }
 
     public virtual DbSet<Param> Params { get; set; }
 
     public virtual DbSet<Processing> Processings { get; set; }
 
-    public virtual DbSet<ProcessingDetail> ProcessingDetails { get; set; }
+    public virtual DbSet<ProcessingInput> ProcessingInputs { get; set; }
 
-    public virtual DbSet<ProcessingDetailView> ProcessingDetailViews { get; set; }
+    public virtual DbSet<ProcessingInputView> ProcessingInputViews { get; set; }
 
-    public virtual DbSet<ProcessingModel> ProcessingModels { get; set; }
-
-    public virtual DbSet<ProcessingModelDetail> ProcessingModelDetails { get; set; }
-
-    public virtual DbSet<ProcessingModelDetailView> ProcessingModelDetailViews { get; set; }
-
-    public virtual DbSet<ProcessingType> ProcessingTypes { get; set; }
+    public virtual DbSet<ProcessingView> ProcessingViews { get; set; }
 
     public virtual DbSet<ProfitView> ProfitViews { get; set; }
 
@@ -57,6 +57,8 @@ public partial class MyDbContext : DbContext
     public virtual DbSet<ReceivingDetail> ReceivingDetails { get; set; }
 
     public virtual DbSet<ReceivingDetailView> ReceivingDetailViews { get; set; }
+
+    public virtual DbSet<RootStockView> RootStockViews { get; set; }
 
     public virtual DbSet<StockCardView> StockCardViews { get; set; }
 
@@ -271,7 +273,7 @@ public partial class MyDbContext : DbContext
                 .HasPrecision(10, 2)
                 .HasColumnName("soh");
             entity.Property(e => e.StockUnit)
-                .HasDefaultValueSql("'1'")
+                .HasDefaultValueSql("'0'")
                 .HasColumnName("stock_unit");
             entity.Property(e => e.StockUnitName)
                 .HasMaxLength(50)
@@ -485,6 +487,9 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.Group)
                 .HasDefaultValueSql("'1'")
                 .HasColumnName("group");
+            entity.Property(e => e.MinSoh)
+                .HasPrecision(10, 2)
+                .HasColumnName("min_soh");
             entity.Property(e => e.Name)
                 .IsRequired()
                 .HasMaxLength(100)
@@ -525,6 +530,103 @@ public partial class MyDbContext : DbContext
                 .HasColumnName("name")
                 .UseCollation("utf8mb3_general_ci")
                 .HasCharSet("utf8mb3");
+            entity.Property(e => e.Ordinal)
+                .HasDefaultValueSql("'1'")
+                .HasColumnName("ordinal");
+            entity.Property(e => e.ProcessingName)
+                .IsRequired()
+                .HasMaxLength(45)
+                .HasDefaultValueSql("''")
+                .HasColumnName("processing_name");
+        });
+
+        modelBuilder.Entity<ItemMaterial>(entity =>
+        {
+            entity.HasKey(e => new { e.Item, e.Material })
+                .HasName("PRIMARY")
+                .HasAnnotation("MySql:IndexPrefixLength", new[] { 0, 0 });
+
+            entity.ToTable("item_material");
+
+            entity.HasIndex(e => e.Material, "fk_item_material_material_idx");
+
+            entity.Property(e => e.Item).HasColumnName("item");
+            entity.Property(e => e.Material).HasColumnName("material");
+            entity.Property(e => e.LostPercent)
+                .HasPrecision(5, 2)
+                .HasColumnName("lost_percent");
+            entity.Property(e => e.Quantity)
+                .HasPrecision(10, 2)
+                .HasDefaultValueSql("'1.00'")
+                .HasColumnName("quantity");
+
+            entity.HasOne(d => d.ItemNavigation).WithMany(p => p.ItemMaterialItemNavigations)
+                .HasForeignKey(d => d.Item)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_item_material_item");
+
+            entity.HasOne(d => d.MaterialNavigation).WithMany(p => p.ItemMaterialMaterialNavigations)
+                .HasForeignKey(d => d.Material)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_item_material_material");
+        });
+
+        modelBuilder.Entity<ItemStockView>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToView("item_stock_view");
+
+            entity.Property(e => e.Ave)
+                .HasPrecision(10, 2)
+                .HasColumnName("ave");
+            entity.Property(e => e.Date)
+                .HasColumnType("datetime")
+                .HasColumnName("date");
+            entity.Property(e => e.Item).HasColumnName("item");
+            entity.Property(e => e.ItemGroup)
+                .HasDefaultValueSql("'1'")
+                .HasColumnName("item_group");
+            entity.Property(e => e.ItemName)
+                .IsRequired()
+                .HasMaxLength(100)
+                .HasColumnName("item_name")
+                .UseCollation("utf8mb3_general_ci")
+                .HasCharSet("utf8mb3");
+            entity.Property(e => e.ItemOrdinal)
+                .HasDefaultValueSql("'1'")
+                .HasColumnName("item_ordinal");
+            entity.Property(e => e.LastTransaction)
+                .HasDefaultValueSql("'0'")
+                .HasColumnName("last_transaction");
+            entity.Property(e => e.Lot)
+                .HasMaxLength(10)
+                .HasDefaultValueSql("''")
+                .HasColumnName("lot");
+            entity.Property(e => e.LotOrdinal)
+                .IsRequired()
+                .HasMaxLength(0)
+                .HasDefaultValueSql("''")
+                .HasColumnName("lot_ordinal");
+            entity.Property(e => e.Soh)
+                .HasPrecision(10, 2)
+                .HasColumnName("soh");
+            entity.Property(e => e.SohWarning).HasColumnName("soh_warning");
+            entity.Property(e => e.Store).HasColumnName("store");
+            entity.Property(e => e.Time)
+                .HasMaxLength(5)
+                .IsFixedLength()
+                .HasColumnName("time");
+            entity.Property(e => e.Unit)
+                .HasDefaultValueSql("'1'")
+                .HasColumnName("unit");
+            entity.Property(e => e.UseLot).HasColumnName("use_lot");
+            entity.Property(e => e.Value)
+                .HasPrecision(10, 2)
+                .HasColumnName("value");
+            entity.Property(e => e.Year)
+                .HasDefaultValueSql("'26'")
+                .HasColumnName("year");
         });
 
         modelBuilder.Entity<ItemView>(entity =>
@@ -594,7 +696,7 @@ public partial class MyDbContext : DbContext
                 .HasDefaultValueSql("'1'")
                 .HasColumnName("unit");
             entity.Property(e => e.Lot)
-                .HasMaxLength(20)
+                .HasMaxLength(10)
                 .HasDefaultValueSql("''")
                 .HasColumnName("lot");
             entity.Property(e => e.Year)
@@ -622,6 +724,62 @@ public partial class MyDbContext : DbContext
                 .HasConstraintName("fk_last_store_transaction_unit");
         });
 
+        modelBuilder.Entity<LotStockView>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToView("lot_stock_view");
+
+            entity.Property(e => e.Ave)
+                .HasPrecision(10, 2)
+                .HasColumnName("ave");
+            entity.Property(e => e.Date)
+                .HasColumnType("datetime")
+                .HasColumnName("date");
+            entity.Property(e => e.Item).HasColumnName("item");
+            entity.Property(e => e.ItemGroup)
+                .HasDefaultValueSql("'1'")
+                .HasColumnName("item_group");
+            entity.Property(e => e.ItemName)
+                .IsRequired()
+                .HasMaxLength(100)
+                .HasColumnName("item_name")
+                .UseCollation("utf8mb3_general_ci")
+                .HasCharSet("utf8mb3");
+            entity.Property(e => e.ItemOrdinal)
+                .HasDefaultValueSql("'1'")
+                .HasColumnName("item_ordinal");
+            entity.Property(e => e.LastTransaction).HasColumnName("last_transaction");
+            entity.Property(e => e.Lot)
+                .IsRequired()
+                .HasMaxLength(10)
+                .HasDefaultValueSql("''")
+                .HasColumnName("lot");
+            entity.Property(e => e.LotOrdinal)
+                .HasMaxLength(8)
+                .HasColumnName("lot_ordinal");
+            entity.Property(e => e.Soh)
+                .HasPrecision(10, 2)
+                .HasColumnName("soh");
+            entity.Property(e => e.SohWarning).HasColumnName("soh_warning");
+            entity.Property(e => e.Store).HasColumnName("store");
+            entity.Property(e => e.Time)
+                .IsRequired()
+                .HasMaxLength(5)
+                .IsFixedLength()
+                .HasColumnName("time");
+            entity.Property(e => e.Unit)
+                .HasDefaultValueSql("'1'")
+                .HasColumnName("unit");
+            entity.Property(e => e.UseLot).HasColumnName("use_lot");
+            entity.Property(e => e.Value)
+                .HasPrecision(10, 2)
+                .HasColumnName("value");
+            entity.Property(e => e.Year)
+                .HasDefaultValueSql("'26'")
+                .HasColumnName("year");
+        });
+
         modelBuilder.Entity<Param>(entity =>
         {
             entity.HasKey(e => e.Name).HasName("PRIMARY");
@@ -644,7 +802,11 @@ public partial class MyDbContext : DbContext
 
             entity.ToTable("processing");
 
-            entity.HasIndex(e => e.Model, "fk_processing_model_idx");
+            entity.HasIndex(e => e.Item, "fk_processing_item_idx");
+
+            entity.HasIndex(e => e.Store, "fk_processing_store_idx");
+
+            entity.HasIndex(e => e.Unit, "fk_processing_unit_idx");
 
             entity.HasIndex(e => e.User, "fk_processing_user_idx");
 
@@ -654,20 +816,49 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.Date)
                 .HasColumnType("datetime")
                 .HasColumnName("date");
-            entity.Property(e => e.Model).HasColumnName("model");
+            entity.Property(e => e.Item).HasColumnName("item");
+            entity.Property(e => e.Lot)
+                .HasMaxLength(10)
+                .HasColumnName("lot");
+            entity.Property(e => e.Note)
+                .HasMaxLength(100)
+                .HasColumnName("note");
+            entity.Property(e => e.Quantity)
+                .HasPrecision(10, 2)
+                .HasDefaultValueSql("'1.00'")
+                .HasColumnName("quantity");
+            entity.Property(e => e.Store)
+                .HasDefaultValueSql("'1'")
+                .HasColumnName("store");
             entity.Property(e => e.Time)
                 .IsRequired()
                 .HasMaxLength(5)
                 .IsFixedLength()
                 .HasColumnName("time");
+            entity.Property(e => e.Unit)
+                .HasDefaultValueSql("'1'")
+                .HasColumnName("unit");
             entity.Property(e => e.User)
                 .HasDefaultValueSql("'1'")
                 .HasColumnName("user");
+            entity.Property(e => e.Year)
+                .HasDefaultValueSql("'26'")
+                .HasColumnName("year");
 
-            entity.HasOne(d => d.ModelNavigation).WithMany(p => p.Processings)
-                .HasForeignKey(d => d.Model)
+            entity.HasOne(d => d.ItemNavigation).WithMany(p => p.Processings)
+                .HasForeignKey(d => d.Item)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("fk_processing_processing_model");
+                .HasConstraintName("fk_processing_item");
+
+            entity.HasOne(d => d.StoreNavigation).WithMany(p => p.Processings)
+                .HasForeignKey(d => d.Store)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_processing_store");
+
+            entity.HasOne(d => d.UnitNavigation).WithMany(p => p.Processings)
+                .HasForeignKey(d => d.Unit)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_processing_unit");
 
             entity.HasOne(d => d.UserNavigation).WithMany(p => p.Processings)
                 .HasForeignKey(d => d.User)
@@ -675,22 +866,23 @@ public partial class MyDbContext : DbContext
                 .HasConstraintName("fk_processing_user");
         });
 
-        modelBuilder.Entity<ProcessingDetail>(entity =>
+        modelBuilder.Entity<ProcessingInput>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.ToTable("processing_detail");
+            entity.ToTable("processing_input");
 
-            entity.HasIndex(e => e.Processing, "fk_processing_idx");
+            entity.HasIndex(e => e.Processing, "fk_processing_input_idx");
 
-            entity.HasIndex(e => e.Item, "fk_processing_item_idx");
+            entity.HasIndex(e => e.Item, "fk_processing_input_item_idx");
 
-            entity.HasIndex(e => e.Unit, "fk_processing_unit_idx");
+            entity.HasIndex(e => e.Store, "fk_processing_input_store_idx");
+
+            entity.HasIndex(e => e.Unit, "fk_processing_input_unit_idx");
 
             entity.Property(e => e.Id)
                 .ValueGeneratedNever()
                 .HasColumnName("id");
-            entity.Property(e => e.IsOutput).HasColumnName("is_output");
             entity.Property(e => e.Item).HasColumnName("item");
             entity.Property(e => e.Lot)
                 .HasMaxLength(10)
@@ -714,37 +906,36 @@ public partial class MyDbContext : DbContext
                 .HasDefaultValueSql("'26'")
                 .HasColumnName("year");
 
-            entity.HasOne(d => d.ItemNavigation).WithMany(p => p.ProcessingDetails)
+            entity.HasOne(d => d.ItemNavigation).WithMany(p => p.ProcessingInputs)
                 .HasForeignKey(d => d.Item)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("fk_processing_item");
+                .HasConstraintName("fk_processing_input_item");
 
-            entity.HasOne(d => d.ProcessingNavigation).WithMany(p => p.ProcessingDetails)
+            entity.HasOne(d => d.ProcessingNavigation).WithMany(p => p.ProcessingInputs)
                 .HasForeignKey(d => d.Processing)
-                .HasConstraintName("fk_processing_detail_processing");
+                .HasConstraintName("fk_processing_input");
 
-            entity.HasOne(d => d.UnitNavigation).WithMany(p => p.ProcessingDetails)
+            entity.HasOne(d => d.StoreNavigation).WithMany(p => p.ProcessingInputs)
+                .HasForeignKey(d => d.Store)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_processing_input_store");
+
+            entity.HasOne(d => d.UnitNavigation).WithMany(p => p.ProcessingInputs)
                 .HasForeignKey(d => d.Unit)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("fk_processing_unit");
+                .HasConstraintName("fk_processing_input_unit");
         });
 
-        modelBuilder.Entity<ProcessingDetailView>(entity =>
+        modelBuilder.Entity<ProcessingInputView>(entity =>
         {
             entity
                 .HasNoKey()
-                .ToView("processing_detail_view");
+                .ToView("processing_input_view");
 
             entity.Property(e => e.Date)
                 .HasColumnType("datetime")
                 .HasColumnName("date");
             entity.Property(e => e.Id).HasColumnName("id");
-            entity.Property(e => e.InOut)
-                .IsRequired()
-                .HasMaxLength(3)
-                .HasDefaultValueSql("''")
-                .HasColumnName("in_out");
-            entity.Property(e => e.IsOutput).HasColumnName("is_output");
             entity.Property(e => e.Item).HasColumnName("item");
             entity.Property(e => e.ItemIsInput).HasColumnName("item_is_input");
             entity.Property(e => e.ItemIsOutput).HasColumnName("item_is_output");
@@ -757,7 +948,6 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.Lot)
                 .HasMaxLength(10)
                 .HasColumnName("lot");
-            entity.Property(e => e.Model).HasColumnName("model");
             entity.Property(e => e.Note)
                 .HasMaxLength(100)
                 .HasColumnName("note")
@@ -784,9 +974,6 @@ public partial class MyDbContext : DbContext
                 .HasMaxLength(5)
                 .IsFixedLength()
                 .HasColumnName("time");
-            entity.Property(e => e.Type)
-                .HasDefaultValueSql("'1'")
-                .HasColumnName("type");
             entity.Property(e => e.Unit)
                 .HasDefaultValueSql("'1'")
                 .HasColumnName("unit");
@@ -802,90 +989,26 @@ public partial class MyDbContext : DbContext
                 .HasColumnName("year");
         });
 
-        modelBuilder.Entity<ProcessingModel>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PRIMARY");
-
-            entity.ToTable("processing_model");
-
-            entity.Property(e => e.Id)
-                .ValueGeneratedNever()
-                .HasColumnName("id");
-            entity.Property(e => e.Description)
-                .IsRequired()
-                .HasMaxLength(100)
-                .HasDefaultValueSql("''")
-                .HasColumnName("description")
-                .UseCollation("utf8mb3_general_ci")
-                .HasCharSet("utf8mb3");
-            entity.Property(e => e.Name)
-                .IsRequired()
-                .HasMaxLength(50)
-                .HasColumnName("name")
-                .UseCollation("utf8mb3_general_ci")
-                .HasCharSet("utf8mb3");
-            entity.Property(e => e.Ordinal)
-                .HasDefaultValueSql("'1'")
-                .HasColumnName("ordinal");
-            entity.Property(e => e.Type)
-                .HasDefaultValueSql("'1'")
-                .HasColumnName("type");
-        });
-
-        modelBuilder.Entity<ProcessingModelDetail>(entity =>
-        {
-            entity.HasKey(e => new { e.Model, e.Item })
-                .HasName("PRIMARY")
-                .HasAnnotation("MySql:IndexPrefixLength", new[] { 0, 0 });
-
-            entity.ToTable("processing_model_detail");
-
-            entity.HasIndex(e => e.Item, "fk_processing_model_idx");
-
-            entity.HasIndex(e => e.Unit, "fk_processing_model_unit_idx");
-
-            entity.Property(e => e.Model).HasColumnName("model");
-            entity.Property(e => e.Item).HasColumnName("item");
-            entity.Property(e => e.IsOutput).HasColumnName("is_output");
-            entity.Property(e => e.LostPercent)
-                .HasPrecision(5, 2)
-                .HasDefaultValueSql("'10.00'")
-                .HasColumnName("lost_percent");
-            entity.Property(e => e.Quantity)
-                .HasPrecision(10, 2)
-                .HasDefaultValueSql("'1.00'")
-                .HasColumnName("quantity");
-            entity.Property(e => e.Store)
-                .HasDefaultValueSql("'1'")
-                .HasColumnName("store");
-            entity.Property(e => e.Unit)
-                .HasDefaultValueSql("'1'")
-                .HasColumnName("unit");
-
-            entity.HasOne(d => d.ItemNavigation).WithMany(p => p.ProcessingModelDetails)
-                .HasForeignKey(d => d.Item)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("fk_processing_model");
-
-            entity.HasOne(d => d.UnitNavigation).WithMany(p => p.ProcessingModelDetails)
-                .HasForeignKey(d => d.Unit)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("fk_processing_model_unit");
-        });
-
-        modelBuilder.Entity<ProcessingModelDetailView>(entity =>
+        modelBuilder.Entity<ProcessingView>(entity =>
         {
             entity
                 .HasNoKey()
-                .ToView("processing_model_detail_view");
+                .ToView("processing_view");
 
-            entity.Property(e => e.InOut)
-                .IsRequired()
-                .HasMaxLength(3)
-                .HasDefaultValueSql("''")
-                .HasColumnName("in_out");
-            entity.Property(e => e.IsOutput).HasColumnName("is_output");
+            entity.Property(e => e.Date)
+                .HasColumnType("datetime")
+                .HasColumnName("date");
+            entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.Item).HasColumnName("item");
+            entity.Property(e => e.ItemGroup)
+                .HasDefaultValueSql("'1'")
+                .HasColumnName("item_group");
+            entity.Property(e => e.ItemGroupName)
+                .IsRequired()
+                .HasMaxLength(45)
+                .HasColumnName("item_group_name")
+                .UseCollation("utf8mb3_general_ci")
+                .HasCharSet("utf8mb3");
             entity.Property(e => e.ItemIsInput).HasColumnName("item_is_input");
             entity.Property(e => e.ItemIsOutput).HasColumnName("item_is_output");
             entity.Property(e => e.ItemName)
@@ -894,11 +1017,17 @@ public partial class MyDbContext : DbContext
                 .HasColumnName("item_name")
                 .UseCollation("utf8mb3_general_ci")
                 .HasCharSet("utf8mb3");
-            entity.Property(e => e.LostPercent)
-                .HasPrecision(5, 2)
-                .HasDefaultValueSql("'10.00'")
-                .HasColumnName("lost_percent");
-            entity.Property(e => e.Model).HasColumnName("model");
+            entity.Property(e => e.Lot)
+                .HasMaxLength(10)
+                .HasColumnName("lot");
+            entity.Property(e => e.Note)
+                .HasMaxLength(100)
+                .HasColumnName("note");
+            entity.Property(e => e.ProcessingName)
+                .IsRequired()
+                .HasMaxLength(45)
+                .HasDefaultValueSql("''")
+                .HasColumnName("processing_name");
             entity.Property(e => e.Quantity)
                 .HasPrecision(10, 2)
                 .HasDefaultValueSql("'1.00'")
@@ -915,6 +1044,11 @@ public partial class MyDbContext : DbContext
                 .HasColumnName("store_name")
                 .UseCollation("utf8mb3_general_ci")
                 .HasCharSet("utf8mb3");
+            entity.Property(e => e.Time)
+                .IsRequired()
+                .HasMaxLength(5)
+                .IsFixedLength()
+                .HasColumnName("time");
             entity.Property(e => e.Unit)
                 .HasDefaultValueSql("'1'")
                 .HasColumnName("unit");
@@ -925,23 +1059,9 @@ public partial class MyDbContext : DbContext
                 .UseCollation("utf8mb3_general_ci")
                 .HasCharSet("utf8mb3");
             entity.Property(e => e.UseLot).HasColumnName("use_lot");
-        });
-
-        modelBuilder.Entity<ProcessingType>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PRIMARY");
-
-            entity.ToTable("processing_type");
-
-            entity.Property(e => e.Id)
-                .ValueGeneratedNever()
-                .HasColumnName("id");
-            entity.Property(e => e.Name)
-                .IsRequired()
-                .HasMaxLength(45)
-                .HasColumnName("name")
-                .UseCollation("utf8mb3_general_ci")
-                .HasCharSet("utf8mb3");
+            entity.Property(e => e.Year)
+                .HasDefaultValueSql("'26'")
+                .HasColumnName("year");
         });
 
         modelBuilder.Entity<ProfitView>(entity =>
@@ -1080,6 +1200,10 @@ public partial class MyDbContext : DbContext
                 .HasPrecision(8, 2)
                 .HasColumnName("quantity");
             entity.Property(e => e.Receiving).HasColumnName("receiving");
+            entity.Property(e => e.Soh)
+                .HasPrecision(10, 2)
+                .HasColumnName("soh");
+            entity.Property(e => e.SohWarning).HasColumnName("soh_warning");
             entity.Property(e => e.Time)
                 .IsRequired()
                 .HasMaxLength(5)
@@ -1099,6 +1223,52 @@ public partial class MyDbContext : DbContext
                 .HasColumnName("value");
         });
 
+        modelBuilder.Entity<RootStockView>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToView("root_stock_view");
+
+            entity.Property(e => e.Ave)
+                .HasPrecision(10, 2)
+                .HasColumnName("ave");
+            entity.Property(e => e.Date)
+                .HasColumnType("datetime")
+                .HasColumnName("date");
+            entity.Property(e => e.Item).HasColumnName("item");
+            entity.Property(e => e.ItemGroup).HasColumnName("item_group");
+            entity.Property(e => e.ItemName)
+                .IsRequired()
+                .HasMaxLength(100)
+                .HasDefaultValueSql("''")
+                .HasColumnName("item_name")
+                .UseCollation("utf8mb3_general_ci")
+                .HasCharSet("utf8mb3");
+            entity.Property(e => e.ItemOrdinal).HasColumnName("item_ordinal");
+            entity.Property(e => e.LastTransaction).HasColumnName("last_transaction");
+            entity.Property(e => e.Lot)
+                .HasMaxLength(10)
+                .HasColumnName("lot");
+            entity.Property(e => e.LotOrdinal)
+                .HasMaxLength(8)
+                .HasColumnName("lot_ordinal");
+            entity.Property(e => e.Soh)
+                .HasPrecision(10, 2)
+                .HasColumnName("soh");
+            entity.Property(e => e.SohWarning).HasColumnName("soh_warning");
+            entity.Property(e => e.Store).HasColumnName("store");
+            entity.Property(e => e.Time)
+                .HasMaxLength(5)
+                .IsFixedLength()
+                .HasColumnName("time");
+            entity.Property(e => e.Unit).HasColumnName("unit");
+            entity.Property(e => e.UseLot).HasColumnName("use_lot");
+            entity.Property(e => e.Value)
+                .HasPrecision(10, 2)
+                .HasColumnName("value");
+            entity.Property(e => e.Year).HasColumnName("year");
+        });
+
         modelBuilder.Entity<StockCardView>(entity =>
         {
             entity
@@ -1112,10 +1282,8 @@ public partial class MyDbContext : DbContext
                 .HasColumnType("datetime")
                 .HasColumnName("date");
             entity.Property(e => e.Description)
-                .HasMaxLength(50)
-                .HasColumnName("description")
-                .UseCollation("utf8mb3_general_ci")
-                .HasCharSet("utf8mb3");
+                .HasMaxLength(45)
+                .HasColumnName("description");
             entity.Property(e => e.DetailId).HasColumnName("detail_id");
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.Item).HasColumnName("item");
@@ -1178,58 +1346,57 @@ public partial class MyDbContext : DbContext
                 .HasColumnType("datetime")
                 .HasColumnName("date");
             entity.Property(e => e.GroupName)
+                .IsRequired()
                 .HasMaxLength(51)
+                .HasDefaultValueSql("''")
                 .HasColumnName("group_name")
                 .UseCollation("utf8mb3_general_ci")
                 .HasCharSet("utf8mb3");
+            entity.Property(e => e.IsInput).HasColumnName("is_input");
+            entity.Property(e => e.IsOutput).HasColumnName("is_output");
             entity.Property(e => e.Item).HasColumnName("item");
-            entity.Property(e => e.ItemGroup)
-                .HasDefaultValueSql("'1'")
-                .HasColumnName("item_group");
-            entity.Property(e => e.ItemIsInput).HasColumnName("item_is_input");
-            entity.Property(e => e.ItemIsOutput).HasColumnName("item_is_output");
+            entity.Property(e => e.ItemGroup).HasColumnName("item_group");
             entity.Property(e => e.ItemName)
-                .HasMaxLength(121)
-                .HasColumnName("item_name");
+                .IsRequired()
+                .HasMaxLength(100)
+                .HasDefaultValueSql("''")
+                .HasColumnName("item_name")
+                .UseCollation("utf8mb3_general_ci")
+                .HasCharSet("utf8mb3");
+            entity.Property(e => e.ItemOrdinal).HasColumnName("item_ordinal");
             entity.Property(e => e.LastTransaction).HasColumnName("last_transaction");
             entity.Property(e => e.Lot)
-                .IsRequired()
-                .HasMaxLength(20)
-                .HasDefaultValueSql("''")
+                .HasMaxLength(10)
                 .HasColumnName("lot");
-            entity.Property(e => e.LotValue)
+            entity.Property(e => e.LotOrdinal)
+                .IsRequired()
                 .HasMaxLength(8)
-                .HasColumnName("lot_value");
-            entity.Property(e => e.NoSlotValue)
-                .HasPrecision(10, 2)
-                .HasColumnName("no_slot_value");
+                .HasDefaultValueSql("''")
+                .HasColumnName("lot_ordinal");
             entity.Property(e => e.Ordinal)
                 .HasDefaultValueSql("'1'")
                 .HasColumnName("ordinal");
             entity.Property(e => e.Soh)
                 .HasPrecision(10, 2)
                 .HasColumnName("soh");
+            entity.Property(e => e.SohWarning).HasColumnName("soh_warning");
             entity.Property(e => e.Store).HasColumnName("store");
             entity.Property(e => e.Time)
-                .IsRequired()
                 .HasMaxLength(5)
                 .IsFixedLength()
                 .HasColumnName("time");
-            entity.Property(e => e.Unit)
-                .HasDefaultValueSql("'1'")
-                .HasColumnName("unit");
+            entity.Property(e => e.Unit).HasColumnName("unit");
             entity.Property(e => e.UnitName)
                 .IsRequired()
                 .HasMaxLength(50)
                 .HasColumnName("unit_name")
                 .UseCollation("utf8mb3_general_ci")
                 .HasCharSet("utf8mb3");
+            entity.Property(e => e.UseLot).HasColumnName("use_lot");
             entity.Property(e => e.Value)
                 .HasPrecision(10, 2)
                 .HasColumnName("value");
-            entity.Property(e => e.Year)
-                .HasDefaultValueSql("'26'")
-                .HasColumnName("year");
+            entity.Property(e => e.Year).HasColumnName("year");
         });
 
         modelBuilder.Entity<Store>(entity =>

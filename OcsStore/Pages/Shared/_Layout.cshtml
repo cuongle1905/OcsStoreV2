@@ -596,6 +596,16 @@
             let html = `<div class='${cssClass}' style='${style}'>${text}</div>`
             container.html(html);
         }
+
+        function sohCellTemplate(container, options) {
+            let sohWarning = options.data.SohWarning;
+            console.log("sohWarning", sohWarning);
+            if (sohWarning) {
+                container.html(`<div class='red'>${options.text}</div>`);
+            } else {
+                container.text(options.text);
+            }
+        }
     </script>
     <div style="position: fixed; left: 0; right: 0; top: 0; background-color: white; z-index: 1000; border-bottom: solid #698faf 0.1px;">
         <div id="top-bar" class="d-flex align-items-center">
@@ -621,6 +631,14 @@
                         <div id="home-left-scrollview-content" style="">
                         @if (hasToken)
                         {
+                            <a class="menu-link" href='~/stock'>
+                                <div class="home-left-item">
+                                    <i class="dx-icon-box"></i>
+                                    <div class="home-left-item-text">
+                                        <span>TỒN KHO</span>
+                                    </div>
+                                </div>
+                            </a>
                             <a class="menu-link" href='~/receiving'>
                                 <div class="home-left-item">
                                     <i class="dx-icon-cart"></i>
@@ -642,14 +660,6 @@
                                     <i class="dx-icon-filter"></i>
                                     <div class="home-left-item-text">
                                         <span>CHẾ BIẾN - TRỘN</span>
-                                    </div>
-                                </div>
-                            </a>
-                            <a class="menu-link" href='~/stock'>
-                                <div class="home-left-item">
-                                    <i class="dx-icon-box"></i>
-                                    <div class="home-left-item-text">
-                                        <span>TỒN KHO</span>
                                     </div>
                                 </div>
                             </a>

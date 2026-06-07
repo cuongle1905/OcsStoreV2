@@ -41,7 +41,7 @@
 @(
 Html.DevExtreme().DataGrid<ReceivingDetailView>()
     .ID("gridReceiving")
-    .DataSource(Model.Details)
+    .DataSource(d => d.Mvc().Controller("Receiving").LoadAction("GetNewDetails").LoadMethod("POST").LoadParams(new { ItemId = Model.Item }))
     .RemoteOperations(false)
     .ShowBorders(true)
     .ShowRowLines(true)
@@ -62,6 +62,7 @@ Html.DevExtreme().DataGrid<ReceivingDetailView>()
             .DataType(GridColumnDataType.Number) // Tells the grid to use dxNumberBox
             .Format("#,##0") // How the number displays outside of edit mode
             .EditorOptions(new { format = "#,##0", min = 0, max = 10000000, step = 1000, showSpinButtons = false });
+        columns.AddFor(m => m.Soh).Caption("Tồn kho").Width(60).Alignment(HorizontalAlignment.Right).CellTemplate(new JS("sohCellTemplate")).Format("#,##0.00").AllowEditing(false);
         columns.AddFor(m => m.Note).Caption("Ghi chú").Width(140).Alignment(HorizontalAlignment.Left);
     })
     .Editing(e => e.AllowUpdating(true).Mode(GridEditMode.Batch))
@@ -89,13 +90,6 @@ Html.DevExtreme().DataGrid<ReceivingDetailView>()
         cells.css("text-align", "center");
     }
 
-    // function itemCellTemplate(container, options) {
-    //     let item = options.data.ItemName;
-    //     let unit = options.data.UnitName;
-    //     let html = item + "<div class='italic gray'>" + unit + "</div>"
-    //     container.html(html);
-    // }
-
     function save() {
         let grid = $("#gridReceiving").dxDataGrid("instance");
         // grid.saveEditData();
@@ -104,7 +98,10 @@ Html.DevExtreme().DataGrid<ReceivingDetailView>()
         let rows = grid.getVisibleRows();
         for (const row of rows) {
             if (row.rowType == "data" && row.data.Quantity > 0) {
-                // console.log(row.data); // The raw data object for this row
+                if (row.data.Price <= 0) {
+                    DevExpress.ui.dialog.alert(`Hãy nhập vào Giá cho sản phẩm '${row.data.ItemName}'.`, "Cảnh báo");
+                    return;
+                }
                 details.push(row.data);
             }
         }

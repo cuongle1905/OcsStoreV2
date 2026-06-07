@@ -3,13 +3,11 @@ using System.Collections.Generic;
 
 namespace OcsStore.Models;
 
-public partial class Processing
+public partial class ProcessingInput
 {
     public int Id { get; set; }
 
-    public DateTime Date { get; set; }
-
-    public string Time { get; set; }
+    public int Processing { get; set; }
 
     public short Store { get; set; }
 
@@ -25,15 +23,11 @@ public partial class Processing
 
     public string Note { get; set; }
 
-    public short User { get; set; }
-
     public virtual Item ItemNavigation { get; set; }
 
-    public virtual ICollection<ProcessingInput> ProcessingInputs { get; set; } = new List<ProcessingInput>();
+    public virtual Processing ProcessingNavigation { get; set; }
 
     public virtual Store StoreNavigation { get; set; }
 
     public virtual Unit UnitNavigation { get; set; }
-
-    public virtual User UserNavigation { get; set; }
 }

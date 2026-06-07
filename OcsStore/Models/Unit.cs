@@ -19,9 +19,9 @@ public partial class Unit
 
     public virtual ICollection<LastStoreTransaction> LastStoreTransactions { get; set; } = new List<LastStoreTransaction>();
 
-    public virtual ICollection<ProcessingDetail> ProcessingDetails { get; set; } = new List<ProcessingDetail>();
+    public virtual ICollection<ProcessingInput> ProcessingInputs { get; set; } = new List<ProcessingInput>();
 
-    public virtual ICollection<ProcessingModelDetail> ProcessingModelDetails { get; set; } = new List<ProcessingModelDetail>();
+    public virtual ICollection<Processing> Processings { get; set; } = new List<Processing>();
 
     public virtual ICollection<ReceivingDetail> ReceivingDetails { get; set; } = new List<ReceivingDetail>();
 
