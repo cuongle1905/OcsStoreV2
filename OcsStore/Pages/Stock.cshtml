@@ -14,10 +14,7 @@
         padding-left: 0.1rem;
         padding-right: 0.2rem;
     }
-    a.stock-link:active, a.stock-link:hover {
-        color: inherit;
-    }
-    a.stock-link:active {
+    a.icon-link:hover {
         text-decoration: none;
     }
 </style>
@@ -52,7 +49,7 @@ Html.DevExtreme().DataGrid<StockView>()
         });
         columns.AddFor(m => m.Date).Caption("Ngày").Width(90).Alignment(HorizontalAlignment.Center).Format("dd/MM/yyyy").CellTemplate(new JS("stockCellTemplate"));
         columns.AddFor(m => m.Time).Caption("Giờ").Width(50).Alignment(HorizontalAlignment.Center).CellTemplate(new JS("stockCellTemplate"));
-        columns.Add().Width(50).Alignment(HorizontalAlignment.Center).CellTemplate(new JS("addDataCellTemplate"));
+        columns.Add().Width(40).Alignment(HorizontalAlignment.Center).CellTemplate(new JS("addDataCellTemplate"));
     })
     .Editing(e => e.AllowUpdating(false))
     .Paging(p => p.Enabled(true).PageSize(100))
@@ -85,9 +82,8 @@ Html.DevExtreme().DataGrid<StockView>()
     }
 
     function stockCellTemplate(container, options) {
-        let isInput = options.data.IsInput;
-        let isOutput = options.data.IsOutput;
-        let cssClass = (isInput ? "green2" : (isOutput ? "blue" : "brown"));
+        let itemType = options.data.ItemType;
+        let cssClass = cssColorForItemType(itemType);
         let style = "";
         let text = options.text;
         let lot = options.data.Lot;
@@ -95,12 +91,12 @@ Html.DevExtreme().DataGrid<StockView>()
             cssClass += " ps-1";
             style = "font-size: 0.9rem;"
             if (options.column.dataField == "ItemName") {
-                text = "•  " + text;
+                text = "•  " + text + " " + lot;
             }
         }
         
         if (options.column.dataField == "ItemName") {
-            text = `<a class='stock-link' href='/stockcard?item=${options.data.Item}&lot=${options.data.Lot}&year=${options.data.Year}'><span class='${cssClass}'>${text}</span></a>`;
+            text = `<a class='text-link' href='/stockcard?item=${options.data.Item}&lot=${options.data.Lot}&year=${options.data.Year}'><span class='${cssClass}'>${text}</span></a>`;
         } else if (options.column.dataField == "Soh") {
             if (options.data.SohWarning)
                 cssClass = "red";
@@ -111,12 +107,11 @@ Html.DevExtreme().DataGrid<StockView>()
     }
 
     function addDataCellTemplate(container, options) {
-        let isInput = options.data.IsInput;
-        let isOutput = options.data.IsOutput;
-        let cssClass = (isInput ? "green2" : (isOutput ? "blue" : "brown"));
-        let hint = (isInput ? "Nhập kho" : (isOutput ? "Bán hàng" : "Chế biến"));
-        let link = (isInput ? "receiving/new" : (isOutput ? "bill/new" : "processing/new")) + "?item=" + options.data.Item;
-        let html = `<a class="stock-link" href="${link}" title="${hint}"><i class='dx-icon-add ${cssClass}'></a>`
+        let itemType = options.data.ItemType;
+        let cssClass = cssColorForItemType(itemType);
+        let hint = (itemType == 1 ? "Nhập kho" : (itemType == 3 ? "Bán hàng" : "Chế biến"));
+        let link = (itemType == 1 ? "receiving/new" : (itemType == 3 ? "bill/new" : "processing/new")) + "?item=" + options.data.Item + "&sourceurl=stock";
+        let html = `<a class="text-link icon-link" href="${link}" title="${hint}"><i class='dx-icon-add ${cssClass}'></a>`
         container.html(html);
     }
 

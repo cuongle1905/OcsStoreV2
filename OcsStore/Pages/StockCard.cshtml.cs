@@ -9,7 +9,7 @@ namespace OcsStore.Pages
     {
         [FromQuery(Name = "item")]
         public int ItemId { get; set; }
-        public string ItemName;
+        public ItemView Item;
 
         [FromQuery(Name = "lot")]
         public string Lot { get; set; }
@@ -26,7 +26,7 @@ namespace OcsStore.Pages
 
         public void OnGet()
         {
-            ItemName = _itemController.GetItemName(ItemId);
+            Item = _itemController.GetItem(ItemId);
         }
     }
 }

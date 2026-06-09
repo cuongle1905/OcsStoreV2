@@ -83,6 +83,10 @@
             /* --common-color-main: #9f224e;
             --common-color-main-dark: #801B3E;
             --common-color-main-light: #CD2B64; */
+            --red: #fa3c4b;
+            --green: #249851;
+            --blue: #010125;
+            --brown: #994c00;
         }
         .dx-button-mode-contained.dx-button-default.dx-state-hover {
             background-color: var(--common-color-main-light);
@@ -129,7 +133,7 @@
         }
 
         .red {
-            color: #fa3c4b;
+            color: var(--red);
         }
 
         .dark-red {
@@ -145,7 +149,7 @@
         }
 
         .green {
-            color: #249851;
+            color: var(--green);
         }
 
         .green2 {
@@ -157,7 +161,7 @@
         }
 
         .dark-blue {
-            color: #010125;
+            color: var(--blue);
         }
 
         .orange {
@@ -165,7 +169,7 @@
         }
 
         .brown {
-            color: #994c00;
+            color: var(--brown);
         }
 
         .gray {
@@ -285,6 +289,13 @@
             font-weight: 600;
             background-color: #ebf5fd !important;
             color: #1e2dbe !important
+        }
+        
+        a.text-link:active, a.text-link:hover {
+            color: inherit;
+        }
+        a.text-link:active {
+            text-decoration: none;
         }
 
         #main-content {
@@ -442,6 +453,14 @@
         .dx-placeholder {
             top: -2px;
         }
+
+        .dx-dropdowneditor-icon::before {
+            content: "\f016";
+        }
+
+        .dx-dropdowneditor-icon {
+            font: 12px / 18px DXIcons;
+        }
     </style>
 </head>
 @{
@@ -575,26 +594,13 @@
             const MM = (this.getMonth() + 1).toString().padStart(2, '0');
             return `${dd}${MM}`;
         };
-        
-        function processingCellTemplate(container, options) {
-            let itemIsInput = options.data.ItemIsInput;
-            let itemIsOutput = options.data.ItemIsOutput;
-            let isInOutColumn = (options.column.dataField == "InOut");
-            let cssClass = (itemIsInput ? "green2" : (itemIsOutput ? "dark-blue" : "brown"));
-            let style = "";
-            let text = "";
-            if (isInOutColumn) {
-                cssClass += " bold";
-                style = "font-size:0.8rem; padding-top:0.2rem";
-                if (options.text == "IN")
-                    text = "<i class='dx-icon-minus' style='font-size:0.8rem'></i>";
-                else
-                    text = "<i class='dx-icon-add' style='font-size:0.8rem'></i>"; // "<span style='font-size:0.8rem; margin-right:0.2rem;'>●</span>"
-            } else {
-                text = options.text;
-            }
-            let html = `<div class='${cssClass}' style='${style}'>${text}</div>`
-            container.html(html);
+
+        function cssColorForItemType(itemType) {
+            return (itemType == 1 ? "green" : (itemType == 3 ? "blue" : "brown"));
+        }
+
+        function displayCell(container, options, cssColor) {
+            container.html(`<div class='${cssColor}'>${options.text}</div>`);
         }
 
         function sohCellTemplate(container, options) {

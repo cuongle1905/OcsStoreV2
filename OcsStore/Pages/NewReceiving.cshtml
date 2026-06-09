@@ -4,9 +4,6 @@
 @{
 }
 <style>
-    #gridReceiving .dx-data-row td {
-        color: #006b2d;
-    }
     #gridReceiving .dx-toolbar-items-container {
         display: none;
     }
@@ -15,7 +12,10 @@
     }
 </style>
 <div class="d-flex align-items-center mb-3">
-    <a class="back-arrow" href="/receiving"><i class="dx-icon-arrowleft"></i></a>
+    @if (!string.IsNullOrEmpty(Model.SourceUrl))
+    {
+        <a class="back-arrow" href="/@(Model.SourceUrl)"><i class="dx-icon-arrowleft"></i></a>
+    }
     <h4>NHẬP KHO</h4>
 </div>
 <div class="d-flex align-items-center mb-3">
@@ -52,17 +52,17 @@ Html.DevExtreme().DataGrid<ReceivingDetailView>()
     .OnContentReady("gridContentReady")
     .Columns(columns =>
     {
-        columns.AddFor(m => m.ItemName).Caption("Hàng hóa").Width(140).Alignment(HorizontalAlignment.Left).AllowEditing(false);
+        columns.AddFor(m => m.ItemName).Caption("Hàng hóa").Width(140).Alignment(HorizontalAlignment.Left).AllowEditing(false).CellTemplate(new JS("receivingCellTemplate"));
         columns.AddFor(m => m.Quantity).Caption("Số lượng").Width(60).Alignment(HorizontalAlignment.Right)
             .DataType(GridColumnDataType.Number) // Tells the grid to use dxNumberBox
             .Format("#,##0.00") // How the number displays outside of edit mode
             .EditorOptions(new { format = "#,##0.00", min = 0, max = 10000, step = 1, showSpinButtons = false });
-        columns.AddFor(m => m.UnitName).Caption("").Width(40).Alignment(HorizontalAlignment.Left).AllowEditing(false);
+        columns.AddFor(m => m.UnitName).Caption("").Width(40).Alignment(HorizontalAlignment.Left).AllowEditing(false).CellTemplate(new JS("receivingCellTemplate"));
         columns.AddFor(m => m.Price).Caption("Giá").Width(80).Alignment(HorizontalAlignment.Right)
             .DataType(GridColumnDataType.Number) // Tells the grid to use dxNumberBox
             .Format("#,##0") // How the number displays outside of edit mode
             .EditorOptions(new { format = "#,##0", min = 0, max = 10000000, step = 1000, showSpinButtons = false });
-        columns.AddFor(m => m.Soh).Caption("Tồn kho").Width(60).Alignment(HorizontalAlignment.Right).CellTemplate(new JS("sohCellTemplate")).Format("#,##0.00").AllowEditing(false);
+        columns.AddFor(m => m.Soh).Caption("Tồn kho").Width(60).Alignment(HorizontalAlignment.Right).Format("#,##0.00").AllowEditing(false).CellTemplate(new JS("receivingCellTemplate"));
         columns.AddFor(m => m.Note).Caption("Ghi chú").Width(140).Alignment(HorizontalAlignment.Left);
     })
     .Editing(e => e.AllowUpdating(true).Mode(GridEditMode.Batch))
@@ -88,6 +88,11 @@ Html.DevExtreme().DataGrid<ReceivingDetailView>()
         let cells = $(".dx-header-row > td");
         // console.log(cells);
         cells.css("text-align", "center");
+    }
+
+    function receivingCellTemplate(container, options) {
+        let cssColor = (options.column.dataField == "Soh" && options.data.SohWarning ? "red" : "green");
+        container.html(`<div class='${cssColor}'>${options.text}</div>`);
     }
 
     function save() {
@@ -123,7 +128,7 @@ Html.DevExtreme().DataGrid<ReceivingDetailView>()
                     data: { date: date, time: time, details: details },
                     success: function (result) {
                         DevExpress.ui.dialog.alert("Đã lưu dữ liệu nhập kho.", "Thông báo").then(function(dialogResult) {
-                            location.href = "/receiving";
+                            location.href = "/@(Model.SourceUrl)";
                         });
                     },
                     error: function (xhr, status, error) {

@@ -70,4 +70,8 @@ Html.DevExtreme().DataGrid<ProcessingView>()
             e.cellElement.css('display', 'none');
         }
     }
+
+    function processingCellTemplate(container, options) {
+        displayCell(container, options, cssColorForItemType(options.data.ItemType));
+    }
 </script>

@@ -27,6 +27,8 @@ public partial class Item
 
     public decimal MinSoh { get; set; }
 
+    public string ProcessingDesc { get; set; }
+
     public virtual ICollection<ItemMaterial> ItemMaterialItemNavigations { get; set; } = new List<ItemMaterial>();
 
     public virtual ICollection<ItemMaterial> ItemMaterialMaterialNavigations { get; set; } = new List<ItemMaterial>();

@@ -32,6 +32,8 @@ public partial class MyDbContext : DbContext
 
     public virtual DbSet<ItemMaterial> ItemMaterials { get; set; }
 
+    public virtual DbSet<ItemMaterialView> ItemMaterialViews { get; set; }
+
     public virtual DbSet<ItemStockView> ItemStockViews { get; set; }
 
     public virtual DbSet<ItemView> ItemViews { get; set; }
@@ -504,6 +506,9 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.Ordinal)
                 .HasDefaultValueSql("'1'")
                 .HasColumnName("ordinal");
+            entity.Property(e => e.ProcessingDesc)
+                .HasMaxLength(45)
+                .HasColumnName("processing_desc");
             entity.Property(e => e.SalePrice)
                 .HasPrecision(8)
                 .HasColumnName("sale_price");
@@ -522,8 +527,6 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.Id)
                 .ValueGeneratedNever()
                 .HasColumnName("id");
-            entity.Property(e => e.IsInput).HasColumnName("is_input");
-            entity.Property(e => e.IsOutput).HasColumnName("is_output");
             entity.Property(e => e.Name)
                 .IsRequired()
                 .HasMaxLength(45)
@@ -538,6 +541,9 @@ public partial class MyDbContext : DbContext
                 .HasMaxLength(45)
                 .HasDefaultValueSql("''")
                 .HasColumnName("processing_name");
+            entity.Property(e => e.Type)
+                .HasDefaultValueSql("'1'")
+                .HasColumnName("type");
         });
 
         modelBuilder.Entity<ItemMaterial>(entity =>
@@ -554,6 +560,7 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.Material).HasColumnName("material");
             entity.Property(e => e.LostPercent)
                 .HasPrecision(5, 2)
+                .HasDefaultValueSql("'10.00'")
                 .HasColumnName("lost_percent");
             entity.Property(e => e.Quantity)
                 .HasPrecision(10, 2)
@@ -569,6 +576,49 @@ public partial class MyDbContext : DbContext
                 .HasForeignKey(d => d.Material)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_item_material_material");
+        });
+
+        modelBuilder.Entity<ItemMaterialView>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToView("item_material_view");
+
+            entity.Property(e => e.Group)
+                .HasDefaultValueSql("'1'")
+                .HasColumnName("group");
+            entity.Property(e => e.Item).HasColumnName("item");
+            entity.Property(e => e.ItemType)
+                .HasDefaultValueSql("'1'")
+                .HasColumnName("item_type");
+            entity.Property(e => e.LostPercent)
+                .HasPrecision(5, 2)
+                .HasDefaultValueSql("'10.00'")
+                .HasColumnName("lost_percent");
+            entity.Property(e => e.Material).HasColumnName("material");
+            entity.Property(e => e.Name)
+                .IsRequired()
+                .HasMaxLength(100)
+                .HasColumnName("name")
+                .UseCollation("utf8mb3_general_ci")
+                .HasCharSet("utf8mb3");
+            entity.Property(e => e.Quantity)
+                .HasPrecision(10, 2)
+                .HasDefaultValueSql("'1.00'")
+                .HasColumnName("quantity");
+            entity.Property(e => e.Soh)
+                .HasPrecision(10, 2)
+                .HasColumnName("soh");
+            entity.Property(e => e.Unit)
+                .HasDefaultValueSql("'1'")
+                .HasColumnName("unit");
+            entity.Property(e => e.UnitName)
+                .IsRequired()
+                .HasMaxLength(50)
+                .HasColumnName("unit_name")
+                .UseCollation("utf8mb3_general_ci")
+                .HasCharSet("utf8mb3");
+            entity.Property(e => e.UseLot).HasColumnName("use_lot");
         });
 
         modelBuilder.Entity<ItemStockView>(entity =>
@@ -642,6 +692,9 @@ public partial class MyDbContext : DbContext
                 .IsRequired()
                 .HasMaxLength(100)
                 .HasColumnName("full_name");
+            entity.Property(e => e.Group)
+                .HasDefaultValueSql("'1'")
+                .HasColumnName("group");
             entity.Property(e => e.GroupName)
                 .IsRequired()
                 .HasMaxLength(45)
@@ -649,8 +702,9 @@ public partial class MyDbContext : DbContext
                 .UseCollation("utf8mb3_general_ci")
                 .HasCharSet("utf8mb3");
             entity.Property(e => e.Id).HasColumnName("id");
-            entity.Property(e => e.IsInput).HasColumnName("is_input");
-            entity.Property(e => e.IsOutput).HasColumnName("is_output");
+            entity.Property(e => e.ItemType)
+                .HasDefaultValueSql("'1'")
+                .HasColumnName("item_type");
             entity.Property(e => e.Name)
                 .IsRequired()
                 .HasMaxLength(100)
@@ -665,6 +719,14 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.Ordinal)
                 .HasDefaultValueSql("'1'")
                 .HasColumnName("ordinal");
+            entity.Property(e => e.ProcessingDesc)
+                .HasMaxLength(45)
+                .HasColumnName("processing_desc");
+            entity.Property(e => e.ProcessingName)
+                .IsRequired()
+                .HasMaxLength(45)
+                .HasDefaultValueSql("''")
+                .HasColumnName("processing_name");
             entity.Property(e => e.Unit)
                 .HasDefaultValueSql("'1'")
                 .HasColumnName("unit");
@@ -674,6 +736,7 @@ public partial class MyDbContext : DbContext
                 .HasColumnName("unit_name")
                 .UseCollation("utf8mb3_general_ci")
                 .HasCharSet("utf8mb3");
+            entity.Property(e => e.UseLot).HasColumnName("use_lot");
         });
 
         modelBuilder.Entity<LastStoreTransaction>(entity =>
@@ -756,7 +819,9 @@ public partial class MyDbContext : DbContext
                 .HasDefaultValueSql("''")
                 .HasColumnName("lot");
             entity.Property(e => e.LotOrdinal)
+                .IsRequired()
                 .HasMaxLength(8)
+                .HasDefaultValueSql("''")
                 .HasColumnName("lot_ordinal");
             entity.Property(e => e.Soh)
                 .HasPrecision(10, 2)
@@ -937,17 +1002,26 @@ public partial class MyDbContext : DbContext
                 .HasColumnName("date");
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.Item).HasColumnName("item");
-            entity.Property(e => e.ItemIsInput).HasColumnName("item_is_input");
-            entity.Property(e => e.ItemIsOutput).HasColumnName("item_is_output");
             entity.Property(e => e.ItemName)
                 .IsRequired()
                 .HasMaxLength(100)
                 .HasColumnName("item_name")
                 .UseCollation("utf8mb3_general_ci")
                 .HasCharSet("utf8mb3");
+            entity.Property(e => e.ItemType)
+                .HasDefaultValueSql("'1'")
+                .HasColumnName("item_type");
             entity.Property(e => e.Lot)
                 .HasMaxLength(10)
                 .HasColumnName("lot");
+            entity.Property(e => e.MaterialLostPercent)
+                .HasPrecision(5, 2)
+                .HasDefaultValueSql("'10.00'")
+                .HasColumnName("material_lost_percent");
+            entity.Property(e => e.MaterialQuantity)
+                .HasPrecision(10, 2)
+                .HasDefaultValueSql("'1.00'")
+                .HasColumnName("material_quantity");
             entity.Property(e => e.Note)
                 .HasMaxLength(100)
                 .HasColumnName("note")
@@ -1009,14 +1083,15 @@ public partial class MyDbContext : DbContext
                 .HasColumnName("item_group_name")
                 .UseCollation("utf8mb3_general_ci")
                 .HasCharSet("utf8mb3");
-            entity.Property(e => e.ItemIsInput).HasColumnName("item_is_input");
-            entity.Property(e => e.ItemIsOutput).HasColumnName("item_is_output");
             entity.Property(e => e.ItemName)
                 .IsRequired()
                 .HasMaxLength(100)
                 .HasColumnName("item_name")
                 .UseCollation("utf8mb3_general_ci")
                 .HasCharSet("utf8mb3");
+            entity.Property(e => e.ItemType)
+                .HasDefaultValueSql("'1'")
+                .HasColumnName("item_type");
             entity.Property(e => e.Lot)
                 .HasMaxLength(10)
                 .HasColumnName("lot");
@@ -1250,7 +1325,9 @@ public partial class MyDbContext : DbContext
                 .HasMaxLength(10)
                 .HasColumnName("lot");
             entity.Property(e => e.LotOrdinal)
+                .IsRequired()
                 .HasMaxLength(8)
+                .HasDefaultValueSql("''")
                 .HasColumnName("lot_ordinal");
             entity.Property(e => e.Soh)
                 .HasPrecision(10, 2)
@@ -1346,14 +1423,10 @@ public partial class MyDbContext : DbContext
                 .HasColumnType("datetime")
                 .HasColumnName("date");
             entity.Property(e => e.GroupName)
-                .IsRequired()
                 .HasMaxLength(51)
-                .HasDefaultValueSql("''")
                 .HasColumnName("group_name")
                 .UseCollation("utf8mb3_general_ci")
                 .HasCharSet("utf8mb3");
-            entity.Property(e => e.IsInput).HasColumnName("is_input");
-            entity.Property(e => e.IsOutput).HasColumnName("is_output");
             entity.Property(e => e.Item).HasColumnName("item");
             entity.Property(e => e.ItemGroup).HasColumnName("item_group");
             entity.Property(e => e.ItemName)
@@ -1364,14 +1437,15 @@ public partial class MyDbContext : DbContext
                 .UseCollation("utf8mb3_general_ci")
                 .HasCharSet("utf8mb3");
             entity.Property(e => e.ItemOrdinal).HasColumnName("item_ordinal");
+            entity.Property(e => e.ItemType)
+                .HasDefaultValueSql("'1'")
+                .HasColumnName("item_type");
             entity.Property(e => e.LastTransaction).HasColumnName("last_transaction");
             entity.Property(e => e.Lot)
                 .HasMaxLength(10)
                 .HasColumnName("lot");
             entity.Property(e => e.LotOrdinal)
-                .IsRequired()
                 .HasMaxLength(8)
-                .HasDefaultValueSql("''")
                 .HasColumnName("lot_ordinal");
             entity.Property(e => e.Ordinal)
                 .HasDefaultValueSql("'1'")

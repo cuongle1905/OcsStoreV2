@@ -25,9 +25,7 @@ public partial class ProcessingInputView
 
     public bool UseLot { get; set; }
 
-    public bool ItemIsInput { get; set; }
-
-    public bool ItemIsOutput { get; set; }
+    public sbyte ItemType { get; set; }
 
     public string UnitName { get; set; }
 
@@ -40,4 +38,8 @@ public partial class ProcessingInputView
     public string StoreName { get; set; }
 
     public decimal? Soh { get; set; }
+
+    public decimal? MaterialQuantity { get; set; }
+
+    public decimal? MaterialLostPercent { get; set; }
 }

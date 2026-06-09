@@ -41,9 +41,7 @@ public partial class StockView
 
     public sbyte Ordinal { get; set; }
 
-    public bool IsInput { get; set; }
-
-    public bool IsOutput { get; set; }
+    public sbyte ItemType { get; set; }
 
     public string UnitName { get; set; }
 

@@ -35,12 +35,12 @@ namespace OcsStore.Controllers
 
         public decimal GetReceivingItemTotalValue()
         {
-            return _context.StockViews.Where(i => i.IsInput == true).Sum(i => i.Value) ?? 0;
+            return _context.StockViews.Where(i => i.ItemType == Item.Receving).Sum(i => i.Value) ?? 0;
         }
 
         public decimal GetProcessingItemTotalValue()
         {
-            return _context.StockViews.Where(i => i.IsInput == false && i.IsOutput == false && i.Lot == "").Sum(i => i.Value) ?? 0;
+            return _context.StockViews.Where(i => i.ItemType == Item.Intermediate && i.Lot == "").Sum(i => i.Value) ?? 0;
         }
 
         public decimal GetReceivingTotalValue()

@@ -23,7 +23,7 @@
 
 <div id="divCaption" class="d-flex align-items-center pb-3">
     <a class="back-arrow" href="/stock"><i class="dx-icon-arrowleft"></i></a>
-    <h5>THẺ KHO - @(Model.ItemName) @(Model.Lot)</h5>
+    <h5>THẺ KHO - @(Model.Item.Name) @(Model.Lot)</h5>
 </div>
 
 @(
@@ -46,7 +46,7 @@ Html.DevExtreme().DataGrid<StockCardView>()
         columns.AddFor(m => m.Lot).Caption("Lô").Width(46).Alignment(HorizontalAlignment.Center).CellTemplate(new JS("stockCellTemplate"));
         columns.AddFor(m => m.Quantity).Caption("Số lượng").Width(60).Alignment(HorizontalAlignment.Right).Format("#,##0.00").CellTemplate(new JS("stockCellTemplate"));
         columns.AddFor(m => m.Price).Caption("Giá").Width(64).Alignment(HorizontalAlignment.Right).Format("#,##0").CellTemplate(new JS("stockCellTemplate"));
-        columns.Add().Caption("Tồn kho " + Model.ItemName + " " + Model.Lot).Columns(cols =>
+        columns.Add().Caption("Tồn kho " + Model.Item.Name + " " + Model.Lot).Columns(cols =>
         {
             if (useLot)
             {

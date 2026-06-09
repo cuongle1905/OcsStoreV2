@@ -25,9 +25,7 @@ public partial class ProcessingView
 
     public sbyte ItemGroup { get; set; }
 
-    public bool ItemIsInput { get; set; }
-
-    public bool ItemIsOutput { get; set; }
+    public sbyte ItemType { get; set; }
 
     public string ItemGroupName { get; set; }
 

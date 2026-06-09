@@ -7,6 +7,8 @@ public partial class ItemView
 {
     public int Id { get; set; }
 
+    public sbyte Group { get; set; }
+
     public string Name { get; set; }
 
     public string FullName { get; set; }
@@ -19,11 +21,15 @@ public partial class ItemView
 
     public int Ordinal { get; set; }
 
+    public bool UseLot { get; set; }
+
+    public string ProcessingDesc { get; set; }
+
     public string UnitName { get; set; }
 
     public string GroupName { get; set; }
 
-    public bool IsInput { get; set; }
+    public sbyte ItemType { get; set; }
 
-    public bool IsOutput { get; set; }
+    public string ProcessingName { get; set; }
 }

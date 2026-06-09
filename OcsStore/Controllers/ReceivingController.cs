@@ -32,7 +32,7 @@ namespace OcsStore.Controllers
         [HttpPost]
         public IActionResult GetNewDetails(int itemId, DataSourceLoadOptions loadOptions)
         {
-            var data = _context.StockViews.Where(i => i.IsInput).ToList();
+            var data = _context.StockViews.Where(i => i.ItemType == Item.Receving).ToList();
             if (itemId > 0)
             {
                 var item = data.FirstOrDefault(i => i.Item == itemId);

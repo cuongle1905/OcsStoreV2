@@ -38,8 +38,7 @@ namespace OcsStore.Controllers
         [HttpPost]
         public IActionResult GetNewDetails(int itemId)
         {
-            short storeId = 1;
-            var materials = _context.ItemMaterials.Where(i => i.Item == itemId).ToArray();
+            var materials = _context.ItemMaterialViews.Where(i => i.Item == itemId).ToArray();
             List<ProcessingInputView> details = new List<ProcessingInputView>();
             foreach (var m in materials)
             {
@@ -55,15 +54,15 @@ namespace OcsStore.Controllers
                 //}
                 //else
                 //{
-                //    var detail = new ProcessingDetailView() { Item = m.Item, ItemName = m.ItemName, Unit = m.Unit, UnitName = m.UnitName, Lot = "", Year = (sbyte)(DateTime.Today.Year % 100), InOut = m.InOut, IsOutput = m.IsOutput, UseLot = m.UseLot, ItemIsInput = m.ItemIsInput, ItemIsOutput = m.ItemIsOutput, Store = m.Store, Soh = m.Soh };
-                //    details.Add(detail);
+                var detail = new ProcessingInputView() { Item = m.Material, ItemName = m.Name, Unit = m.Unit, UnitName = m.UnitName, Lot = "", Year = (sbyte)(DateTime.Today.Year % 100), UseLot = m.UseLot, ItemType = m.ItemType, Soh = m.Soh };
+                details.Add(detail);
                 //}
             }
             return Ok(details);
         }
 
         [HttpPost]
-        public IActionResult Save(DateTime date, string time, int model, ProcessingDetail[] details)
+        public IActionResult Save(DateTime date, string time, int itemId, decimal quantity, ProcessingDetail[] details)
         {
             date = Common.GetLocalDateWithoutTime(date); // Remove hour, minute...
             int processingId;
@@ -76,7 +75,13 @@ namespace OcsStore.Controllers
                 processingId = 1;
             }
 
-            var processing = new Processing() { Id = processingId, Date = date, Time = time, User = Session.UserId(Request) };
+            var item = _context.ItemViews.FirstOrDefault(i => i.Id == itemId);
+            var processing = new Processing() { Id = processingId, Year = (sbyte)(date.Year % 100), Item = itemId, Quantity = quantity, Date = date, Time = time, User = Session.UserId(Request) };
+
+
+            if (item.UseLot)
+                processing.Lot = date.ToString("ddMM");
+
             _context.Processings.Add(processing);
 
             int detailId;
@@ -91,7 +96,7 @@ namespace OcsStore.Controllers
 
             foreach (var detail in details)
             {
-                var processingInput = new ProcessingInput() { Id = detailId++, Processing = processingId, Lot = detail.Lot, Item = detail.Item, Unit = detail.Unit, Quantity = detail.Quantity, Note = detail.Note };
+                var processingInput = new ProcessingInput() { Id = detailId++, Processing = processingId, Lot = detail.Lot, Year = detail.Year, Item = detail.Item, Unit = detail.Unit, Quantity = detail.Quantity, Note = detail.Note };
                 _context.ProcessingInputs.AddRange(processingInput);
             }
 

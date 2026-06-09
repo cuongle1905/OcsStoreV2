@@ -21,14 +21,21 @@ namespace OcsStore.Controllers
             _context = context;
         }
 
-        public List<ItemView> GetReceivingItems()
+        [HttpPost]
+        public IActionResult GetItemViews(int groupId, DataSourceLoadOptions loadOptions)
         {
-            return _context.ItemViews.Where(i => i.IsInput == true).ToList();
+            var result = DataSourceLoader.Load(_context.ItemViews.Where(i => i.Group == groupId), loadOptions);
+            return Ok(result);
         }
 
-        public string GetItemName(int itemId)
+        public List<ItemView> GetReceivingItems()
         {
-            return _context.Items.FirstOrDefault(i => i.Id == itemId).Name;
+            return _context.ItemViews.Where(i => i.ItemType == Item.Receving).ToList();
+        }
+
+        public ItemView GetItem(int itemId)
+        {
+            return _context.ItemViews.FirstOrDefault(i => i.Id == itemId);
         }
 
         [HttpPost]

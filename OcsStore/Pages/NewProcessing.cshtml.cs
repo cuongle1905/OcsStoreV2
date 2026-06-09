@@ -3,31 +3,30 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using OcsStore.Models;
 using System.Diagnostics;
+using Microsoft.VisualBasic;
 
 namespace OcsStore.Pages
 {
     public class NewProcessingModel : PageModel
     {
-        private readonly ProcessingController _processingController;
-        
-        [FromQuery(Name = "type")]
-        public short Type { get; set; }
-        public string TypeName;
+        private readonly ItemController _itemController;
 
-        public List<ProcessingInputView> Inputs = new List<ProcessingInputView>();
+        [FromQuery(Name = "sourceurl")]
+        public string SourceUrl { get; set; }
 
-        public NewProcessingModel(ProcessingController controller)
+        [FromQuery(Name = "item")]
+        public short ItemId { get; set; }
+        public ItemView Item { get; set; }
+
+        public NewProcessingModel(ItemController controller)
         {
-            _processingController = controller;
+            _itemController = controller;
         }
 
         public void OnGet()
         {
-            if (Type == 0)
-            {
-                Type = 1;
-            }
-            TypeName = _processingController.GetProcessingName(Type);
+            if (ItemId > 0)
+                Item = _itemController.GetItem(ItemId);
         }
     }
 }
