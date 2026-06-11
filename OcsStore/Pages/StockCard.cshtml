@@ -21,11 +21,6 @@
     }
 </style>
 
-<div id="divCaption" class="d-flex align-items-center pb-3">
-    <a class="back-arrow" href="/stock"><i class="dx-icon-arrowleft"></i></a>
-    <h5>THẺ KHO - @(Model.Item.Name) @(Model.Lot)</h5>
-</div>
-
 @(
 Html.DevExtreme().DataGrid<StockCardView>()
     .ID("gridStock")
@@ -42,7 +37,7 @@ Html.DevExtreme().DataGrid<StockCardView>()
     {
         columns.AddFor(m => m.Date).Caption("Ngày").Width(80).Alignment(HorizontalAlignment.Center).Format("dd/MM/yyyy").CellTemplate(new JS("stockCellTemplate")).GroupIndex(0);
         columns.AddFor(m => m.Time).Caption("Giờ").Width(46).Alignment(HorizontalAlignment.Center).CellTemplate(new JS("stockCellTemplate"));
-        columns.AddFor(m => m.Description).Caption("Mô tả").Width(110).Alignment(HorizontalAlignment.Left).CellTemplate(new JS("stockCellTemplate"));
+        columns.AddFor(m => m.Description).Caption("Mô tả").Width(80).Alignment(HorizontalAlignment.Left).CellTemplate(new JS("stockCellTemplate"));
         columns.AddFor(m => m.Lot).Caption("Lô").Width(46).Alignment(HorizontalAlignment.Center).CellTemplate(new JS("stockCellTemplate"));
         columns.AddFor(m => m.Quantity).Caption("Số lượng").Width(60).Alignment(HorizontalAlignment.Right).Format("#,##0.00").CellTemplate(new JS("stockCellTemplate"));
         columns.AddFor(m => m.Price).Caption("Giá").Width(64).Alignment(HorizontalAlignment.Right).Format("#,##0").CellTemplate(new JS("stockCellTemplate"));
@@ -67,6 +62,8 @@ Html.DevExtreme().DataGrid<StockCardView>()
 )
 
 <script>
+    pageTitle = "Thẻ kho @(Model.Item.Name) @(Model.Lot)";
+    goBackUrl = "/stock";
     $(function () {
         $("#gridStock").first().prepend($("#divCaption"));
     });

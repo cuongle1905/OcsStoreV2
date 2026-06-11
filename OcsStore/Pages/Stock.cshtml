@@ -37,7 +37,7 @@
 <div id="divCaption" class="pb-3">
     <ul id="groupTab" class="nav nav-fill">
         <li class="nav-item">
-            <a class="nav-link active" aria-current="page" href="#" onclick="tabClicked(0);">Nhân xanh</a>
+            <a class="nav-link" aria-current="page" href="#" onclick="tabClicked(0);">Nhân xanh</a>
         </li>
         <li class="nav-item">
             <a class="nav-link" href="#" onclick="tabClicked(1);">Hạt rang</a>
@@ -51,7 +51,7 @@
 @(
 Html.DevExtreme().DataGrid<StockView>()
     .ID("main-grid")
-    .DataSource(d => d.Mvc().Controller("Stock").LoadAction("GetStocks").LoadMethod("POST").LoadParams(new { ItemGroupId = new JS("function() { return selectedTabIndex + 1; }") }))
+    .DataSource(d => d.Mvc().Controller("Stock").LoadAction("GetStocks").LoadMethod("POST").LoadParams(new { ItemGroupId = new JS("function() { return itemGroupId; }") }))
     .RemoteOperations(false)
     .ShowBorders(true)
     .ShowRowLines(true)
@@ -73,7 +73,7 @@ Html.DevExtreme().DataGrid<StockView>()
         
         columns.AddFor(m => m.Date).Caption("Ngày").Width(90).Alignment(HorizontalAlignment.Center).Format("dd/MM/yyyy").CellTemplate(new JS("stockCellTemplate"));
         columns.AddFor(m => m.Time).Caption("Giờ").Width(50).Alignment(HorizontalAlignment.Center).CellTemplate(new JS("stockCellTemplate"));
-        columns.Add().Width(36).Alignment(HorizontalAlignment.Center).Fixed(true).FixedPosition(HorizontalEdge.Right).CellTemplate(new JS("addDataCellTemplate"));
+        columns.Add().Name("Action").Width(36).Alignment(HorizontalAlignment.Center).Fixed(true).FixedPosition(HorizontalEdge.Right).CellTemplate(new JS("addDataCellTemplate"));
     })
     .Editing(e => e.AllowUpdating(false))
     .Paging(p => p.Enabled(true).PageSize(100))
@@ -90,12 +90,27 @@ Html.DevExtreme().DataGrid<StockView>()
     )
 )
 
+@(Html.DevExtreme().Popup()
+    .ID("actions-popup")
+    .Width(100)
+    .Height(40)
+    .Container("#main-grid")
+    .Visible(false)
+    .ShowTitle(false)
+    .ShowCloseButton(false)
+    .HideOnOutsideClick(true)
+    .ContentTemplate(@<text>
+        <div>Hello</div>
+    </text>)
+)
+
 <script>
-    var selectedTabIndex = 0;
-    pageTitle = "TỒN KHO";
+    var itemGroupId = @(Model.ItemGroupId);
+    pageTitle = "Tồn kho";
 
     $(function () {
         $("#main-grid").first().prepend($("#divCaption"));
+        updateSelectedTab();
     });
 
     function gridContentReady() {
@@ -109,10 +124,14 @@ Html.DevExtreme().DataGrid<StockView>()
     }
 
     function tabClicked(tabIndex) {
-        $(`#groupTab > :nth-child(${selectedTabIndex+1}) .nav-link`).removeClass("active");
-        selectedTabIndex = tabIndex;
-        $(`#groupTab > :nth-child(${tabIndex+1}) .nav-link`).addClass("active");
+        $(`#groupTab > :nth-child(${itemGroupId}) .nav-link`).removeClass("active");
+        itemGroupId = tabIndex + 1;
         $("#main-grid").dxDataGrid("instance").refresh();
+        updateSelectedTab();
+    }
+
+    function updateSelectedTab() {
+        $(`#groupTab > :nth-child(${itemGroupId}) .nav-link`).addClass("active");
     }
 
     function stockCellTemplate(container, options) {
@@ -151,17 +170,63 @@ Html.DevExtreme().DataGrid<StockView>()
     function addDataCellTemplate(container, options) {
         let lot = options.data.Lot;
         if (lot == null || lot == "") {
-            let cssColor = cssColorForItemType(options.data.ItemType);
+            let itemId = options.data.Item;
             let itemType = options.data.ItemType;
-            let hint = (itemType == 1 ? "Nhập kho" : (itemType == 3 ? "Bán hàng" : "Chế biến"));
-            let link = (itemType == 1 ? "receiving/new" : (itemType == 3 ? "bill/new" : "processing/new")) + "?item=" + options.data.Item + "&sourceurl=stock";
-            let html = `<a class="text-link icon-link" href="${link}" title="${hint}"><span style='color: var(--${cssColor})'><i class='dx-icon-add' style='font-size: 10px;'></i></span></a>`
-            container.html(html);
+            let actionCount = (options.data.AllowSale && options.data.Soh > 0 ? 2 : 1);
+            // let html = getIconLink(itemType == 1 ? 1 : 2, options.data);
+            // if (options.data.AllowSale) {
+            //     html += getIconLink(3, options.data);
+            // }
+            let firstAction = (itemType == 1 ? 1 : 2);
+            if (actionCount == 1) {
+                let html = `<a id="detail-link${itemId}" class="text-link icon-link p-1" href="#" onclick="goToAction(${firstAction}, ${itemId});"><span style='color: var(--blue)'><i class='bi bi-chevron-right' style='font-size:12px;'></i></span></a>`;
+                container.html(html);
+                container.css({"padding-left": "1px", "padding-right": "1px" });
+                container.attr("id", `cell-link${itemId}`);
+            } else {
+                $("<div>").dxDropDownButton({
+                    text: "",
+                    icon: "bi bi-chevron-right",
+                    stylingMode: "text",
+                    showArrowIcon: false,
+                    elementAttr: { class: "no-border-button cell-link-button" },
+                    dropDownOptions: {
+                        width: 120,
+                        height: "auto",
+                        shading: false
+                    },
+                    items: [
+                        { id: 1, text: (itemType == 1 ? "Nhập kho" : options.data.ProcessingName), icon: "add" },
+                        { id: 2, text: "Bán hàng", icon: "bi bi-box-arrow-right" }
+                    ],
+                    onItemClick: function (e) {
+                        goToAction(e.itemData.id == 2 ? 3 : firstAction, itemId);
+                        // console.log(e.itemData.id, rowData);
+                    }
+                }).appendTo(container);
+                container.css({"padding": "1px" });
+            }
         }
     }
 
+    function goToAction(actionType, itemId) {
+        let link = (actionType == 1 ? "/receiving/new" : (actionType == 3 ? "/bill/new" : "/processing/new")) + "?item=" + itemId + "&sourceurl=stock?itemGroup%3D" + itemGroupId;
+        location.href = link;
+    }
+
+    function getIconLink(actionType, data) {
+        let cssColor = cssColorForItemType(data.ItemType);
+        let hint = (actionType == 1 ? "Nhập kho" : (actionType == 3 ? "Bán hàng" : data.ProcessingName));
+        let link = (actionType == 1 ? "receiving/new" : (actionType == 3 ? "bill/new" : "processing/new")) + "?item=" + data.Item + "&sourceurl=stock?itemGroup%3D" + itemGroupId;
+        let icon = (actionType == 3 ? "bi bi-box-arrow-right" : "dx-icon-add")
+        let fontSize = (actionType == 3 ? 14 : 12);
+        let marginLeft = (actionType == 3 ? "ms-1" : "");
+        let html = `<a class="text-link icon-link ${marginLeft} p-1" href="${link}" title="${hint}"><span style='color: var(--${cssColor})'><i class='${icon}' style='font-size: ${fontSize}px;'></i></span></a>`;
+        return html
+    }
+
     function calculateCustomSummary(options) {
-        console.log(options);
+        // console.log(options);
         if (options.name === "ValueSummary") {
             if (options.summaryProcess === "start") {
                 options.totalValue = 0;

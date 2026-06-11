@@ -31,6 +31,8 @@ public partial class RootStockView
 
     public sbyte ItemGroup { get; set; }
 
+    public sbyte AllowSale { get; set; }
+
     public sbyte UseLot { get; set; }
 
     public string LotOrdinal { get; set; }

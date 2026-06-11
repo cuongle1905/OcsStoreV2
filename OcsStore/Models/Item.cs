@@ -21,13 +21,15 @@ public partial class Item
 
     public int Ordinal { get; set; }
 
-    public decimal? SalePrice { get; set; }
-
     public bool UseLot { get; set; }
 
     public decimal MinSoh { get; set; }
 
     public string ProcessingDesc { get; set; }
+
+    public bool AllowSale { get; set; }
+
+    public decimal? SalePrice { get; set; }
 
     public virtual ICollection<ItemMaterial> ItemMaterialItemNavigations { get; set; } = new List<ItemMaterial>();
 

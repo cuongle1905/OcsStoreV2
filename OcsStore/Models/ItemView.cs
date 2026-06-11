@@ -32,4 +32,6 @@ public partial class ItemView
     public sbyte ItemType { get; set; }
 
     public string ProcessingName { get; set; }
+
+    public bool AllowSale { get; set; }
 }

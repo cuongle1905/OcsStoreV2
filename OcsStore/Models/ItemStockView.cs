@@ -35,6 +35,8 @@ public partial class ItemStockView
 
     public int ItemOrdinal { get; set; }
 
+    public bool AllowSale { get; set; }
+
     public string LotOrdinal { get; set; }
 
     public bool? SohWarning { get; set; }

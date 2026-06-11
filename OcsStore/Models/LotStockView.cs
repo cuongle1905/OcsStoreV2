@@ -31,6 +31,8 @@ public partial class LotStockView
 
     public sbyte ItemGroup { get; set; }
 
+    public bool AllowSale { get; set; }
+
     public int ItemOrdinal { get; set; }
 
     public bool UseLot { get; set; }

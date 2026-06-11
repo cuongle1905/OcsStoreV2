@@ -85,14 +85,14 @@
             /* --common-color-main: #9f224e;
             --common-color-main-dark: #801B3E;
             --common-color-main-light: #CD2B64; */
-            --common-color-main-dark: #000048; /* #010125 */
-            --common-color-main: #0000BB;
             --red: #EE3333;
             --green: #20AE64;
             --dark-blue: #3562E3; /* #010125 */
             --blue: #005EE2;
             --brown: #C56722;
             --gray: #666;
+            --common-color-main-dark: #000048; /* #010125 */
+            --common-color-main: var(--blue); /* #0000BB */
         }
         .dx-button-mode-contained.dx-button-default.dx-state-hover {
             background-color: var(--common-color-main-light);
@@ -213,16 +213,18 @@
         
         #my-container {
             position: absolute;
-            top: 0px;
+            top: 48px;
             left: 0;
             right: 0;
             bottom: 0;
         }
         #top-bar {
             /* background-color:var(--common-color-main-dark); */
-            font-weight: 600;
-            font-size: 1.3rem;
             height: 48px;
+        }
+        #page-title {
+            font-weight: 600;
+            font-size: 1.5rem;
         }
         #top-bar, #top-bar a {
             color: #333;
@@ -230,14 +232,6 @@
         }
         #language-button .dx-button-mode-text .dx-icon {
             color: white;
-        }
-
-        #home-container {
-            position: absolute;
-            top: 40px;
-            right: 0;
-            bottom: 0;
-            left: 0;
         }
 
         #home-left-panel {
@@ -352,6 +346,7 @@
 
         .dx-button-has-text .dx-icon {
             margin-right: 6px;
+            font-size: 12px;
         }
 
         .dx-datagrid-total-footer > .dx-datagrid-content {
@@ -518,13 +513,13 @@
         #menu-icon {
             position: fixed;
             left: 6px;
-            top: 6px;
+            top: 10px;
         }
 
         #go-back {
             position: fixed;
             left: 44px;
-            top: 8px;
+            top: 12px;
         }
 
         .field-title {
@@ -554,6 +549,43 @@
         .has-suffix {
             padding-right: 40px; /* Adjust based on the width of your suffix text */
             box-sizing: border-box;
+        }
+
+        .dx-datebox .dx-texteditor-input {
+            text-align: center;
+        }
+
+        .align-right-numberbox .dx-texteditor-input {
+            text-align: right;
+        }
+
+        .no-border-button {
+            border: none !important;
+            box-shadow: none !important;
+            outline: none !important;
+            background-color: transparent !important;
+        }
+
+        .cell-link-button .dx-icon {
+            font-size: 12px;
+            color: var(--blue);
+        }
+
+        #main-grid .dx-dropdownbutton-action.dx-button .dx-button-content {
+            padding: 3px;
+        }
+
+        .dx-list:not(.dx-list-select-decorator-enabled) .dx-list-item.dx-state-focused {
+            background-color: var(--blue);
+        }
+
+        .dx-dropdownbutton-popup-wrapper ::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Firefox */
+        .dx-dropdownbutton-popup-wrapper {
+            scrollbar-width: none; 
         }
     </style>
 </head>
@@ -721,6 +753,13 @@
                 });
             }
         }
+        
+        function emptyZeroNumberCellText(cellInfo) {
+            if (cellInfo.value === null || cellInfo.value === 0 || cellInfo.value === undefined) {
+                return ""; // Set your empty text or placeholder here
+            }
+            return cellInfo.valueText; // Returns the default formatted value
+        }
     </script>
     <div style="position: fixed; left: 0; right: 0; top: 0; z-index: 1000">
         <div id="top-bar" class="d-flex align-items-center">
@@ -735,111 +774,109 @@
         </div>
     </div>
     <main id="my-container" role="main">
-        <div id="home-container">
-            <div id="home-left-panel">
-                @(Html.DevExtreme().ScrollView()
-                    .ID("home-left-scrollview")
-                    .ScrollByContent(true)
-                    .ScrollByThumb(true)
-                    .ShowScrollbar(ShowScrollbarMode.Never)
-                    .Content(@<text>
-                        <div id="home-left-scrollview-content" style="">
-                        @if (hasToken)
-                        {
-                            <a class="menu-link" href='~/stock'>
-                                <div class="home-left-item">
-                                    <i class="dx-icon-box"></i>
-                                    <div class="home-left-item-text">
-                                        <span>Tồn kho</span>
-                                    </div>
+        <div id="home-left-panel">
+            @(Html.DevExtreme().ScrollView()
+                .ID("home-left-scrollview")
+                .ScrollByContent(true)
+                .ScrollByThumb(true)
+                .ShowScrollbar(ShowScrollbarMode.Never)
+                .Content(@<text>
+                    <div id="home-left-scrollview-content" style="">
+                    @if (hasToken)
+                    {
+                        <a class="menu-link" href='~/stock'>
+                            <div class="home-left-item">
+                                <i class="dx-icon-box"></i>
+                                <div class="home-left-item-text">
+                                    <span>Tồn kho</span>
                                 </div>
-                            </a>
-                            <a class="menu-link" href='~/receiving'>
-                                <div class="home-left-item">
-                                    <i class="dx-icon-cart"></i>
-                                    <div class="home-left-item-text">
-                                        <span>Nhập kho</span>
-                                    </div>
+                            </div>
+                        </a>
+                        <a class="menu-link" href='~/receiving'>
+                            <div class="home-left-item">
+                                <i class="dx-icon-cart"></i>
+                                <div class="home-left-item-text">
+                                    <span>Nhập kho</span>
                                 </div>
-                            </a>
-                            <a class="menu-link" href='~/processing?type=1'>
-                                <div class="home-left-item">
-                                    <i class="dx-icon-preferences"></i>
-                                    <div class="home-left-item-text">
-                                        <span>Chế biến - Rang</span>
-                                    </div>
+                            </div>
+                        </a>
+                        <a class="menu-link" href='~/processing?type=1'>
+                            <div class="home-left-item">
+                                <i class="dx-icon-preferences"></i>
+                                <div class="home-left-item-text">
+                                    <span>Chế biến - Rang</span>
                                 </div>
-                            </a>
-                            <a class="menu-link" href='~/processing?type=2'>
-                                <div class="home-left-item">
-                                    <i class="dx-icon-filter"></i>
-                                    <div class="home-left-item-text">
-                                        <span>Chế biến - Trộn</span>
-                                    </div>
+                            </div>
+                        </a>
+                        <a class="menu-link" href='~/processing?type=2'>
+                            <div class="home-left-item">
+                                <i class="dx-icon-filter"></i>
+                                <div class="home-left-item-text">
+                                    <span>Chế biến - Trộn</span>
                                 </div>
-                            </a>
-                            <a class="menu-link" href='~/sales'>
-                                <div class="home-left-item">
-                                    <i class="dx-icon-coffee"></i>
-                                    <div class="home-left-item-text">
-                                        <span>Bán hàng</span>
-                                    </div>
+                            </div>
+                        </a>
+                        <a class="menu-link" href='~/sales'>
+                            <div class="home-left-item">
+                                <i class="dx-icon-coffee"></i>
+                                <div class="home-left-item-text">
+                                    <span>Bán hàng</span>
                                 </div>
-                            </a>
-                            <a class="menu-link" href='~/customer'>
-                                <div class="home-left-item">
-                                    <i class="dx-icon-box"></i>
-                                    <div class="home-left-item-text">
-                                        <span>Khách hàng - Công nợ</span>
-                                    </div>
+                            </div>
+                        </a>
+                        <a class="menu-link" href='~/customer'>
+                            <div class="home-left-item">
+                                <i class="dx-icon-box"></i>
+                                <div class="home-left-item-text">
+                                    <span>Khách hàng - Công nợ</span>
                                 </div>
-                            </a>
-                            <a class="menu-link" href='~/report'>
-                                <div class="home-left-item">
-                                    <i class="dx-icon-chart"></i>
-                                    <div class="home-left-item-text">
-                                        <span>Báo cáo</span>
-                                    </div>
+                            </div>
+                        </a>
+                        <a class="menu-link" href='~/report'>
+                            <div class="home-left-item">
+                                <i class="dx-icon-chart"></i>
+                                <div class="home-left-item-text">
+                                    <span>Báo cáo</span>
                                 </div>
-                            </a>
-                        }
-                        </div>
-                    </text>)
-                )
-            </div>
-            <div id="home-right-panel">
-                @(Html.DevExtreme().Popup()
-                    .ID("user-menu-popup")
-                    .Position(config => config.My(HorizontalAlignment.Right, VerticalAlignment.Top).At(HorizontalAlignment.Right, VerticalAlignment.Top).Offset(-10, 52))
-                    .Shading(false)
-                    .Width(280)
-                    .Height(190)
-                    .ShowTitle(false)
-                    .ShowCloseButton(false)
-                    .HideOnOutsideClick(true)
-                    .Animation(config => config.Show(s => s.Duration(400)))
-                    .OnHidden("userMenuPopupOnHidden")
-                    .ContentTemplate(@<text>
-                        <div id="user-menu-popup-fullname">@fullName</div>
-                        @(Html.DevExtreme().Button()
-                            .ID("change-password-button")
-                            .Text("Đổi mật khẩu")
-                            .Icon("key")
-                            .Type(ButtonType.Normal)
-                            .StylingMode(ButtonStylingMode.Contained)
-                            .OnClick("changeUserPassword")
-                        )
-                        @(Html.DevExtreme().Button()
-                            .ID("logout-button")
-                            .Text("Đăng xuất")
-                            .Icon("export")
-                            .Type(ButtonType.Default)
-                            .StylingMode(ButtonStylingMode.Contained)
-                            .OnClick("logoutButtonClicked")
-                        )
-                    </text>)
-                )
-            <div>
+                            </div>
+                        </a>
+                    }
+                    </div>
+                </text>)
+            )
+        </div>
+        <div id="home-right-panel">
+            @(Html.DevExtreme().Popup()
+                .ID("user-menu-popup")
+                .Position(config => config.My(HorizontalAlignment.Right, VerticalAlignment.Top).At(HorizontalAlignment.Right, VerticalAlignment.Top).Offset(-10, 52))
+                .Shading(false)
+                .Width(280)
+                .Height(190)
+                .ShowTitle(false)
+                .ShowCloseButton(false)
+                .HideOnOutsideClick(true)
+                .Animation(config => config.Show(s => s.Duration(400)))
+                .OnHidden("userMenuPopupOnHidden")
+                .ContentTemplate(@<text>
+                    <div id="user-menu-popup-fullname">@fullName</div>
+                    @(Html.DevExtreme().Button()
+                        .ID("change-password-button")
+                        .Text("Đổi mật khẩu")
+                        .Icon("key")
+                        .Type(ButtonType.Normal)
+                        .StylingMode(ButtonStylingMode.Contained)
+                        .OnClick("changeUserPassword")
+                    )
+                    @(Html.DevExtreme().Button()
+                        .ID("logout-button")
+                        .Text("Đăng xuất")
+                        .Icon("export")
+                        .Type(ButtonType.Default)
+                        .StylingMode(ButtonStylingMode.Contained)
+                        .OnClick("logoutButtonClicked")
+                    )
+                </text>)
+            )
             @(Html.DevExtreme().Popup()
                 .ID("change-user-password-popup")
                 .Title("Đổi mật khẩu")
@@ -912,14 +949,12 @@
                         })
                     )
                     </form>
-                </text>)
-            )
-            </div>
+                    </text>)
+                )
             <div id="main-content">
                 @RenderBody()
             </div>
         </div>
-    </div>
     </main>
 @*<a id="scroll-to-top-button" class="my-floating-button" href="#" onclick="scrollToTop()"><i class="dx-icon-chevronup"></i></a>*@
 

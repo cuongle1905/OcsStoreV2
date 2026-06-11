@@ -93,6 +93,11 @@
                     .ID("quantityNumberBox")
                     .Width("8rem")
                     .Height("2rem")
+                    .Format("#,##0.00")
+                    .Min(0)
+                    .Max(10000)
+                    .ShowSpinButtons(false)
+                    .ElementAttr("class", "align-right-numberbox")
                     .InputAttr(new { @class = "has-suffix" })
                     .OnFocusIn("onNumberBoxFocusIn")
                 )
@@ -115,9 +120,9 @@ Html.DevExtreme().DataGrid<ProcessingInputView>()
     .OnContentReady("gridContentReady")
     .Columns(columns =>
     {
-        columns.AddFor(m => m.ItemName).Caption("Nguyên liệu").Width(110).Alignment(HorizontalAlignment.Left).AllowEditing(false).CellTemplate(new JS("itemCellTemplate"));
+        columns.AddFor(m => m.ItemName).Caption("Nguyên liệu").Width(125).Alignment(HorizontalAlignment.Left).AllowEditing(false).CellTemplate(new JS("itemCellTemplate"));
         columns.AddFor(m => m.Lot).Caption("Lô").Width(50).Alignment(HorizontalAlignment.Center).AllowEditing(true);
-        columns.AddFor(m => m.Quantity).Caption("Số lượng").Width(60).Alignment(HorizontalAlignment.Right)
+        columns.AddFor(m => m.Quantity).Caption("Số lượng").Width(60).Alignment(HorizontalAlignment.Right).CustomizeText("emptyZeroNumberCellText")
             .DataType(GridColumnDataType.Number) // Tells the grid to use dxNumberBox
             .Format("#,##0.00") // How the number displays outside of edit mode
             .EditorOptions(new { format = "#,##0.00", min = 0, max = 10000, step = 1, showSpinButtons = false });
@@ -136,13 +141,13 @@ Html.DevExtreme().DataGrid<ProcessingInputView>()
         .Width(80)
         .Type(ButtonType.Default)
         .StylingMode(ButtonStylingMode.Contained)
-        .Icon("save")
+        .Icon("bi bi-download")
         .OnClick("save")
     )
 </div>
 
 <script>
-    pageTitle = "CHẾ BIẾN - @(Model.Item.ProcessingName.ToUpper())";
+    pageTitle = "Chế biến - @(Model.Item.ProcessingName)";
     goBackUrl = "/@(Model.SourceUrl)";
     let processingDate = new Date('@(DateTime.Today.ToString("yyyy-MM-dd"))');
     let outputItemId = @(Model.ItemId);

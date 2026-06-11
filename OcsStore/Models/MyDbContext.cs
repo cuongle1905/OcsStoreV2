@@ -479,6 +479,7 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.Id)
                 .ValueGeneratedNever()
                 .HasColumnName("id");
+            entity.Property(e => e.AllowSale).HasColumnName("allow_sale");
             entity.Property(e => e.Code)
                 .HasMaxLength(50)
                 .HasColumnName("code");
@@ -627,6 +628,7 @@ public partial class MyDbContext : DbContext
                 .HasNoKey()
                 .ToView("item_stock_view");
 
+            entity.Property(e => e.AllowSale).HasColumnName("allow_sale");
             entity.Property(e => e.Ave)
                 .HasPrecision(10, 2)
                 .HasColumnName("ave");
@@ -685,6 +687,7 @@ public partial class MyDbContext : DbContext
                 .HasNoKey()
                 .ToView("item_view");
 
+            entity.Property(e => e.AllowSale).HasColumnName("allow_sale");
             entity.Property(e => e.Code)
                 .HasMaxLength(50)
                 .HasColumnName("code");
@@ -793,6 +796,7 @@ public partial class MyDbContext : DbContext
                 .HasNoKey()
                 .ToView("lot_stock_view");
 
+            entity.Property(e => e.AllowSale).HasColumnName("allow_sale");
             entity.Property(e => e.Ave)
                 .HasPrecision(10, 2)
                 .HasColumnName("ave");
@@ -819,9 +823,7 @@ public partial class MyDbContext : DbContext
                 .HasDefaultValueSql("''")
                 .HasColumnName("lot");
             entity.Property(e => e.LotOrdinal)
-                .IsRequired()
                 .HasMaxLength(8)
-                .HasDefaultValueSql("''")
                 .HasColumnName("lot_ordinal");
             entity.Property(e => e.Soh)
                 .HasPrecision(10, 2)
@@ -1304,6 +1306,7 @@ public partial class MyDbContext : DbContext
                 .HasNoKey()
                 .ToView("root_stock_view");
 
+            entity.Property(e => e.AllowSale).HasColumnName("allow_sale");
             entity.Property(e => e.Ave)
                 .HasPrecision(10, 2)
                 .HasColumnName("ave");
@@ -1325,9 +1328,7 @@ public partial class MyDbContext : DbContext
                 .HasMaxLength(10)
                 .HasColumnName("lot");
             entity.Property(e => e.LotOrdinal)
-                .IsRequired()
                 .HasMaxLength(8)
-                .HasDefaultValueSql("''")
                 .HasColumnName("lot_ordinal");
             entity.Property(e => e.Soh)
                 .HasPrecision(10, 2)
@@ -1416,6 +1417,7 @@ public partial class MyDbContext : DbContext
                 .HasNoKey()
                 .ToView("stock_view");
 
+            entity.Property(e => e.AllowSale).HasColumnName("allow_sale");
             entity.Property(e => e.Ave)
                 .HasPrecision(10, 2)
                 .HasColumnName("ave");
@@ -1450,6 +1452,11 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.Ordinal)
                 .HasDefaultValueSql("'1'")
                 .HasColumnName("ordinal");
+            entity.Property(e => e.ProcessingName)
+                .IsRequired()
+                .HasMaxLength(45)
+                .HasDefaultValueSql("''")
+                .HasColumnName("processing_name");
             entity.Property(e => e.Soh)
                 .HasPrecision(10, 2)
                 .HasColumnName("soh");

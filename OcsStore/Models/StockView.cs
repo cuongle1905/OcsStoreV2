@@ -31,6 +31,8 @@ public partial class StockView
 
     public sbyte ItemGroup { get; set; }
 
+    public bool? AllowSale { get; set; }
+
     public sbyte UseLot { get; set; }
 
     public string LotOrdinal { get; set; }
@@ -42,6 +44,8 @@ public partial class StockView
     public sbyte Ordinal { get; set; }
 
     public sbyte ItemType { get; set; }
+
+    public string ProcessingName { get; set; }
 
     public string UnitName { get; set; }
 
