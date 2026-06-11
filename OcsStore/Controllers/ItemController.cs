@@ -33,16 +33,53 @@ namespace OcsStore.Controllers
             return _context.ItemViews.Where(i => i.ItemType == Item.Receving).ToList();
         }
 
-        public ItemView GetItem(int itemId)
+        public ItemView GetItemView(int itemId)
         {
             return _context.ItemViews.FirstOrDefault(i => i.Id == itemId);
         }
 
-        [HttpPost]
-        public IActionResult GetUnits()
+        public Item GetItem(int itemId)
         {
-            var result = _context.Units.ToArray();
-            return Ok(result);
+            return _context.Items.FirstOrDefault(i => i.Id == itemId);
+        }
+
+        public Unit[] GetUnits()
+        {
+            return _context.Units.ToArray();
+        }
+
+        public ItemGroup[] GetItemGroups()
+        {
+            return _context.ItemGroups.ToArray();
+        }
+
+        [HttpPost]
+        public IActionResult Save(Item item)
+        {
+            if (item.Id == 0)
+            {
+                try
+                {
+                    item.Id = _context.Items.Max(i => i.Id) + 1;
+                }
+                catch
+                {
+                    item.Id = 1;
+                }
+                if (string.IsNullOrEmpty(item.FullName))
+                    item.FullName = item.Name;
+
+                if (string.IsNullOrEmpty(item.Code))
+                    item.Code = item.Name;
+    
+                _context.Items.Add(item);
+            }
+            else
+            {
+                _context.Items.Update(item);
+            }
+            _context.SaveChanges();
+            return Ok();
         }
     }
 }

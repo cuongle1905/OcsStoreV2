@@ -390,6 +390,10 @@
             background-color: var(--common-color-main);
         }
 
+        .dx-button-mode-text.dx-button-default, .dx-button-mode-text.dx-button-default .dx-icon {
+            color: var(--common-color-main);
+        }
+
         .dx-datagrid-content .dx-datagrid-table .dx-row .dx-command-expand {
             min-width: 0;
             width: 0;
@@ -522,6 +526,10 @@
             top: 12px;
         }
 
+        .data-field {
+            margin-top: 10px;
+        }
+
         .field-title {
             font-size: 0.9rem;
             color: #666;
@@ -586,6 +594,21 @@
         /* Firefox */
         .dx-dropdownbutton-popup-wrapper {
             scrollbar-width: none; 
+        }
+
+        .dx-checkbox {
+            padding: 4px 0;
+        }
+
+        .dx-checkbox-icon {
+            width: 18px;
+            height: 18px;
+        }
+
+        .dx-checkbox-checked .dx-checkbox-icon {
+            font: 12px / 1em DXIcons;
+            color: var(--blue);
+            text-align: center;
         }
     </style>
 </head>
@@ -722,6 +745,16 @@
             const MM = (this.getMonth() + 1).toString().padStart(2, '0');
             return `${dd}${MM}`;
         };
+        
+        function centerHeaderTextOnGridContentReady() {
+            $(".dx-header-row > td").css("text-align", "center");
+        }
+
+        function onCellPrepared(e) {
+            if (e.rowType === 'group' && e.column.command === 'expand') {
+                e.cellElement.css('display', 'none');
+            }
+        }
 
         function cssColorForItemType(itemType) {
             return (itemType == 1 ? "green" : (itemType == 3 ? "blue" : "brown"));
@@ -800,19 +833,11 @@
                                 </div>
                             </div>
                         </a>
-                        <a class="menu-link" href='~/processing?type=1'>
+                        <a class="menu-link" href='~/processing'>
                             <div class="home-left-item">
                                 <i class="dx-icon-preferences"></i>
                                 <div class="home-left-item-text">
-                                    <span>Chế biến - Rang</span>
-                                </div>
-                            </div>
-                        </a>
-                        <a class="menu-link" href='~/processing?type=2'>
-                            <div class="home-left-item">
-                                <i class="dx-icon-filter"></i>
-                                <div class="home-left-item-text">
-                                    <span>Chế biến - Trộn</span>
+                                    <span>Chế biến</span>
                                 </div>
                             </div>
                         </a>

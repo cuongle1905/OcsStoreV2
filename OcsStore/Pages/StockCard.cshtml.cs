@@ -26,7 +26,7 @@ namespace OcsStore.Pages
 
         public void OnGet()
         {
-            Item = _itemController.GetItem(ItemId);
+            Item = _itemController.GetItemView(ItemId);
         }
     }
 }

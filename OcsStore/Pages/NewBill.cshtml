@@ -249,7 +249,6 @@ Html.DevExtreme().DataGrid<BillDetailView>()
             return;
         }
 
-
         DevExpress.ui.dialog.confirm("<i>Bạn có chắc chắn lưu thông tin?</i>", "Xác nhận").then(function(dialogResult) {
             if (dialogResult) {
                 let date = $("#dateBox").dxDateBox("instance").option("value").toISOString();

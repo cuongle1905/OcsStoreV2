@@ -1,0 +1,150 @@
+﻿@page
+@model OcsStore.Pages.ItemModel
+@{
+}
+<div id="top-section" style="position: relative; margin-left: auto; margin-right: auto; width: 20rem;">
+    <div class="data-field">
+        <div class="field-title">Nhóm hàng:</div>
+        @(Html.DevExtreme().SelectBox()
+            .ID("item-group")
+            .DataSource(Model.ItemGroups)
+            .Width("100%")
+            .Height("2rem")
+            .DisplayExpr("Name")
+            .ValueExpr("Id")
+            .Value(Model.Item.Group)
+            .OnValueChanged("itemGroupChanged")
+            .DropDownOptions(o => o.Position(p => p.Of("#item-group").At(HorizontalAlignment.Left, VerticalAlignment.Bottom).My(HorizontalAlignment.Left, VerticalAlignment.Top).Offset(0, 2)))
+        )
+    </div>
+    <div class="data-field">
+        <div class="field-title">Tên hàng:</div>
+        @(Html.DevExtreme().TextBox()
+            .Width("100%")
+            .Height("2rem")
+            .ID("item-name")
+            .ShowClearButton(true)
+            .Value(Model.Item.Name)
+        )
+    </div>
+    <div class="data-field">
+        <div class="field-title">Đơn vị:</div>
+        @(Html.DevExtreme().SelectBox()
+            .ID("item-unit")
+            .DataSource(Model.Units)
+            .Width("100%")
+            .Height("2rem")
+            .DisplayExpr("Name")
+            .ValueExpr("Id")
+            .Value(Model.Item.Unit)
+            .DropDownOptions(o => o.Position(p => p.Of("#item-unit").At(HorizontalAlignment.Left, VerticalAlignment.Bottom).My(HorizontalAlignment.Left, VerticalAlignment.Top).Offset(0, 2)))
+        )
+    </div>
+    <div class="data-field">
+        @(Html.DevExtreme().CheckBox()
+            .ID("use-lot")
+            .Value(true)
+            .Value(Model.Item.UseLot)
+            .Text("Sử dụng Lô")
+        )
+    </div>
+    <div class="data-field">
+        @(Html.DevExtreme().CheckBox()
+            .ID("allow-sale")
+            .Value(true)
+            .Text("Hàng bán")
+            .Value(Model.Item.AllowSale)
+            .OnValueChanged("allowSaleChanged")
+        )
+    </div>
+    <div id="sale-price-field" class="data-field" style="visibility: hidden">
+        <div class="field-title">Giá bán:</div>
+        @(Html.DevExtreme().NumberBox()
+            .ID("sale-price")
+            .Width("100%")
+            .Height("2rem")
+            .Format("#,##0")
+            .Min(0)
+            .Max(1000000)
+            .ShowSpinButtons(false)
+            .ElementAttr("class", "align-right-numberbox")
+            .OnFocusIn("onNumberBoxFocusIn")
+        )
+    </div>
+    <div id="bottom-buttons" class="pt-3 text-end">
+        @(Html.DevExtreme().Button()
+            .Text("Lưu")
+            .Width(80)
+            .Type(ButtonType.Default)
+            .StylingMode(ButtonStylingMode.Contained)
+            .Icon("bi bi-download")
+            .OnClick("save")
+        )
+    </div>
+</div>
+<script>
+    pageTitle = "@(Model.Item.Id == 0 ? "Thêm hàng hóa" : "Hàng hóa")"
+    goBackUrl = "/@(Model.SourceUrl)";
+    var item = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Item));
+
+    $(function () {
+        if (item.Group > 1)
+            updateItemGroup();
+    });
+        
+    function itemGroupChanged(e) {
+        updateItemGroup();
+    }
+
+    function updateItemGroup() {
+        item.ItemGroup = $("#item-group").dxSelectBox("instance").option("value");
+        $("#use-lot").dxCheckBox("instance").option("value", item.ItemGroup == 2);
+        $("#allow-sale").dxCheckBox("instance").option("value", item.ItemGroup == 3);
+    }
+
+    function allowSaleChanged(e) {
+        item.AllowSale = e.value;
+        updateAllowSale();
+    }
+
+    function updateAllowSale() {
+        $("#sale-price-field").css("visibility", item.AllowSale ? "visible" : "hidden");
+    }
+
+    function save() {
+        let grid = $("#main-grid").dxDataGrid("instance");
+        // grid.saveEditData();
+
+        item.ItemGroup = $("#item-group").dxSelectBox("instance").option("value");
+        item.Name = $("#item-name").dxTextBox("instance").option("value");
+        if (item.Name == null || item.Name.length == 0) {
+            DevExpress.ui.dialog.alert("Hãy nhập vào Tên hàng hóa.", "Cảnh báo");
+            return;
+        }
+
+        item.Unit = $("#item-unit").dxSelectBox("instance").option("value");
+        item.UseLot = $("#use-lot").dxCheckBox("instance").option("value");
+        if (item.AllowSale) {
+            item.SalePrice = $("#sale-price").dxNumberBox("instance").option("value");
+        }
+
+        DevExpress.ui.dialog.confirm("<i>Bạn có chắc chắn lưu thông tin hàng hóa?</i>", "Xác nhận").then(function(dialogResult) {
+            if (dialogResult) {
+                $.ajax({
+                    url: '@Url.Action("Save", "Item")',
+                    method: "POST",
+                    data: { item: item },
+                    success: function (result) {
+                        DevExpress.ui.dialog.alert("Đã lưu thông tin hàng hóa.", "Thông báo").then(function(dialogResult) {
+                            location.href = goBackUrl + "?itemGroup=" + item.Group;
+                        });
+                    },
+                    error: function (xhr, status, error) {
+                        console.log("xhr", xhr, "status", status, "error", error);
+                        DevExpress.ui.dialog.alert("Có lỗi xảy ra. Vui lòng thử lại sau.", "Cảnh báo");
+                    }
+                });
+            }
+        });
+    }
+</script>

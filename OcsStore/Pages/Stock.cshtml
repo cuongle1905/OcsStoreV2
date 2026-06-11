@@ -46,6 +46,17 @@
             <a class="nav-link" href="#" onclick="tabClicked(2);">Cafe</a>
         </li>
     </ul>
+
+    <div id="top-buttons" class="pt-3 text-end">
+        @(Html.DevExtreme().Button()
+            .Text("Tạo hàng hóa mới")
+            .Width(160)
+            .Type(ButtonType.Default)
+            .StylingMode(ButtonStylingMode.Text)
+            .Icon("add")
+            .OnClick("addNewItem")
+        )
+    </div>
 </div>
 
 @(
@@ -173,56 +184,49 @@ Html.DevExtreme().DataGrid<StockView>()
             let itemId = options.data.Item;
             let itemType = options.data.ItemType;
             let actionCount = (options.data.AllowSale && options.data.Soh > 0 ? 2 : 1);
-            // let html = getIconLink(itemType == 1 ? 1 : 2, options.data);
-            // if (options.data.AllowSale) {
-            //     html += getIconLink(3, options.data);
-            // }
-            let firstAction = (itemType == 1 ? 1 : 2);
-            if (actionCount == 1) {
-                let html = `<a id="detail-link${itemId}" class="text-link icon-link p-1" href="#" onclick="goToAction(${firstAction}, ${itemId});"><span style='color: var(--blue)'><i class='bi bi-chevron-right' style='font-size:12px;'></i></span></a>`;
-                container.html(html);
-                container.css({"padding-left": "1px", "padding-right": "1px" });
-                container.attr("id", `cell-link${itemId}`);
-            } else {
-                $("<div>").dxDropDownButton({
-                    text: "",
-                    icon: "bi bi-chevron-right",
-                    stylingMode: "text",
-                    showArrowIcon: false,
-                    elementAttr: { class: "no-border-button cell-link-button" },
-                    dropDownOptions: {
-                        width: 120,
-                        height: "auto",
-                        shading: false
-                    },
-                    items: [
-                        { id: 1, text: (itemType == 1 ? "Nhập kho" : options.data.ProcessingName), icon: "add" },
-                        { id: 2, text: "Bán hàng", icon: "bi bi-box-arrow-right" }
-                    ],
-                    onItemClick: function (e) {
-                        goToAction(e.itemData.id == 2 ? 3 : firstAction, itemId);
-                        // console.log(e.itemData.id, rowData);
-                    }
-                }).appendTo(container);
-                container.css({"padding": "1px" });
+
+            let popupItems =  [ { id: 1, text: (itemType == 1 ? "Nhập kho" : options.data.ProcessingName), icon: "add" } ];
+            if (options.data.AllowSale && options.data.Soh > 0) {
+                popupItems.push({ id: 2, text: "Bán hàng", icon: "bi bi-box-arrow-right" });
             }
+            popupItems.push({ id: 3, text: "Sửa thông tin", icon: "edit" });
+
+            let firstAction = (itemType == 1 ? 1 : 2);
+
+                // let html = `<a id="detail-link${itemId}" class="text-link icon-link p-1" href="#" onclick="goToAction(${firstAction}, ${itemId});"><span style='color: var(--blue)'><i class='bi bi-chevron-right' style='font-size:12px;'></i></span></a>`;
+                // container.html(html);
+                // container.css({"padding-left": "1px", "padding-right": "1px" });
+                // container.attr("id", `cell-link${itemId}`);
+           
+            $("<div>").dxDropDownButton({
+                text: "",
+                icon: "bi bi-chevron-right",
+                stylingMode: "text",
+                showArrowIcon: false,
+                items: popupItems,
+                elementAttr: { class: "no-border-button cell-link-button" },
+                dropDownOptions: {
+                    width: 140,
+                    height: "auto",
+                    shading: false
+                },
+                onItemClick: function (e) {
+                    goToAction(e.itemData.id >= 2 ? e.itemData.id + 1 : firstAction, itemId);
+                    // console.log(e.itemData.id, rowData);
+                }
+            }).appendTo(container);
+            container.css({"padding": "1px" });
+
         }
     }
 
-    function goToAction(actionType, itemId) {
-        let link = (actionType == 1 ? "/receiving/new" : (actionType == 3 ? "/bill/new" : "/processing/new")) + "?item=" + itemId + "&sourceurl=stock?itemGroup%3D" + itemGroupId;
+    function goToAction(action, itemId) {
+        let link = (action == 1 ? "/receiving/new" : (action == 2 ? "/processing/new" : (action == 3 ? "/bill/new" : "/item"))) + "?item=" + itemId + "&itemGroup=" + itemGroupId + "&sourceurl=stock";
         location.href = link;
     }
 
-    function getIconLink(actionType, data) {
-        let cssColor = cssColorForItemType(data.ItemType);
-        let hint = (actionType == 1 ? "Nhập kho" : (actionType == 3 ? "Bán hàng" : data.ProcessingName));
-        let link = (actionType == 1 ? "receiving/new" : (actionType == 3 ? "bill/new" : "processing/new")) + "?item=" + data.Item + "&sourceurl=stock?itemGroup%3D" + itemGroupId;
-        let icon = (actionType == 3 ? "bi bi-box-arrow-right" : "dx-icon-add")
-        let fontSize = (actionType == 3 ? 14 : 12);
-        let marginLeft = (actionType == 3 ? "ms-1" : "");
-        let html = `<a class="text-link icon-link ${marginLeft} p-1" href="${link}" title="${hint}"><span style='color: var(--${cssColor})'><i class='${icon}' style='font-size: ${fontSize}px;'></i></span></a>`;
-        return html
+    function addNewItem() {
+        goToAction(4, 0);
     }
 
     function calculateCustomSummary(options) {
