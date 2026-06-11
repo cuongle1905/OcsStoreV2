@@ -4,13 +4,9 @@
 @{
 }
 <style>
-    #gridReceiving .dx-data-row td {
-        color: #006b2d;
-    }
 </style>
 
 <div id="divCaption" class="d-flex align-items-center pb-3">
-    <h5>DANH SÁCH NHẬP KHO</h5>
     <div id="divButtons" class="text-end ms-auto">
         @(Html.DevExtreme().Button()
             .Text("Thêm")
@@ -25,7 +21,7 @@
 
 @(
 Html.DevExtreme().DataGrid<ReceivingDetailView>()
-    .ID("gridReceiving")
+    .ID("main-grid")
     .DataSource(d => d.Mvc().Controller("Receiving").LoadAction("GetReceivings").LoadMethod("POST").Key("Id"))
     .RemoteOperations(false)
     .ShowBorders(true)
@@ -39,7 +35,7 @@ Html.DevExtreme().DataGrid<ReceivingDetailView>()
     {
         columns.AddFor(m => m.Date).Caption("Ngày").Width(90).Alignment(HorizontalAlignment.Center).Format("dd/MM/yyyy").GroupIndex(0);
         columns.AddFor(m => m.Time).Caption("Giờ").Width(50).Alignment(HorizontalAlignment.Center).GroupIndex(1);
-        columns.AddFor(m => m.ItemName).Caption("Hàng hóa").Width(110).Alignment(HorizontalAlignment.Left);
+        columns.AddFor(m => m.ItemName).Caption("Hàng hóa").Width(110).Alignment(HorizontalAlignment.Left).CellTemplate(new JS("itemCellTemplate"));
         columns.AddFor(m => m.Quantity).Caption("Số lượng").Width(60).Alignment(HorizontalAlignment.Right).Format("#,##0.00");
         columns.AddFor(m => m.UnitName).Caption("").Width(40).Alignment(HorizontalAlignment.Left);
         columns.AddFor(m => m.Price).Caption("Giá").Width(70).Alignment(HorizontalAlignment.Right).Format("#,##0");
@@ -60,12 +56,18 @@ Html.DevExtreme().DataGrid<ReceivingDetailView>()
 )
 
 <script>
+    pageTitle = "NHẬP KHO";
+
     $(function () {
-        $("#gridReceiving").first().prepend($("#divCaption"));
+        $("#main-grid").first().prepend($("#divCaption"));
     });
 
     function gridContentReady() {
         $(".dx-header-row > td").css("text-align", "center");
+    }
+
+    function itemCellTemplate(container, options) {
+        container.html(`<span class='green me-2'>●</span>${options.text}`);
     }
 
     function addNew() {

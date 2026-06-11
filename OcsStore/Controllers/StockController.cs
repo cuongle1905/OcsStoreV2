@@ -23,9 +23,9 @@ namespace OcsStore.Controllers
         }
 
         [HttpPost]
-        public IActionResult GetStocks(DataSourceLoadOptions loadOptions)
+        public IActionResult GetStocks(sbyte itemGroupId, DataSourceLoadOptions loadOptions)
         {
-            var result = DataSourceLoader.Load(_context.StockViews, loadOptions);
+            var result = DataSourceLoader.Load(_context.StockViews.Where(i => i.ItemGroup == itemGroupId), loadOptions);
             return Ok(result);
         }
 

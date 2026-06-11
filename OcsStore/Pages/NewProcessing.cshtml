@@ -5,95 +5,105 @@
     string outputItemCssColor = (Model.Item.ItemType == Item.Product ? "blue" : "brown");
 }
 <style>
-    #gridProcessing .dx-header-row {
+    #main-grid .dx-header-row {
         font-size: 0.9rem;
     }
 
-    #gridProcessing .dx-widget {
+    #main-grid .dx-widget {
         font-size: 0.9rem;
     }
 
-    #gridProcessing .delete-button .dx-button-content {
+    #main-grid .delete-button .dx-button-content {
         padding-left: 0.2rem;
         padding-right: 0.2rem;
     }
-    #gridProcessing .dx-button-content .dx-icon-trash {
+    #main-grid .dx-button-content .dx-icon-trash {
         margin-right: 2px;
     }
-    #gridProcessing .dx-toolbar-items-container {
+    #main-grid .dx-toolbar-items-container {
         display: none;
     }
-    #timeBox {
-        margin-left: 0.5rem;
-    }
-    .field-title {
-        width: 6.5rem;
-    }
-
-    /* Change the text color of the selected value in the input field */
-    #itemSelectBox .dx-texteditor-input {
-        color: var(--@(outputItemCssColor));
-        font-weight: 600;
-    }
 </style>
-<div class="d-flex align-items-center mb-3">
-    @if (!string.IsNullOrEmpty(Model.SourceUrl))
-    {
-        <a class="back-arrow" href="/@(Model.SourceUrl)"><i class="dx-icon-arrowleft"></i></a>
-    }
-    <h4>CHẾ BIẾN - @(Model.Item.ProcessingName.ToUpper())</h4>
-</div>
-<div class="d-flex align-items-center mb-3">
-    <span class="me-2">Ngày:</span>
-    @(Html.DevExtreme().DateBox()
-        .ID("dateBox")
-        .Width("9rem")
-        .Height("2rem")
-        .InputAttr("aria-label", "Date")
-        .Type(DateBoxType.Date)
-        .Value(DateTime.Today)
-        .DisplayFormat("dd/MM/yyyy")
-        .OnValueChanged("dateChanged")
-    )
-    @(Html.DevExtreme().DateBox()
-        .ID("timeBox")
-        .Width("6rem")
-        .Height("2rem")
-        .Type(DateBoxType.Time)
-        .Value(DateTime.Now)
-        .DisplayFormat("HH:mm")
-    )
-</div>
-<div class="d-flex align-items-center mb-3">
-    <span class="field-title">@(Model.Item.GroupName):</span>
-    @(
-    Html.DevExtreme().SelectBox()
-        .ID("itemSelectBox")
-        .DataSource(d => d.Mvc().Controller("Item").LoadAction("GetItemViews").LoadMethod("POST").LoadParams(new { GroupId = Model.Item.Group }).Key("Id"))
-        .Width("12rem")
-        .Height("2rem")
-        .DisplayExpr("Name")
-        .ValueExpr("Id")
-        .OnValueChanged("outputItemValueChanged")
-        .ItemTemplate(@<text>
-            <div class="@(outputItemCssColor)"><%- Name %></div>
-        </text>)
-        .Value(Model.ItemId)
-    )
-    <span id="processing-desc" class="ms-2"></span>
-</div>
-<div class="d-flex align-items-center mb-3">
-    <span class="field-title">Số lượng:</span>
-    @(Html.DevExtreme().NumberBox()
-        .ID("quantityNumberBox")
-        .Width("12rem")
-        .Height("2rem")
-    )
-    <span class="ms-2">@(Model.Item.UnitName)</span>
+
+<div id="top-section">
+    <div class="d-flex mb-3">
+        <div class="data-field">
+            <div class="field-title">Ngày:</div>
+            @(Html.DevExtreme().DateBox()
+                .ID("dateBox")
+                .Width("12rem")
+                .Height("2rem")
+                .InputAttr("aria-label", "Date")
+                .Type(DateBoxType.Date)
+                .Value(DateTime.Today)
+                .DisplayFormat("dd/MM/yyyy")
+                .OnValueChanged("dateChanged")
+                .DropDownOptions(o => o.Position(p => p.Of("#dateBox").At(HorizontalAlignment.Left, VerticalAlignment.Bottom).My(HorizontalAlignment.Left, VerticalAlignment.Top).Offset(0, 2)))
+            )
+        </div>
+        <div class="ms-3">
+            <div class="field-title">Giờ:</div>
+            @(Html.DevExtreme().DateBox()
+                .ID("timeBox")
+                .Width("8rem")
+                .Height("2rem")
+                .Type(DateBoxType.Time)
+                .Value(DateTime.Now)
+                .DisplayFormat("HH:mm")
+            )
+        </div>
+    </div>
+
+    <div class="d-flex mb-3">
+        <div>
+            <div class="field-title">@(Model.Item.GroupName):</div>
+            @(
+            Html.DevExtreme().SelectBox()
+                .ID("itemSelectBox")
+                .DataSource(d => d.Mvc().Controller("Item").LoadAction("GetItemViews").LoadMethod("POST").LoadParams(new { GroupId = Model.Item.Group }).Key("Id"))
+                .Width("12rem")
+                .Height("2rem")
+                .DisplayExpr("Name")
+                .ValueExpr("Id")
+                .OnValueChanged("outputItemValueChanged")
+                .ItemTemplate(@<text> <div><span class="@(outputItemCssColor) me-2">●</span><%- Name %></div> </text>)
+                .FieldTemplate(@<text>
+                    <div class="d-flex ps-1 pt-1 pe-2">
+                        <div class="@(outputItemCssColor) ms-2">●</div>
+
+                        @(Html.DevExtreme().TextBox()
+                            .Height("1.3rem")
+                            .Value(new JS("typeof Name !== 'undefined' ? Name : ''"))
+                            .ReadOnly(true)
+                            .ElementAttr("class", "inner-text-field")
+                        )
+
+                        @* <div class="ms-auto" style="margin-top: 1px;"><i class="dx-icon-chevrondown" style="font-size: 0.8rem;"></i></div> *@
+                    </div>
+                 </text>)
+                .Value(Model.ItemId)
+                .DropDownOptions(o => o.Position(p => p.Of("#itemSelectBox").At(HorizontalAlignment.Left, VerticalAlignment.Bottom).My(HorizontalAlignment.Left, VerticalAlignment.Top).Offset(0, 2)))
+            )
+            <span id="processing-desc"></span>
+        </div>
+        <div class="ms-3">
+            <div class="field-title">Số lượng:</div>
+            <div class="custom-textbox-wrapper">
+                @(Html.DevExtreme().NumberBox()
+                    .ID("quantityNumberBox")
+                    .Width("8rem")
+                    .Height("2rem")
+                    .InputAttr(new { @class = "has-suffix" })
+                    .OnFocusIn("onNumberBoxFocusIn")
+                )
+                <span class="textbox-suffix">@(Model.Item.UnitName)</span>
+            </div>
+        </div>
+    </div>
 </div>
 @(
 Html.DevExtreme().DataGrid<ProcessingInputView>()
-    .ID("gridProcessing")
+    .ID("main-grid")
     .DataSource(d => d.Mvc().Controller("Processing").LoadAction("GetNewDetails").LoadMethod("POST").LoadParams(new { ItemId = new JS("function () { return outputItemId; }") }).OnLoaded("gridDataLoaded"))
     .RemoteOperations(false)
     .ShowBorders(true)
@@ -105,22 +115,22 @@ Html.DevExtreme().DataGrid<ProcessingInputView>()
     .OnContentReady("gridContentReady")
     .Columns(columns =>
     {
-        columns.AddFor(m => m.ItemName).Caption("Nguyên liệu").Width(110).Alignment(HorizontalAlignment.Left).AllowEditing(false).CellTemplate(new JS("processingCellTemplate"));
+        columns.AddFor(m => m.ItemName).Caption("Nguyên liệu").Width(110).Alignment(HorizontalAlignment.Left).AllowEditing(false).CellTemplate(new JS("itemCellTemplate"));
         columns.AddFor(m => m.Lot).Caption("Lô").Width(50).Alignment(HorizontalAlignment.Center).AllowEditing(true);
         columns.AddFor(m => m.Quantity).Caption("Số lượng").Width(60).Alignment(HorizontalAlignment.Right)
             .DataType(GridColumnDataType.Number) // Tells the grid to use dxNumberBox
             .Format("#,##0.00") // How the number displays outside of edit mode
             .EditorOptions(new { format = "#,##0.00", min = 0, max = 10000, step = 1, showSpinButtons = false });
-        columns.AddFor(m => m.UnitName).Caption("").Width(40).Alignment(HorizontalAlignment.Left).AllowEditing(false).CellTemplate(new JS("processingCellTemplate"));
-        columns.AddFor(m => m.Soh).Caption("Tồn kho").Width(60).Alignment(HorizontalAlignment.Right).CellTemplate(new JS("processingCellTemplate")).Format("#,##0.00").AllowEditing(false);
-        columns.AddFor(m => m.Note).Caption("Ghi chú").Width(140).Alignment(HorizontalAlignment.Left).CellTemplate(new JS("processingCellTemplate"));
+        columns.AddFor(m => m.UnitName).Caption("").Width(40).Alignment(HorizontalAlignment.Left).AllowEditing(false);
+        columns.AddFor(m => m.Soh).Caption("Tồn kho").Width(60).Alignment(HorizontalAlignment.Right).CellTemplate(new JS("sohCellTemplate")).Format("#,##0.00").AllowEditing(false);
+        columns.AddFor(m => m.Note).Caption("Ghi chú").Width(140).Alignment(HorizontalAlignment.Left);
     })
-    .Editing(e => e.AllowUpdating(true).Mode(GridEditMode.Batch))
+    .Editing(e => e.AllowUpdating(true).Mode(GridEditMode.Batch).SelectTextOnEditStart(true))
     .OnEditorPreparing("onEditorPreparing")
     .RepaintChangesOnly(true)
 )
 
-<div id="divButtons" class="pt-3 text-end">
+<div id="bottom-buttons" class="pt-3 text-end">
     @(Html.DevExtreme().Button()
         .Text("Lưu")
         .Width(80)
@@ -132,12 +142,15 @@ Html.DevExtreme().DataGrid<ProcessingInputView>()
 </div>
 
 <script>
+    pageTitle = "CHẾ BIẾN - @(Model.Item.ProcessingName.ToUpper())";
+    goBackUrl = "/@(Model.SourceUrl)";
     let processingDate = new Date('@(DateTime.Today.ToString("yyyy-MM-dd"))');
     let outputItemId = @(Model.ItemId);
     let materialUseLot = false;
 
     $(function () {
-        $("#gridProcessing").first().append($("#divButtons"));
+        $("#main-grid").first().prepend($("#top-section"));
+        $("#main-grid").first().append($("#bottom-buttons"));
     });
 
     function gridContentReady() {
@@ -169,13 +182,13 @@ Html.DevExtreme().DataGrid<ProcessingInputView>()
         // console.log(outputItem);
         $("#processing-desc").text(outputItem.ProcessingDesc ?? "");
 
-        $("#gridProcessing").dxDataGrid("instance").refresh();
+        $("#main-grid").dxDataGrid("instance").refresh();
     }
 
     function updateDetailLots() {
         // let lot = processingDate.ddMM();
         materialUseLot = false;
-        let grid = $("#gridProcessing").dxDataGrid("instance");
+        let grid = $("#main-grid").dxDataGrid("instance");
         let rows = grid.getVisibleRows();
         for (var i = 0; i < rows.length; i++) {
             let row = rows[i];
@@ -189,17 +202,17 @@ Html.DevExtreme().DataGrid<ProcessingInputView>()
         grid.columnOption("Lot", "visible", materialUseLot);
     }
 
-    function processingCellTemplate(container, options) {
+    function sohCellTemplate(container, options) {
+        container.html(`<a class='text-link' href='#' onclick='sohClicked(${options.rowIndex});'><span>${options.text}</span></a>`);
+    }
+
+    function itemCellTemplate(container, options) {
         let cssColor = cssColorForItemType(options.data.ItemType);
-        if (options.column.dataField == "Soh") {
-            container.html(`<a class='text-link' href='#' onclick='sohClicked(${options.rowIndex});'><span class='${cssColor}'>${options.text}</span></a>`);
-        } else {
-            displayCell(container, options, cssColor);
-        }
+        displayCell(container, options, "●", cssColor);
     }
 
     function sohClicked(rowIndex) {
-        let grid = $("#gridProcessing").dxDataGrid("instance");
+        let grid = $("#main-grid").dxDataGrid("instance");
         let soh = grid.cellValue(rowIndex, "Soh");
         grid.cellValue(rowIndex, "Quantity", soh);
     }
@@ -212,7 +225,7 @@ Html.DevExtreme().DataGrid<ProcessingInputView>()
         }
 
 
-        let grid = $("#gridProcessing").dxDataGrid("instance");
+        let grid = $("#main-grid").dxDataGrid("instance");
         // grid.saveEditData();
 
         var details = []
