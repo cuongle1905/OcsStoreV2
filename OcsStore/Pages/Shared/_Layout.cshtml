@@ -26,6 +26,8 @@
     @* Uncomment to use the Diagram control *@
     @*<link href="~/css/devextreme/dx-diagram.css" rel="stylesheet" />*@
 
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+
     <link href="~/css/devextreme/bootstrap.css" rel="stylesheet" />
 
     @* Predefined themes: https://js.devexpress.com/DevExtreme/Guide/Themes_and_Styles/Predefined_Themes/ *@
@@ -83,10 +85,14 @@
             /* --common-color-main: #9f224e;
             --common-color-main-dark: #801B3E;
             --common-color-main-light: #CD2B64; */
-            --red: #fa3c4b;
-            --green: #249851;
-            --blue: #010125;
-            --brown: #994c00;
+            --common-color-main-dark: #000048; /* #010125 */
+            --common-color-main: #0000BB;
+            --red: #EE3333;
+            --green: #20AE64;
+            --dark-blue: #3562E3; /* #010125 */
+            --blue: #005EE2;
+            --brown: #C56722;
+            --gray: #666;
         }
         .dx-button-mode-contained.dx-button-default.dx-state-hover {
             background-color: var(--common-color-main-light);
@@ -100,15 +106,15 @@
             margin: 0px;
             padding: 0px;
             position: relative;
-            font-size: 13.6px;
-            font-family: Arial, Roboto, sans-serif /* , Arial, "Segoe UI", "Helvetica Neue" */;
+            font-size: 12.6px;
+            font-family: Roboto, "Segoe UI", sans-serif /* , Arial, "Segoe UI", "Helvetica Neue" */;
         }
 
         .dx-widget {
-            font-family: Arial, Roboto, sans-serif;
+            font-family: Roboto, "Segoe UI", sans-serif;
         }
 
-        @@media (max-width: 1280px) {
+        /* @@media (max-width: 1280px) {
             html {
                 font-size: 13.6px;
             }
@@ -118,7 +124,7 @@
             html {
                 font-size: 13.6px;
             }
-        }
+        } */
 
         h6, .h6, h5, .h5, h4, .h4, h3, .h3, h2, .h2, h1, .h1 {
             font-weight: 600;
@@ -157,11 +163,11 @@
         }
 
         .blue {
-            color: #0e1d80; /*#0a1459*/
+            color: var(--blue);/* #0e1d80 *#0a1459*/
         }
 
         .dark-blue {
-            color: var(--blue);
+            color: var(--dark-blue);
         }
 
         .orange {
@@ -265,7 +271,7 @@
         }
         #home-left-panel a.menu-link:hover .home-left-item {
             background-color: #ebf5fd !important; /*#25547a*/
-            color: #1e2dbe !important;
+            color: var(--common-color-main) !important; /* #1e2dbe */
         }
 
         #home-left-scrollview {
@@ -288,10 +294,10 @@
         .item-active, #home-left-panel a.menu-link:hover .item-active {
             font-weight: 600;
             background-color: #ebf5fd !important;
-            color: #1e2dbe !important
+            color: var(--common-color-main) !important
         }
         
-        a.text-link:active, a.text-link:hover {
+        a.text-link, a.text-link:active, a.text-link:hover {
             color: inherit;
         }
         a.text-link:active {
@@ -323,13 +329,13 @@
             font-size: 1rem;
         }
 
-        .dx-datagrid-headers {
-            color: #333;
-            font-weight: 600;
+        .dx-datagrid .dx-row > td {
+            padding: 0.5rem;
         }
 
-        .dx-datagrid .dx-row > td {
-            padding: 4px;
+        .dx-datagrid .dx-header-row > td {
+            padding-left: 0.1rem;
+            padding-right: 0.1rem;
         }
 
         .dx-datagrid-content .dx-overlay-wrapper.dx-invalid-message.dx-datagrid-invalid-message .dx-overlay-content,
@@ -406,14 +412,11 @@
             padding-left: 16px;
         }
 
-        .dx-datagrid-rowsview .dx-row.dx-group-row:not(.dx-row-focused) {
-            color: #333;
-            background-color: #f7f7f7;
-            font-size: 0.9rem;
-        }
-
-        .dx-datagrid-content .dx-header-row {
-            font-size: 0.8rem;
+        .dx-datagrid-content .dx-header-row, .dx-datagrid-rowsview .dx-row.dx-group-row:not(.dx-row-focused) {
+            color: #666;
+            background-color: #fafafa;
+            /* font-size: 0.8rem; */
+            font-weight: 400;
         }
 
         .dx-datagrid-content .dx-widget {
