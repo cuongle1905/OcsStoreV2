@@ -25,6 +25,8 @@ public partial class ItemView
 
     public string ProcessingDesc { get; set; }
 
+    public bool Inactive { get; set; }
+
     public string UnitName { get; set; }
 
     public string GroupName { get; set; }

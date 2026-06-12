@@ -28,6 +28,13 @@ namespace OcsStore.Controllers
             return Ok(result);
         }
 
+        [HttpPost]
+        public IActionResult GetItems(int groupId, DataSourceLoadOptions loadOptions)
+        {
+            var result = DataSourceLoader.Load(_context.ItemViews.Where(i => i.Group == groupId), loadOptions);
+            return Ok(result);
+        }
+
         public List<ItemView> GetReceivingItems()
         {
             return _context.ItemViews.Where(i => i.ItemType == Item.Receving).ToList();
@@ -56,6 +63,12 @@ namespace OcsStore.Controllers
         [HttpPost]
         public IActionResult Save(Item item)
         {
+            SaveItem(item);
+            return Ok();
+        }
+
+        private void SaveItem(Item item)
+        {
             if (item.Id == 0)
             {
                 try
@@ -71,7 +84,7 @@ namespace OcsStore.Controllers
 
                 if (string.IsNullOrEmpty(item.Code))
                     item.Code = item.Name;
-    
+
                 _context.Items.Add(item);
             }
             else
@@ -79,6 +92,32 @@ namespace OcsStore.Controllers
                 _context.Items.Update(item);
             }
             _context.SaveChanges();
+        }
+
+        [HttpPost]
+        public IActionResult SaveItems(Item[] items)
+        {
+            foreach (Item item in items)
+            {
+                SaveItem(item);
+            }
+            return Ok();
+        }
+
+
+        [HttpPost]
+        public IActionResult Delete(int itemId)
+        {
+            if (_context.ReceivingDetails.FirstOrDefault(i => i.Item == itemId) == null
+                && _context.ProcessingInputs.FirstOrDefault(i => i.Item == itemId) == null)
+            {
+                var item = _context.Items.FirstOrDefault(i => i.Id == itemId);
+                if (item != null)
+                {
+                    _context.Items.Remove(item);
+                    _context.SaveChanges();
+                }
+            }
             return Ok();
         }
     }

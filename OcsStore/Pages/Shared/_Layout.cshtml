@@ -75,17 +75,22 @@
     <link rel="stylesheet" href="/assets/bootstrap-icons.css?v1.1">
     <link rel="stylesheet" href="~/css/Site.css?v1.5" />
     <link rel="stylesheet" href="~/css/controls.css?v1.6" />
+
+    <link rel="preconnect" href="https://rsms.me/">
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
     
     @RenderSection("HeadSection", false)
 
     <style>
+        /* CSS */
         :root {
             --bs-body-color: black;
-            --bs-font-sans-serif: Arial, Roboto, sans-serif /* , Arial, "Segoe UI", "Helvetica Neue" */;
+            --bs-font-sans-serif: Inter, Roboto, "Segoe UI", sans-serif /* , Arial, "Segoe UI", "Helvetica Neue" */;
             /* --common-color-main: #9f224e;
             --common-color-main-dark: #801B3E;
             --common-color-main-light: #CD2B64; */
             --red: #EE3333;
+            --red-bg: #FFEEEE;
             --green: #20AE64;
             --dark-blue: #3562E3; /* #010125 */
             --blue: #005EE2;
@@ -93,7 +98,25 @@
             --gray: #666;
             --common-color-main-dark: #000048; /* #010125 */
             --common-color-main: var(--blue); /* #0000BB */
+            --common-color-bg: #f2f4f6;
         }
+
+        :root {
+            font-family: var(--bs-font-sans-serif);
+            font-feature-settings: 'liga' 1, 'calt' 1; /* fix for Chrome */
+        }
+        @@supports (font-variation-settings: normal) {
+            :root { font-family: InterVariable, Roboto, sans-serif; }
+        }
+
+        .dx-button-mode-outlined.dx-button-default {
+            border-color: var(--common-color-main);
+            color: var(--common-color-main);
+        }
+        .dx-button-mode-outlined.dx-button-default .dx-icon {
+            color: var(--common-color-main);
+        }
+
         .dx-button-mode-contained.dx-button-default.dx-state-hover {
             background-color: var(--common-color-main-light);
         }
@@ -106,12 +129,13 @@
             margin: 0px;
             padding: 0px;
             position: relative;
-            font-size: 12.6px;
-            font-family: Roboto, "Segoe UI", sans-serif /* , Arial, "Segoe UI", "Helvetica Neue" */;
+            font-size: 12px;
+            background-color: var(--common-color-bg);
+            /* font-family: Roboto, "Segoe UI", sans-serif */ /* , Arial, "Segoe UI", "Helvetica Neue" */;
         }
 
         .dx-widget {
-            font-family: Roboto, "Segoe UI", sans-serif;
+            font-family: var(--bs-font-sans-serif);
         }
 
         /* @@media (max-width: 1280px) {
@@ -301,6 +325,10 @@
         a.text-link:active {
             text-decoration: none;
         }
+        a.icon-link, a.icon-link:active, a.icon-link:hover, a.icon-link:hover {
+            color: inherit;
+            text-decoration: none;
+        }
 
         #main-content {
             padding: 1rem 1rem;
@@ -429,6 +457,7 @@
 
         .dx-datagrid {
             border: none;
+            background-color: transparent;
         }
 
         .dx-datagrid .dx-datagrid-headers {
@@ -445,12 +474,17 @@
             border: none;
         }
 
+        .dx-datagrid .dx-datagrid-total-footer .dx-datagrid-content-fixed .dx-datagrid-table .dx-col-fixed {
+            background-color: transparent;
+        }
+
         .dx-datagrid .dx-datagrid-rowsview {
             border-bottom-left-radius: 10px;
             border-bottom-right-radius: 10px;
             border-left: solid 1px #ddd;
             border-right: solid 1px #ddd;
             overflow: hidden;
+            background-color: white;
         }
 
         .dx-datagrid-content .dx-datagrid-table .dx-row, .dx-datagrid-content .dx-datagrid-table .dx-row > td:first-child {
@@ -469,6 +503,10 @@
         .dx-datagrid-headers .dx-texteditor-input, .dx-datagrid-rowsview .dx-texteditor-input {
               padding: 3px 6px;
               min-height: 20px;
+        }
+
+        .dx-datagrid-focus-overlay {
+            border: 2px solid var(--common-color-main) !important; /* Change to your preferred color */
         }
         
         a.back-arrow, a.back-arrow:visited {
@@ -610,6 +648,40 @@
             color: var(--blue);
             text-align: center;
         }
+
+        .dot-symbol {
+            font-family: Roboto, sans-serif;
+        }
+        
+        .nav {
+            --bs-nav-link-padding-x: 0.6rem;
+            --bs-nav-link-padding-y: 0.3rem;
+            background: white;
+            padding: 3px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+        }
+        a.nav-link, a.nav-link:hover, a.nav-link:visited {
+            color: #666;
+            text-decoration: none;
+            border-radius: 10px;
+        }
+        a.nav-link.active {
+            color: white !important;
+            border-radius: 10px;
+        }
+        a.nav-link-green.active {
+            background-color: var(--green);
+        }
+        a.nav-link-brown.active {
+            background-color: var(--brown);
+        }
+        a.nav-link-blue.active {
+            background-color: var(--blue);
+        }
+        i.bi.bi-trash {
+            color: var(--red);
+        }
     </style>
 </head>
 @{
@@ -746,13 +818,19 @@
             return `${dd}${MM}`;
         };
         
-        function centerHeaderTextOnGridContentReady() {
+        function defaultOnGridContentReady() {
             $(".dx-header-row > td").css("text-align", "center");
         }
 
-        function onCellPrepared(e) {
+        function defaultOnCellPrepared(e) {
             if (e.rowType === 'group' && e.column.command === 'expand') {
                 e.cellElement.css('display', 'none');
+            }
+        }
+        
+        function defaultOnEditorPreparing(e) {
+            if (e.parentType === "dataRow") {
+                e.editorOptions.valueChangeEvent = "keyup";
             }
         }
 
@@ -862,6 +940,14 @@
                                 <i class="dx-icon-chart"></i>
                                 <div class="home-left-item-text">
                                     <span>Báo cáo</span>
+                                </div>
+                            </div>
+                        </a>
+                        <a class="menu-link" href='~/items'>
+                            <div class="home-left-item">
+                                <i class="bi bi-stack"></i>
+                                <div class="home-left-item-text">
+                                    <span>Danh mục hàng hóa</span>
                                 </div>
                             </div>
                         </a>

@@ -483,6 +483,9 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.Code)
                 .HasMaxLength(50)
                 .HasColumnName("code");
+            entity.Property(e => e.DateCreated)
+                .HasColumnType("datetime")
+                .HasColumnName("date_created");
             entity.Property(e => e.FullName)
                 .IsRequired()
                 .HasMaxLength(100)
@@ -490,6 +493,7 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.Group)
                 .HasDefaultValueSql("'1'")
                 .HasColumnName("group");
+            entity.Property(e => e.Inactive).HasColumnName("inactive");
             entity.Property(e => e.MinSoh)
                 .HasPrecision(10, 2)
                 .HasColumnName("min_soh");
@@ -513,10 +517,15 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.SalePrice)
                 .HasPrecision(8)
                 .HasColumnName("sale_price");
+            entity.Property(e => e.TimeCreated)
+                .HasMaxLength(5)
+                .IsFixedLength()
+                .HasColumnName("time_created");
             entity.Property(e => e.Unit)
                 .HasDefaultValueSql("'1'")
                 .HasColumnName("unit");
             entity.Property(e => e.UseLot).HasColumnName("use_lot");
+            entity.Property(e => e.UserCreated).HasColumnName("user_created");
         });
 
         modelBuilder.Entity<ItemGroup>(entity =>
@@ -705,6 +714,7 @@ public partial class MyDbContext : DbContext
                 .UseCollation("utf8mb3_general_ci")
                 .HasCharSet("utf8mb3");
             entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Inactive).HasColumnName("inactive");
             entity.Property(e => e.ItemType)
                 .HasDefaultValueSql("'1'")
                 .HasColumnName("item_type");
@@ -823,7 +833,9 @@ public partial class MyDbContext : DbContext
                 .HasDefaultValueSql("''")
                 .HasColumnName("lot");
             entity.Property(e => e.LotOrdinal)
+                .IsRequired()
                 .HasMaxLength(8)
+                .HasDefaultValueSql("''")
                 .HasColumnName("lot_ordinal");
             entity.Property(e => e.Soh)
                 .HasPrecision(10, 2)
@@ -1328,7 +1340,9 @@ public partial class MyDbContext : DbContext
                 .HasMaxLength(10)
                 .HasColumnName("lot");
             entity.Property(e => e.LotOrdinal)
+                .IsRequired()
                 .HasMaxLength(8)
+                .HasDefaultValueSql("''")
                 .HasColumnName("lot_ordinal");
             entity.Property(e => e.Soh)
                 .HasPrecision(10, 2)
@@ -1425,7 +1439,9 @@ public partial class MyDbContext : DbContext
                 .HasColumnType("datetime")
                 .HasColumnName("date");
             entity.Property(e => e.GroupName)
+                .IsRequired()
                 .HasMaxLength(51)
+                .HasDefaultValueSql("''")
                 .HasColumnName("group_name")
                 .UseCollation("utf8mb3_general_ci")
                 .HasCharSet("utf8mb3");
@@ -1447,7 +1463,9 @@ public partial class MyDbContext : DbContext
                 .HasMaxLength(10)
                 .HasColumnName("lot");
             entity.Property(e => e.LotOrdinal)
+                .IsRequired()
                 .HasMaxLength(8)
+                .HasDefaultValueSql("''")
                 .HasColumnName("lot_ordinal");
             entity.Property(e => e.Ordinal)
                 .HasDefaultValueSql("'1'")

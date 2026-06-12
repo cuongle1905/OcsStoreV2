@@ -31,6 +31,14 @@ public partial class Item
 
     public decimal? SalePrice { get; set; }
 
+    public bool Inactive { get; set; }
+
+    public DateTime? DateCreated { get; set; }
+
+    public string TimeCreated { get; set; }
+
+    public short? UserCreated { get; set; }
+
     public virtual ICollection<ItemMaterial> ItemMaterialItemNavigations { get; set; } = new List<ItemMaterial>();
 
     public virtual ICollection<ItemMaterial> ItemMaterialMaterialNavigations { get; set; } = new List<ItemMaterial>();

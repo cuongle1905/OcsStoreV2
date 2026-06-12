@@ -18,7 +18,7 @@ Html.DevExtreme().DataGrid<StockCardView>()
     .Sorting(s => s.Mode(GridSortingMode.None))
     .Paging(p => p.PageSize(100))
     .Pager(p => p.Visible(false))
-    .OnContentReady("centerHeaderTextOnGridContentReady")
+    .OnContentReady("defaultOnGridContentReady")
     .Columns(columns =>
     {
         columns.AddFor(m => m.Date).Caption("Ngày").Width(80).Alignment(HorizontalAlignment.Center).Format("dd/MM/yyyy").CellTemplate(new JS("stockCellTemplate")).GroupIndex(0);
