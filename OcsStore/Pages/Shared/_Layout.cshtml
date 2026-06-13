@@ -33,9 +33,6 @@
     @* Predefined themes: https://js.devexpress.com/DevExtreme/Guide/Themes_and_Styles/Predefined_Themes/ *@
     <link href="~/css/devextreme/dx.light.css" rel="stylesheet" />
 
-    <link rel="stylesheet" href="~/css/Site.css?v1.5" />
-    <link rel="stylesheet" href="~/css/controls.css?v1.6" />
-
     @* Uncomment to use the Gantt control *@
     @*<script src="~/js/devextreme/dx-gantt.js"></script>*@
 
@@ -75,8 +72,8 @@
     <link href="~/css/devextreme/dx.light.css" rel="stylesheet" />
 
     <link rel="stylesheet" href="/assets/bootstrap-icons.css?v1.1">
-    <link rel="stylesheet" href="~/css/Site.css?v1.5" />
-    <link rel="stylesheet" href="~/css/controls.css?v5" />
+    <link rel="stylesheet" href="~/css/Site.css?v11" />
+    <link rel="stylesheet" href="~/css/controls.css?v14" />
     <link rel="stylesheet" href="~/css/common.css?v1" />
 
     <link rel="preconnect" href="https://rsms.me/">
@@ -283,11 +280,11 @@
                                 </div>
                             </div>
                         </a>
-                        <a class="menu-link" href='~/items'>
+                        <a class="menu-link" href='~/datamanagement'>
                             <div class="home-left-item">
                                 <i class="bi bi-stack"></i>
                                 <div class="home-left-item-text">
-                                    <span>Danh mục hàng hóa</span>
+                                    <span>Quản lý dữ liệu</span>
                                 </div>
                             </div>
                         </a>
@@ -423,8 +420,8 @@
         let links = $("#home-left-scrollview-content a.menu-link");
         for (const link of links) {
             const href = $(link).attr("href");
-            console.log("link", link, "href", href);
-            if (location.href.toLowerCase().replace("/new?", "?").replace("/stockcard", "/stock").includes(href)) {
+            // console.log("link", link, "href", href);
+            if (location.href.toLowerCase().replace("/new?", "?").replace("/stockcard", "/stock").replace("/items", "/datamanagement").includes(href)) {
                 console.log("link.children[0]", link.children[0]);
                 link.children[0].classList.add("item-active");
                 break;

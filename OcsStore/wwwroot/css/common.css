@@ -15,6 +15,7 @@
     --common-color-main: var(--blue); /* #0000BB */
     --common-color-main-light: #007EE2;
     --common-color-bg: #f2f4f6;
+    --common-color-text-highlight: var(--blue);
 
     font-family: var(--bs-font-sans-serif);
     font-feature-settings: 'liga' 1, 'calt' 1; /* fix for Chrome */

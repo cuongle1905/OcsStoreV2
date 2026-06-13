@@ -80,6 +80,7 @@ Html.DevExtreme().DataGrid<ItemManagementView>()
 <script>
     var itemGroupId = 1;
     pageTitle = "Hàng hóa";
+    goBackUrl = "/@(Model.SourceUrl)";
 
     $(function () {
         $("#main-grid").first().prepend($("#top-section"));
@@ -134,6 +135,7 @@ Html.DevExtreme().DataGrid<ItemManagementView>()
         e.data.Unit = 1;
         e.data.UseLot = (itemGroupId == 2);
         e.data.AllowSale = (itemGroupId == 3);
+        e.data.Inactive = false;
     }
 
     function deleteItem(rowIndex) {
@@ -167,40 +169,28 @@ Html.DevExtreme().DataGrid<ItemManagementView>()
         let grid = $("#main-grid").dxDataGrid("instance");
 
         const editedRows = grid.option("editing.changes");
-        if (editedRows.length == 0) {
+        const editedIds = editedRows.filter(i => i.type == "update").map(i => i.key.Id);
+        // console.log("editedRows", editedRows);
+        // console.log("editedIds", editedIds);
+
+        var details = []
+        let rows = grid.getVisibleRows();
+        console.log(rows);
+        for (const row of rows) {
+            if (row.rowType == "data" && (row.isNewRow || editedIds.includes(row.data.Id))) {
+                if (row.data.Name == undefined || row.data.Name == null || row.data.Name == "") {
+                    DevExpress.ui.dialog.alert(`Hãy nhập vào Tên cho đầy đủ hàng hóa.`, "Cảnh báo");
+                    return;
+                }
+                details.push(row.data);
+            }
+        }
+        console.log(details);
+
+        if (details.length == 0) {
             DevExpress.ui.dialog.alert("Hãy chỉnh sửa dữ liệu trước khi lưu.", "Cảnh báo");
             return;
         }
-
-        console.log(editedRows);
-        var details = [];
-        for (const row of editedRows) {
-            /*
-              {
-                "type": "update", // insert, remove
-                "key": {
-                  "FirstName": "John",
-                  "LastName": "Doe"
-                },
-                "data": {
-                  "LastName": "Roe"
-                }
-              }
-            */
-
-            let originalData = row.key;
-            let editedData = row.data;
-
-            let name = editedData.Name;
-            if (name != null || name != undefined || name == "") {
-                DevExpress.ui.dialog.alert("Hãy nhập vào Tên cho toàn bộ hàng hóa.", "Cảnh báo");
-                return;
-            }
-
-            Object.assign(originalData, editedData);
-            details.push(originalData);
-        }
-        console.log(details);
 
         DevExpress.ui.dialog.confirm("<i>Bạn có chắc chắn lưu dữ liệu?</i>", "Xác nhận").then(function(dialogResult) {
             if (dialogResult) {
