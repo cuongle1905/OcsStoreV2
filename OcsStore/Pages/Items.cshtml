@@ -19,9 +19,9 @@
 </div>
 
 @(
-Html.DevExtreme().DataGrid<Item>()
+Html.DevExtreme().DataGrid<ItemManagementView>()
     .ID("main-grid")
-    .DataSource(d => d.Mvc().Controller("Item").LoadAction("GetItems").LoadMethod("POST").LoadParams(new { GroupId = new JS("function() { return itemGroupId; }") }))
+    .DataSource(d => d.Mvc().Controller("Item").LoadAction("GetItemManagementViews").LoadMethod("POST").LoadParams(new { GroupId = new JS("function() { return itemGroupId; }") }).OnLoaded("gridDataLoaded"))
     .RemoteOperations(false)
     .ShowBorders(true)
     .ShowRowLines(true)
@@ -35,28 +35,30 @@ Html.DevExtreme().DataGrid<Item>()
     .Columns(columns =>
     {
         columns.AddFor(m => m.Name).Caption("Tên").Width(120).Alignment(HorizontalAlignment.Left).Fixed(true).FixedPosition(HorizontalEdge.Left);
-        columns.AddFor(m => m.Unit).Caption("Đơn vị").Width(90).Alignment(HorizontalAlignment.Left)
+        columns.AddFor(m => m.Unit).Caption("Đơn vị").Width(70).Alignment(HorizontalAlignment.Left)
             .Lookup(lookup => lookup.DataSource(Model.Units).ValueExpr("Id").DisplayExpr("Name"));
 
-        columns.AddFor(m => m.AllowSale).Caption("Hàng bán").Width(60);
+        columns.AddFor(m => m.AllowSale).Caption("Hàng bán").Width(44);
         columns.AddFor(m => m.SalePrice).Caption("Giá bán").Width(64).Alignment(HorizontalAlignment.Right).Format("#,##0");
         columns.AddFor(m => m.Inactive).Caption("Không hiệu lực").Width(60);
         columns.Add().Name("Action").Width(36).Alignment(HorizontalAlignment.Center).Fixed(true).FixedPosition(HorizontalEdge.Right).CellTemplate(new JS("actionCellTemplate"));
     })
-    .Editing(e => e.AllowUpdating(true).Mode(GridEditMode.Batch).SelectTextOnEditStart(true))
+    .Editing(e => e.AllowUpdating(true).Mode(GridEditMode.Batch).SelectTextOnEditStart(true).NewRowPosition(GridNewRowPosition.PageBottom))
     .OnEditorPreparing("defaultOnEditorPreparing")
     .RepaintChangesOnly(true)
 )
 
-<div id="bottom-buttons" class="pt-3 text-center d-flex justify-content-center gap-3">
+<div id="grid-bottom-buttons" class="pt-2 text-end d-flex justify-content-end gap-3">
     @(Html.DevExtreme().Button()
         .Text("Thêm")
-        .Width(200)
         .Type(ButtonType.Default)
-        .StylingMode(ButtonStylingMode.Outlined)
-        .Icon("add")
+        .StylingMode(ButtonStylingMode.Text)
+        .Icon("bi bi-plus-circle-fill")
         .OnClick("addItem")
     )
+</div>
+
+<div id="bottom-buttons" class="pt-4 text-center d-flex justify-content-center gap-3">
     @(Html.DevExtreme().Button()
         .Text("Bỏ qua")
         .Width(200)
@@ -81,6 +83,7 @@ Html.DevExtreme().DataGrid<Item>()
 
     $(function () {
         $("#main-grid").first().prepend($("#top-section"));
+        $("#main-grid").first().append($("#grid-bottom-buttons"));
         $("#main-grid").first().append($("#bottom-buttons"));
         updateSelectedTab();
     });
@@ -90,6 +93,13 @@ Html.DevExtreme().DataGrid<Item>()
         itemGroupId = tabIndex + 1;
         reloadData();
         updateSelectedTab();
+    }
+
+    function gridDataLoaded(items) {
+        console.log(items);
+        const notUsedItem = items.find(i => i.ItemUsed == false);
+        console.log(notUsedItem);
+        $("#main-grid").dxDataGrid("columnOption", "Action", "visible", notUsedItem != undefined);
     }
 
     function updateSelectedTab() {
@@ -104,7 +114,8 @@ Html.DevExtreme().DataGrid<Item>()
     }
 
     function actionCellTemplate(container, options) {
-        container.html(`<a href="#" class="icon-link" onclick="deleteItem(${options.rowIndex})"><i class="bi bi-trash"></i></a>`)
+        if (!options.data.ItemUsed)
+            container.html(`<a href="#" class="icon-link" onclick="deleteItem(${options.rowIndex})"><i class="bi bi-trash"></i></a>`)
     }
 
     function reloadData() {
@@ -198,9 +209,9 @@ Html.DevExtreme().DataGrid<Item>()
                     method: "POST",
                     data: { items: details },
                     success: function (result) {
-                        DevExpress.ui.dialog.alert("Đã lưu dữ liệu.", "Thông báo").then(function(dialogResult) {
+                        // DevExpress.ui.dialog.alert("Đã lưu dữ liệu.", "Thông báo").then(function(dialogResult) {
                             reloadData();
-                        });
+                        // });
                     },
                     error: function (xhr, status, error) {
                         console.log("xhr", xhr, "status", status, "error", error);

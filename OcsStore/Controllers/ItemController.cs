@@ -35,6 +35,13 @@ namespace OcsStore.Controllers
             return Ok(result);
         }
 
+        [HttpPost]
+        public IActionResult GetItemManagementViews(int groupId, DataSourceLoadOptions loadOptions)
+        {
+            var result = DataSourceLoader.Load(_context.ItemManagementViews.Where(i => i.Group == groupId), loadOptions);
+            return Ok(result);
+        }
+
         public List<ItemView> GetReceivingItems()
         {
             return _context.ItemViews.Where(i => i.ItemType == Item.Receving).ToList();
