@@ -144,11 +144,17 @@ namespace OcsStore.Controllers
             return Ok();
         }
 
-
         [HttpPost]
         public IActionResult GetCustomers(DataSourceLoadOptions loadOptions)
         {
             var result = DataSourceLoader.Load(_context.Customers, loadOptions);
+            return Ok(result);
+        }
+
+        [HttpPost]
+        public IActionResult GetCustomerManagementViews(DataSourceLoadOptions loadOptions)
+        {
+            var result = DataSourceLoader.Load(_context.CustomerManagementViews, loadOptions);
             return Ok(result);
         }
     }

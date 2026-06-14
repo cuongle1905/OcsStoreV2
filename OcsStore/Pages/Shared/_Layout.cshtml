@@ -84,13 +84,15 @@
 @{
     bool hasToken = !string.IsNullOrEmpty(Session.Token(Context.Request));
     string fullName = "admin";
+
+    string sourceUrl = Context.Request.Query["SourceUrl"].ToString();
 }
 <body style="padding-top: 0.3rem;" spellcheck="false">
     <script>
         var isShowingUserMenu = false;
         var isShowingMobileMenu = false;
         var pageTitle = "";
-        var goBackUrl = "";
+        var goBackUrl = "@(sourceUrl)";
         
         function menuContainerOnClick() {
             console.log("menuContainerOnClick");

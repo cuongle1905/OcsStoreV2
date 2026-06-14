@@ -7,7 +7,7 @@ using Microsoft.VisualBasic;
 
 namespace OcsStore.Pages
 {
-    public class NewProcessingModel : SourceUrlPageModel
+    public class NewProcessingModel : PageModel
     {
         private readonly ItemController _itemController;
 

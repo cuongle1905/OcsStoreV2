@@ -5,7 +5,7 @@ using OcsStore.Models;
 
 namespace OcsStore.Pages
 {
-    public class UnitsModel : SourceUrlPageModel
+    public class UnitsModel : PageModel
     {
         private readonly ItemController _itemController;
         public Unit[] BaseUnits;

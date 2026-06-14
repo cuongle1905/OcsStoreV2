@@ -148,7 +148,7 @@ Html.DevExtreme().DataGrid<ProcessingInputView>()
 
 <script>
     pageTitle = "Chế biến - @(Model.Item.ProcessingName)";
-    goBackUrl = "/@(Model.SourceUrl)";
+
     let processingDate = new Date('@(DateTime.Today.ToString("yyyy-MM-dd"))');
     let outputItemId = @(Model.ItemId);
     let materialUseLot = false;
@@ -261,7 +261,7 @@ Html.DevExtreme().DataGrid<ProcessingInputView>()
                     data: { date: date, time: time, itemId: outputItemId, quantity: quantity, details: details },
                     success: function (result) {
                         DevExpress.ui.dialog.alert("Đã lưu dữ liệu chế biến.", "Thông báo").then(function(dialogResult) {
-                            location.href = "/@(Model.SourceUrl)";
+                            location.href = goBackUrl;
                         });
                     },
                     error: function (xhr, status, error) {

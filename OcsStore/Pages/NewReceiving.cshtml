@@ -76,7 +76,7 @@ Html.DevExtreme().DataGrid<ReceivingDetailView>()
 
 <script>
     pageTitle = "Nhập kho";
-    goBackUrl = "/@(Model.SourceUrl)";
+
     $(function () {
         $("#main-grid").first().prepend($("#top-section"));
         $("#main-grid").first().append($("#bottom-buttons"));
@@ -131,7 +131,7 @@ Html.DevExtreme().DataGrid<ReceivingDetailView>()
                     data: { date: date, time: time, details: details },
                     success: function (result) {
                         DevExpress.ui.dialog.alert("Đã lưu dữ liệu nhập kho.", "Thông báo").then(function(dialogResult) {
-                            location.href = "/@(Model.SourceUrl)";
+                            location.href = goBackUrl;
                         });
                     },
                     error: function (xhr, status, error) {

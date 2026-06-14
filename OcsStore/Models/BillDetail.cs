@@ -22,4 +22,6 @@ public partial class BillDetail
     public string Note { get; set; }
 
     public int Ordinal { get; set; }
+
+    public virtual Bill BillNavigation { get; set; }
 }

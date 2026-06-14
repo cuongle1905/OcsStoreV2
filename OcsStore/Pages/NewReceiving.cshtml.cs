@@ -5,7 +5,7 @@ using OcsStore.Models;
 
 namespace OcsStore.Pages
 {
-    public class NewReceivingModel : SourceUrlPageModel
+    public class NewReceivingModel : PageModel
     {
 
         [FromQuery(Name = "item")]

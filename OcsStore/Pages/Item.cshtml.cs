@@ -7,9 +7,6 @@ namespace OcsStore.Pages
 {
     public class ItemModel : PageModel
     {
-        [FromQuery(Name = "sourceurl")]
-        public string SourceUrl { get; set; }
-
         [FromQuery(Name = "item")]
         public short ItemId { get; set; }
         public Item Item { get; set; }

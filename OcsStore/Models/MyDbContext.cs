@@ -24,6 +24,8 @@ public partial class MyDbContext : DbContext
 
     public virtual DbSet<CustomerDebtView> CustomerDebtViews { get; set; }
 
+    public virtual DbSet<CustomerManagementView> CustomerManagementViews { get; set; }
+
     public virtual DbSet<CustomerView> CustomerViews { get; set; }
 
     public virtual DbSet<Item> Items { get; set; }
@@ -205,6 +207,8 @@ public partial class MyDbContext : DbContext
 
             entity.ToTable("bill_detail");
 
+            entity.HasIndex(e => e.Bill, "fk_bill_detail_idx");
+
             entity.Property(e => e.Id)
                 .ValueGeneratedNever()
                 .HasColumnName("id");
@@ -231,6 +235,10 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.Unit)
                 .HasDefaultValueSql("'1'")
                 .HasColumnName("unit");
+
+            entity.HasOne(d => d.BillNavigation).WithMany(p => p.BillDetails)
+                .HasForeignKey(d => d.Bill)
+                .HasConstraintName("fk_bill_detail");
         });
 
         modelBuilder.Entity<BillDetailView>(entity =>
@@ -436,6 +444,40 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.Debt)
                 .HasPrecision(32, 2)
                 .HasColumnName("debt");
+        });
+
+        modelBuilder.Entity<CustomerManagementView>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToView("customer_management_view");
+
+            entity.Property(e => e.Address)
+                .HasMaxLength(200)
+                .HasColumnName("address")
+                .UseCollation("utf8mb3_general_ci")
+                .HasCharSet("utf8mb3");
+            entity.Property(e => e.Email)
+                .HasMaxLength(50)
+                .HasColumnName("email")
+                .UseCollation("utf8mb3_general_ci")
+                .HasCharSet("utf8mb3");
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Name)
+                .IsRequired()
+                .HasMaxLength(100)
+                .HasColumnName("name")
+                .UseCollation("utf8mb3_general_ci")
+                .HasCharSet("utf8mb3");
+            entity.Property(e => e.Note)
+                .HasMaxLength(200)
+                .HasColumnName("note")
+                .UseCollation("utf8mb3_general_ci")
+                .HasCharSet("utf8mb3");
+            entity.Property(e => e.Phone)
+                .HasMaxLength(15)
+                .HasColumnName("phone");
+            entity.Property(e => e.Used).HasColumnName("used");
         });
 
         modelBuilder.Entity<CustomerView>(entity =>

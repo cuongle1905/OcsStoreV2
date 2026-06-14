@@ -49,6 +49,8 @@ public partial class Bill
 
     public bool Deleted { get; set; }
 
+    public virtual ICollection<BillDetail> BillDetails { get; set; } = new List<BillDetail>();
+
     public virtual Customer CustomerNavigation { get; set; }
 
     public virtual Store StoreNavigation { get; set; }
