@@ -18,10 +18,9 @@
     </ul>
 </div>
 
-@(
-Html.DevExtreme().DataGrid<ItemManagementView>()
+@(Html.DevExtreme().DataGrid<ItemManagementView>()
     .ID("main-grid")
-    .DataSource(d => d.Mvc().Controller("Item").LoadAction("GetItemManagementViews").LoadMethod("POST").LoadParams(new { GroupId = new JS("function() { return itemGroupId; }") }).OnLoaded("gridDataLoaded"))
+    .DataSource(d => d.Mvc().Controller("Item").LoadAction("GetItemManagementViews").LoadMethod("POST").LoadParams(new { GroupId = new JS("function() { return itemGroupId; }") }).OnLoaded("gridDataLoadedForUsedData"))
     .RemoteOperations(false)
     .ShowBorders(true)
     .ShowRowLines(true)
@@ -30,7 +29,7 @@ Html.DevExtreme().DataGrid<ItemManagementView>()
     .Paging(p => p.PageSize(100))
     .Pager(p => p.Visible(false))
     .OnContentReady("defaultOnGridContentReady")
-    .OnRowPrepared("onRowPrepared")
+    .OnRowPrepared("onRowPreparedInactive")
     .OnInitNewRow("onInitNewRow")
     .Columns(columns =>
     {
@@ -41,51 +40,24 @@ Html.DevExtreme().DataGrid<ItemManagementView>()
         columns.AddFor(m => m.AllowSale).Caption("Hàng bán").Width(44);
         columns.AddFor(m => m.SalePrice).Caption("Giá bán").Width(64).Alignment(HorizontalAlignment.Right).Format("#,##0");
         columns.AddFor(m => m.Inactive).Caption("Không hiệu lực").Width(60);
-        columns.Add().Name("Action").Width(36).Alignment(HorizontalAlignment.Center).Fixed(true).FixedPosition(HorizontalEdge.Right).CellTemplate(new JS("actionCellTemplate"));
+        columns.Add().Name("Action").Width(36).Alignment(HorizontalAlignment.Center).Fixed(true).FixedPosition(HorizontalEdge.Right).CellTemplate(new JS("deleteActionCellTemplate"));
     })
     .Editing(e => e.AllowUpdating(true).Mode(GridEditMode.Batch).SelectTextOnEditStart(true).NewRowPosition(GridNewRowPosition.PageBottom))
     .OnEditorPreparing("defaultOnEditorPreparing")
     .RepaintChangesOnly(true)
 )
 
-<div id="grid-bottom-buttons" class="pt-2 text-end d-flex justify-content-end gap-3">
-    @(Html.DevExtreme().Button()
-        .Text("Thêm")
-        .Type(ButtonType.Default)
-        .StylingMode(ButtonStylingMode.Text)
-        .Icon("bi bi-plus-circle-fill")
-        .OnClick("addItem")
-    )
-</div>
-
-<div id="bottom-buttons" class="pt-4 text-center d-flex justify-content-center gap-3">
-    @(Html.DevExtreme().Button()
-        .Text("Bỏ qua")
-        .Width(200)
-        .Type(ButtonType.Default)
-        .StylingMode(ButtonStylingMode.Outlined)
-        .Icon("undo")
-        .OnClick("undo")
-    )
-    @(Html.DevExtreme().Button()
-        .Text("Lưu")
-        .Width(200)
-        .Type(ButtonType.Default)
-        .StylingMode(ButtonStylingMode.Contained)
-        .Icon("bi bi-download")
-        .OnClick("save")
-    )
-</div>
-
 <script>
     var itemGroupId = 1;
     pageTitle = "Hàng hóa";
     goBackUrl = "/@(Model.SourceUrl)";
+    deleteUrl = '@Url.Action("Delete", "Item")';
+    saveUrl = '@Url.Action("SaveItems", "Item")';
 
     $(function () {
         $("#main-grid").first().prepend($("#top-section"));
-        $("#main-grid").first().append($("#grid-bottom-buttons"));
-        $("#main-grid").first().append($("#bottom-buttons"));
+        appendAddButtonToGrid();
+        appendUndoSaveButtonsToGrid();
         updateSelectedTab();
     });
 
@@ -96,37 +68,8 @@ Html.DevExtreme().DataGrid<ItemManagementView>()
         updateSelectedTab();
     }
 
-    function gridDataLoaded(items) {
-        console.log(items);
-        const notUsedItem = items.find(i => i.ItemUsed == false);
-        console.log(notUsedItem);
-        $("#main-grid").dxDataGrid("columnOption", "Action", "visible", notUsedItem != undefined);
-    }
-
     function updateSelectedTab() {
         $(`#groups-tab > :nth-child(${itemGroupId}) .nav-link`).addClass("active");
-    }
-
-    function onRowPrepared(e) {
-        if (e.rowType === "data" && e.data.Inactive) {
-            e.rowElement.css("color", "var(--red)");
-            e.rowElement.css("text-decoration", "line-through");
-        }
-    }
-
-    function actionCellTemplate(container, options) {
-        if (!options.data.ItemUsed)
-            container.html(`<a href="#" class="icon-link" onclick="deleteItem(${options.rowIndex})"><i class="bi bi-trash"></i></a>`)
-    }
-
-    function reloadData() {
-        let grid = $("#main-grid").dxDataGrid("instance");
-        grid.cancelEditData();
-        grid.refresh();
-    }
-
-    function addItem() {
-        $("#main-grid").dxDataGrid("addRow");
     }
 
     function onInitNewRow(e) {
@@ -136,79 +79,5 @@ Html.DevExtreme().DataGrid<ItemManagementView>()
         e.data.UseLot = (itemGroupId == 2);
         e.data.AllowSale = (itemGroupId == 3);
         e.data.Inactive = false;
-    }
-
-    function deleteItem(rowIndex) {
-        let grid = $("#main-grid").dxDataGrid("instance");
-        const visibleRows = grid.getVisibleRows();
-        const rowData = visibleRows[rowIndex].data;
-
-        DevExpress.ui.dialog.confirm(`<i>Bạn có chắc chắn muốn xóa '${rowData.Name}'?</i>`, "Xác nhận").then(function(dialogResult) {
-            if (dialogResult) {
-                $.ajax({
-                    url: '@Url.Action("Delete", "Item")',
-                    method: "POST",
-                    data: { itemId: rowData.Id },
-                    success: function (result) {
-                        reloadData();
-                    },
-                    error: function (xhr, status, error) {
-                        console.log("xhr", xhr, "status", status, "error", error);
-                        DevExpress.ui.dialog.alert("Có lỗi xảy ra. Vui lòng thử lại sau.", "Cảnh báo");
-                    }
-                });
-            }
-        });
-    }
-
-    function undo() {
-        reloadData();
-    }
-    
-    function save() {
-        let grid = $("#main-grid").dxDataGrid("instance");
-
-        const editedRows = grid.option("editing.changes");
-        const editedIds = editedRows.filter(i => i.type == "update").map(i => i.key.Id);
-        // console.log("editedRows", editedRows);
-        // console.log("editedIds", editedIds);
-
-        var details = []
-        let rows = grid.getVisibleRows();
-        console.log(rows);
-        for (const row of rows) {
-            if (row.rowType == "data" && (row.isNewRow || editedIds.includes(row.data.Id))) {
-                if (row.data.Name == undefined || row.data.Name == null || row.data.Name == "") {
-                    DevExpress.ui.dialog.alert(`Hãy nhập vào Tên cho đầy đủ hàng hóa.`, "Cảnh báo");
-                    return;
-                }
-                details.push(row.data);
-            }
-        }
-        console.log(details);
-
-        if (details.length == 0) {
-            DevExpress.ui.dialog.alert("Hãy chỉnh sửa dữ liệu trước khi lưu.", "Cảnh báo");
-            return;
-        }
-
-        DevExpress.ui.dialog.confirm("<i>Bạn có chắc chắn lưu dữ liệu?</i>", "Xác nhận").then(function(dialogResult) {
-            if (dialogResult) {
-                $.ajax({
-                    url: '@Url.Action("SaveItems", "Item")',
-                    method: "POST",
-                    data: { items: details },
-                    success: function (result) {
-                        // DevExpress.ui.dialog.alert("Đã lưu dữ liệu.", "Thông báo").then(function(dialogResult) {
-                            reloadData();
-                        // });
-                    },
-                    error: function (xhr, status, error) {
-                        console.log("xhr", xhr, "status", status, "error", error);
-                        DevExpress.ui.dialog.alert("Có lỗi xảy ra. Vui lòng thử lại sau.", "Cảnh báo");
-                    }
-                });
-            }
-        });
     }
 </script>

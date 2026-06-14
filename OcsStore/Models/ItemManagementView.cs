@@ -39,5 +39,5 @@ public partial class ItemManagementView
 
     public short? UserCreated { get; set; }
 
-    public bool? ItemUsed { get; set; }
+    public bool? Used { get; set; }
 }

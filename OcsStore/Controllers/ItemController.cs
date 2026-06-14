@@ -42,6 +42,18 @@ namespace OcsStore.Controllers
             return Ok(result);
         }
 
+        [HttpPost]
+        public IActionResult GetNormalUnits(DataSourceLoadOptions loadOptions)
+        {
+            var result = DataSourceLoader.Load(_context.UnitManagementViews.Where(i => i.Id != i.BaseUnit), loadOptions);
+            return Ok(result);
+        }
+
+        public Unit[] GetBaseUnits()
+        {
+            return _context.Units.Where(i => i.Id == i.BaseUnit).ToArray();
+        }
+
         public List<ItemView> GetReceivingItems()
         {
             return _context.ItemViews.Where(i => i.ItemType == Item.Receving).ToList();
@@ -102,28 +114,78 @@ namespace OcsStore.Controllers
         }
 
         [HttpPost]
-        public IActionResult SaveItems(Item[] items)
+        public IActionResult SaveItems(Item[] data)
         {
-            foreach (Item item in items)
+            foreach (Item item in data)
             {
                 SaveItem(item);
             }
             return Ok();
         }
 
-
         [HttpPost]
-        public IActionResult Delete(int itemId)
+        public IActionResult Delete(int id)
         {
-            if (_context.ReceivingDetails.FirstOrDefault(i => i.Item == itemId) == null
-                && _context.ProcessingInputs.FirstOrDefault(i => i.Item == itemId) == null)
+            if (_context.ReceivingDetails.FirstOrDefault(i => i.Item == id) == null
+                && _context.ProcessingInputs.FirstOrDefault(i => i.Item == id) == null)
             {
-                var item = _context.Items.FirstOrDefault(i => i.Id == itemId);
+                var item = _context.Items.FirstOrDefault(i => i.Id == id);
                 if (item != null)
                 {
                     _context.Items.Remove(item);
                     _context.SaveChanges();
                 }
+            }
+            return Ok();
+        }
+
+        [HttpPost]
+        public IActionResult DeleteUnit(int id)
+        {
+            if (_context.ReceivingDetails.FirstOrDefault(i => i.Unit == id) == null
+                && _context.ProcessingInputs.FirstOrDefault(i => i.Unit == id) == null
+                && _context.BillDetails.FirstOrDefault(i => i.Unit == id) == null)
+            {
+                var unit = _context.Units.FirstOrDefault(i => i.Id == id);
+                if (unit != null)
+                {
+                    _context.Units.Remove(unit);
+                    _context.SaveChanges();
+                }
+            }
+            return Ok();
+        }
+
+        private void SaveUnit(Unit unit)
+        {
+            if (unit.Id == 0)
+            {
+                try
+                {
+                    unit.Id = (short)(_context.Units.Max(i => i.Id) + 1);
+                }
+                catch
+                {
+                    unit.Id = 1;
+                }
+                if (string.IsNullOrEmpty(unit.FullName))
+                    unit.FullName = unit.Name;
+
+                _context.Units.Add(unit);
+            }
+            else
+            {
+                _context.Units.Update(unit);
+            }
+            _context.SaveChanges();
+        }
+
+        [HttpPost]
+        public IActionResult SaveUnits(Unit[] data)
+        {
+            foreach (Unit unit in data)
+            {
+                SaveUnit(unit);
             }
             return Ok();
         }

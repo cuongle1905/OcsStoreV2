@@ -5,12 +5,8 @@ using OcsStore.Models;
 
 namespace OcsStore.Pages
 {
-    public class NewReceivingModel : PageModel
+    public class NewReceivingModel : SourceUrlPageModel
     {
-
-        [FromQuery(Name = "sourceurl")]
-        public string SourceUrl { get; set; }
-
 
         [FromQuery(Name = "item")]
         public short Item { get; set; } = 0;

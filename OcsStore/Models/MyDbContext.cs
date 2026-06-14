@@ -74,6 +74,8 @@ public partial class MyDbContext : DbContext
 
     public virtual DbSet<Unit> Units { get; set; }
 
+    public virtual DbSet<UnitManagementView> UnitManagementViews { get; set; }
+
     public virtual DbSet<User> Users { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -580,7 +582,6 @@ public partial class MyDbContext : DbContext
                 .HasColumnName("group");
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.Inactive).HasColumnName("inactive");
-            entity.Property(e => e.ItemUsed).HasColumnName("item_used");
             entity.Property(e => e.MinSoh)
                 .HasPrecision(10, 2)
                 .HasColumnName("min_soh");
@@ -612,6 +613,7 @@ public partial class MyDbContext : DbContext
                 .HasDefaultValueSql("'1'")
                 .HasColumnName("unit");
             entity.Property(e => e.UseLot).HasColumnName("use_lot");
+            entity.Property(e => e.Used).HasColumnName("used");
             entity.Property(e => e.UserCreated).HasColumnName("user_created");
         });
 
@@ -1686,6 +1688,7 @@ public partial class MyDbContext : DbContext
                 .IsRequired()
                 .HasMaxLength(50)
                 .HasColumnName("full_name");
+            entity.Property(e => e.Inactive).HasColumnName("inactive");
             entity.Property(e => e.Name)
                 .IsRequired()
                 .HasMaxLength(50)
@@ -1697,6 +1700,36 @@ public partial class MyDbContext : DbContext
                 .HasColumnName("note")
                 .UseCollation("utf8mb3_general_ci")
                 .HasCharSet("utf8mb3");
+        });
+
+        modelBuilder.Entity<UnitManagementView>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToView("unit_management_view");
+
+            entity.Property(e => e.BaseUnit).HasColumnName("base_unit");
+            entity.Property(e => e.BuExchange)
+                .HasDefaultValueSql("'1'")
+                .HasColumnName("bu_exchange");
+            entity.Property(e => e.FullName)
+                .IsRequired()
+                .HasMaxLength(50)
+                .HasColumnName("full_name");
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Inactive).HasColumnName("inactive");
+            entity.Property(e => e.Name)
+                .IsRequired()
+                .HasMaxLength(50)
+                .HasColumnName("name")
+                .UseCollation("utf8mb3_general_ci")
+                .HasCharSet("utf8mb3");
+            entity.Property(e => e.Note)
+                .HasMaxLength(200)
+                .HasColumnName("note")
+                .UseCollation("utf8mb3_general_ci")
+                .HasCharSet("utf8mb3");
+            entity.Property(e => e.Used).HasColumnName("used");
         });
 
         modelBuilder.Entity<User>(entity =>

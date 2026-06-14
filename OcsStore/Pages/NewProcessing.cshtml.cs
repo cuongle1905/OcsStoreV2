@@ -7,12 +7,9 @@ using Microsoft.VisualBasic;
 
 namespace OcsStore.Pages
 {
-    public class NewProcessingModel : PageModel
+    public class NewProcessingModel : SourceUrlPageModel
     {
         private readonly ItemController _itemController;
-
-        [FromQuery(Name = "sourceurl")]
-        public string SourceUrl { get; set; }
 
         [FromQuery(Name = "item")]
         public short ItemId { get; set; }

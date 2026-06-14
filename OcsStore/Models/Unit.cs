@@ -15,6 +15,8 @@ public partial class Unit
 
     public double BuExchange { get; set; }
 
+    public bool Inactive { get; set; }
+
     public string Note { get; set; }
 
     public virtual ICollection<LastStoreTransaction> LastStoreTransactions { get; set; } = new List<LastStoreTransaction>();

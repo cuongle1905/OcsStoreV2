@@ -1,0 +1,50 @@
+﻿@page
+@using OcsStore.Models
+@model OcsStore.Pages.UnitsModel
+@{
+}
+
+@(Html.DevExtreme().DataGrid<UnitManagementView>()
+    .ID("main-grid")
+    .DataSource(d => d.Mvc().Controller("Item").LoadAction("GetNormalUnits").LoadMethod("POST").OnLoaded("gridDataLoadedForUsedData"))
+    .RemoteOperations(false)
+    .ShowBorders(true)
+    .ShowRowLines(true)
+    .WordWrapEnabled(true)
+    .Sorting(s => s.Mode(GridSortingMode.None))
+    .Paging(p => p.PageSize(100))
+    .Pager(p => p.Visible(false))
+    .OnContentReady("defaultOnGridContentReady")
+    .OnRowPrepared("onRowPreparedInactive")
+    .OnInitNewRow("onInitNewRow")
+    .Columns(columns =>
+    {
+        columns.AddFor(m => m.Name).Caption("Tên").Width(120).Alignment(HorizontalAlignment.Left).Fixed(true).FixedPosition(HorizontalEdge.Left);
+        columns.AddFor(m => m.BaseUnit).Caption("Đơn vị cơ sở").Width(70).Alignment(HorizontalAlignment.Left)
+            .Lookup(lookup => lookup.DataSource(Model.BaseUnits).ValueExpr("Id").DisplayExpr("Name"));
+
+        columns.AddFor(m => m.BuExchange).Caption("Quy đổi").Width(64).Alignment(HorizontalAlignment.Right).Format("#,##0.00");
+        columns.AddFor(m => m.Inactive).Caption("Không hiệu lực").Width(60);
+        columns.Add().Name("Action").Width(36).Alignment(HorizontalAlignment.Center).Fixed(true).FixedPosition(HorizontalEdge.Right).CellTemplate(new JS("deleteActionCellTemplate"));
+    })
+    .Editing(e => e.AllowUpdating(true).Mode(GridEditMode.Batch).SelectTextOnEditStart(true).NewRowPosition(GridNewRowPosition.PageBottom))
+    .OnEditorPreparing("defaultOnEditorPreparing")
+    .RepaintChangesOnly(true)
+)
+<script>
+    pageTitle = "Đơn vị";
+    goBackUrl = "/@(Model.SourceUrl)";
+    deleteUrl = '@Url.Action("DeleteUnit", "Item")';
+    saveUrl = '@Url.Action("SaveUnits", "Item")';
+
+    $(function () {
+        appendAddButtonToGrid();
+        appendUndoSaveButtonsToGrid();
+    });
+
+    function onInitNewRow(e) {
+        e.data.Id = 0;
+        e.data.BaseUnit = 1;
+        e.data.Inactive = false;
+    }
+</script>
