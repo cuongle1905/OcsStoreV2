@@ -157,5 +157,53 @@ namespace OcsStore.Controllers
             var result = DataSourceLoader.Load(_context.CustomerManagementViews, loadOptions);
             return Ok(result);
         }
+
+
+        [HttpPost]
+        public IActionResult DeleteCustomer(int id)
+        {
+            if (_context.Bills.FirstOrDefault(i => i.Customer == id) == null)
+            {
+                var unit = _context.Customers.FirstOrDefault(i => i.Id == id);
+                if (unit != null)
+                {
+                    _context.Customers.Remove(unit);
+                    _context.SaveChanges();
+                }
+            }
+            return Ok();
+        }
+
+        private void SaveCustomer(Customer unit)
+        {
+            if (unit.Id == 0)
+            {
+                try
+                {
+                    unit.Id = (short)(_context.Customers.Max(i => i.Id) + 1);
+                }
+                catch
+                {
+                    unit.Id = 1;
+                }
+
+                _context.Customers.Add(unit);
+            }
+            else
+            {
+                _context.Customers.Update(unit);
+            }
+            _context.SaveChanges();
+        }
+
+        [HttpPost]
+        public IActionResult SaveCustomers(Customer[] data)
+        {
+            foreach (Customer unit in data)
+            {
+                SaveCustomer(unit);
+            }
+            return Ok();
+        }
     }
 }

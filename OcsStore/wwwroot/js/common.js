@@ -39,6 +39,10 @@ function sohCellTemplate(container, options) {
     }
 }
 
+function percentCellTemplate(container, options) {
+    container.html(`${options.text}<span style='font-size:0.9rem; margin-left:0.2rem;'>%</span>`);
+}
+
 function onNumberBoxFocusIn(e) {
     // Find the nested input element and select all text
     const inputElement = e.element.get(0).querySelector("input.dx-texteditor-input");
@@ -104,14 +108,14 @@ function deleteRowData(rowIndex) {
 }
 function createButton(id, text, width, style, icon, onClickFunc) {
     if (width == undefined)
-        width = 200;
+        width = 160;
 
     return $(id).dxButton({
         text: text,
         width: width,
         type: "default",
         stylingMode: style,
-        icon: "bi bi-download",
+        icon: icon,
         onClick: onClickFunc
     });
 }
@@ -130,22 +134,20 @@ function createUndoButton(width, style) {
     return createButton("#undo-button", "Bỏ qua", width, style, "undo", undo)
 }
 
-function createGridAddButton(buttonId, gridId, width, style) {
+function createGridAddButton(buttonId, gridId, onClickFunc) {
     if (buttonId == undefined)
         buttonId = "#grid-add-button";
 
     if (gridId == undefined)
         gridId = "#main-grid";
 
-    if (width == undefined)
-        width = "auto";
+    if (onClickFunc == undefined) {
+        onClickFunc = function () {
+            $(gridId).dxDataGrid("addRow");
+        };
+    }
 
-    if (style == undefined)
-        style = "text";
-
-    return createButton(buttonId, "Thêm", width, style, "bi bi-plus-circle-fill", function () {
-        $(gridId).dxDataGrid("addRow");
-    });
+    return createButton(buttonId, "Thêm", "auto", "text", "bi bi-plus-circle-fill", onClickFunc);
 }
 
 function createGridBottomButtonsDiv() {
@@ -178,7 +180,7 @@ function appendUndoSaveButtonsToGrid(gridId) {
     createSaveButton();
 }
 
-function appendAddButtonToGrid(gridId) {
+function appendAddButtonToGrid(gridId, onClickFunc) {
     if (gridId == undefined)
         gridId = "#main-grid";
 
@@ -186,7 +188,7 @@ function appendAddButtonToGrid(gridId) {
     $(gridId).first().append(buttonsDiv);
     let buttonId = "grid-add-button"
     buttonsDiv.append($(`<div id="${buttonId}">`));
-    createGridAddButton("#" + buttonId, gridId);
+    return createGridAddButton("#" + buttonId, gridId, onClickFunc);
 }
 
 var saveUrl = '@Url.Action("SaveItems", "Item")';
@@ -237,3 +239,5 @@ function save() {
         }
     });
 }
+
+const detailArrowSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" fill="currentColor" stroke="currentColor"><path d="M64 320C64 461.4 178.6 576 320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64C178.6 64 64 178.6 64 320zM305 441C295.6 450.4 280.4 450.4 271.1 441C261.8 431.6 261.7 416.4 271.1 407.1L358.1 320.1L271.1 233.1C261.7 223.7 261.7 208.5 271.1 199.2C280.5 189.9 295.7 189.8 305 199.2L409 303C418.4 312.4 418.4 327.6 409 336.9L305 441z"/></svg>`

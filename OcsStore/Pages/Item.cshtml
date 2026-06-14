@@ -84,7 +84,6 @@
 </div>
 <script>
     pageTitle = "@(Model.Item.Id == 0 ? "Thêm hàng hóa" : "Hàng hóa")"
-    goBackUrl = "/@(Model.SourceUrl)";
     var item = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Item));
 
     $(function () {

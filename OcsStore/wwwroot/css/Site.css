@@ -319,17 +319,17 @@ a.secondary-link, a.secondary-link:link, a.secondary-link:visited {
     background-color: var(--common-color-main);
 }
 
-    #my-container .dx-button-mode-contained.dx-button-default.dx-state-hover {
-        background-color: var(--common-color-main-light);
-    }
+#my-container .dx-button-mode-contained.dx-button-default.dx-state-hover {
+    background-color: var(--common-color-main-light);
+}
 
-    #my-container .dx-button-mode-contained.dx-button-default.dx-state-active {
-        background-color: var(--common-color-main-darker);
-    }
+#my-container .dx-button-mode-contained.dx-button-default.dx-state-active {
+    background-color: var(--common-color-main-darker);
+}
 
-    #my-container .dx-button-mode-contained.dx-button-default.dx-state-focused {
-        background-color: var(--common-color-main-dark);
-    }
+#my-container .dx-button-mode-contained.dx-button-default.dx-state-focused {
+    background-color: var(--common-color-main-dark);
+}
 
 #my-container .dx-texteditor.dx-state-hover {
     border-color: var(--common-color-border-highlight);

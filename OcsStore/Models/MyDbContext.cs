@@ -46,6 +46,8 @@ public partial class MyDbContext : DbContext
 
     public virtual DbSet<LotStockView> LotStockViews { get; set; }
 
+    public virtual DbSet<MaterialView> MaterialViews { get; set; }
+
     public virtual DbSet<Param> Params { get; set; }
 
     public virtual DbSet<Processing> Processings { get; set; }
@@ -697,10 +699,16 @@ public partial class MyDbContext : DbContext
                 .HasNoKey()
                 .ToView("item_material_view");
 
-            entity.Property(e => e.Group)
-                .HasDefaultValueSql("'1'")
-                .HasColumnName("group");
             entity.Property(e => e.Item).HasColumnName("item");
+            entity.Property(e => e.ItemGroup)
+                .HasDefaultValueSql("'1'")
+                .HasColumnName("item_group");
+            entity.Property(e => e.ItemName)
+                .IsRequired()
+                .HasMaxLength(100)
+                .HasColumnName("item_name")
+                .UseCollation("utf8mb3_general_ci")
+                .HasCharSet("utf8mb3");
             entity.Property(e => e.ItemType)
                 .HasDefaultValueSql("'1'")
                 .HasColumnName("item_type");
@@ -708,7 +716,13 @@ public partial class MyDbContext : DbContext
                 .HasPrecision(5, 2)
                 .HasDefaultValueSql("'10.00'")
                 .HasColumnName("lost_percent");
+            entity.Property(e => e.Lot)
+                .HasMaxLength(10)
+                .HasColumnName("lot");
             entity.Property(e => e.Material).HasColumnName("material");
+            entity.Property(e => e.MaterialGroup)
+                .HasDefaultValueSql("'1'")
+                .HasColumnName("material_group");
             entity.Property(e => e.Name)
                 .IsRequired()
                 .HasMaxLength(100)
@@ -960,6 +974,52 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.Year)
                 .HasDefaultValueSql("'26'")
                 .HasColumnName("year");
+        });
+
+        modelBuilder.Entity<MaterialView>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToView("material_view");
+
+            entity.Property(e => e.Item).HasColumnName("item");
+            entity.Property(e => e.ItemGroup)
+                .HasDefaultValueSql("'1'")
+                .HasColumnName("item_group");
+            entity.Property(e => e.ItemName)
+                .IsRequired()
+                .HasMaxLength(100)
+                .HasColumnName("item_name")
+                .UseCollation("utf8mb3_general_ci")
+                .HasCharSet("utf8mb3");
+            entity.Property(e => e.LostPercent)
+                .HasPrecision(5, 2)
+                .HasDefaultValueSql("'10.00'")
+                .HasColumnName("lost_percent");
+            entity.Property(e => e.Material).HasColumnName("material");
+            entity.Property(e => e.MaterialGroup)
+                .HasDefaultValueSql("'1'")
+                .HasColumnName("material_group");
+            entity.Property(e => e.Name)
+                .IsRequired()
+                .HasMaxLength(100)
+                .HasColumnName("name")
+                .UseCollation("utf8mb3_general_ci")
+                .HasCharSet("utf8mb3");
+            entity.Property(e => e.Quantity)
+                .HasPrecision(10, 2)
+                .HasDefaultValueSql("'1.00'")
+                .HasColumnName("quantity");
+            entity.Property(e => e.Unit)
+                .HasDefaultValueSql("'1'")
+                .HasColumnName("unit");
+            entity.Property(e => e.UnitName)
+                .IsRequired()
+                .HasMaxLength(50)
+                .HasColumnName("unit_name")
+                .UseCollation("utf8mb3_general_ci")
+                .HasCharSet("utf8mb3");
+            entity.Property(e => e.UseLot).HasColumnName("use_lot");
         });
 
         modelBuilder.Entity<Param>(entity =>
@@ -1786,6 +1846,11 @@ public partial class MyDbContext : DbContext
                 .ValueGeneratedNever()
                 .HasColumnName("id");
             entity.Property(e => e.IsSuper).HasColumnName("is_super");
+            entity.Property(e => e.Name)
+                .IsRequired()
+                .HasMaxLength(100)
+                .HasDefaultValueSql("''")
+                .HasColumnName("name");
             entity.Property(e => e.Password)
                 .IsRequired()
                 .HasMaxLength(20)

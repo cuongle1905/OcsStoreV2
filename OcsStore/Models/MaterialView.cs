@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace OcsStore.Models;
 
-public partial class ItemMaterialView
+public partial class MaterialView
 {
     public int Item { get; set; }
 
@@ -21,13 +21,7 @@ public partial class ItemMaterialView
 
     public bool UseLot { get; set; }
 
-    public sbyte ItemType { get; set; }
-
     public string UnitName { get; set; }
-
-    public string Lot { get; set; }
-
-    public decimal? Soh { get; set; }
 
     public string ItemName { get; set; }
 

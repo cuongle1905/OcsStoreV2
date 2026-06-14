@@ -1,0 +1,131 @@
+﻿@page
+@using OcsStore.Models
+@model OcsStore.Pages.MaterialModel
+@{
+}
+
+<div id="top-section" style="position: relative; margin-left: auto; margin-right: auto; width: 20rem; margin-bottom: 1.5rem;">
+    <ul id="groups-tab" class="nav nav-justified">
+        <li class="nav-item">
+            <a class="nav-link nav-link-brown" href="#" onclick="tabClicked(0);">Hạt rang</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link nav-link-blue" href="#" onclick="tabClicked(1);">Cafe</a>
+        </li>
+    </ul>
+
+    <div class="data-field">
+        <div class="field-title">Hàng hóa:</div>
+        @(Html.DevExtreme().SelectBox()
+            .ID("select-item")
+            .DataSource(new JS("filteredItems"))
+            .Width("100%")
+            .Height("2rem")
+            .DisplayExpr("Name")
+            .ValueExpr("Id")
+            .Value(Model.ItemId)
+            .OnValueChanged("itemChanged")
+            .DropDownOptions(o => o.Position(p => p.Of("#select-item").At(HorizontalAlignment.Left, VerticalAlignment.Bottom).My(HorizontalAlignment.Left, VerticalAlignment.Top).Offset(0, 2)))
+        )
+    </div>
+</div>
+
+@(Html.DevExtreme().DataGrid<ItemMaterial>()
+    .ID("main-grid")
+    .DataSource(d => d.Mvc().Controller("Item").LoadAction("GetMaterials").LoadMethod("POST").LoadParams(new { ItemId = new JS("function() { return itemId; }") }).Key(new string[] { "Item", "Material" }).OnLoaded("gridDataLoaded"))
+    .RemoteOperations(false)
+    .ShowBorders(true)
+    .ShowRowLines(true)
+    .WordWrapEnabled(true)
+    .Sorting(s => s.Mode(GridSortingMode.None))
+    .Paging(p => p.PageSize(100))
+    .Pager(p => p.Visible(false))
+    .OnContentReady("defaultOnGridContentReady")
+    .OnInitNewRow("onInitNewRow")
+    .Columns(columns =>
+    {
+        columns.AddFor(m => m.Material).Caption("Nguyên liệu").Width(150).Alignment(HorizontalAlignment.Left)
+            .Lookup(lookup => 
+                lookup.DataSource(new JS("materialItems"))
+                    .ValueExpr("Id")
+                    .DisplayExpr("Name")
+            );
+
+        columns.AddFor(m => m.Quantity).Caption("Số lượng").Width(64).Alignment(HorizontalAlignment.Right).Format("#,##0.00");
+        columns.AddFor(m => m.LostPercent).Caption("% Hao hụt").Width(64).Alignment(HorizontalAlignment.Right).Format("#,##0");
+    })
+    .Editing(e => e.AllowUpdating(true).Mode(GridEditMode.Batch).SelectTextOnEditStart(true).NewRowPosition(GridNewRowPosition.PageBottom))
+    .OnEditorPreparing("onEditorPreparing")
+    .RepaintChangesOnly(true)
+)
+
+<script>
+    pageTitle = "Công thức chi tiết";
+    var itemGroupId = @(Model.ItemGroupId);
+    var itemId = @(Model.ItemId);
+    deleteUrl = '@Url.Action("DeleteMaterial", "Item")';
+    saveUrl = '@Url.Action("SaveMaterials", "Item")';
+    var items = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Items));
+    var filteredItems;
+    var materialItems;
+
+    $(function () {
+        $("#main-grid").first().prepend($("#top-section"));
+        appendAddButtonToGrid();
+        appendUndoSaveButtonsToGrid();
+        
+        updateSelectedTab();
+        updateItem();
+    });
+
+    function tabClicked(tabIndex) {
+        let selectedTabIndex = itemGroupId - 1;
+        $(`#groups-tab > :nth-child(${selectedTabIndex}) .nav-link`).removeClass("active");
+        itemGroupId = tabIndex + 2;
+
+        updateSelectedTab();
+    }
+
+    function updateSelectedTab() {
+        let selectedTabIndex = itemGroupId - 1;
+        $(`#groups-tab > :nth-child(${selectedTabIndex}) .nav-link`).addClass("active");
+        
+
+        filteredItems = items.filter(i => i.Group == itemGroupId);
+        console.log("materialItems", materialItems);
+        $("#select-item").dxSelectBox("option", "dataSource", filteredItems);
+        if (filteredItems.find(i => i.Id == itemId) == undefined) {
+            itemId = filteredItems[0].Id;
+        }
+        $("#select-item").dxSelectBox("option", "value", itemId);
+        
+        materialItems = items.filter(i => i.Group < itemGroupId);
+        $("#main-grid").dxDataGrid("instance").columnOption("Material", "lookup.dataSource", materialItems);
+    }
+    
+    function itemChanged(e) {
+        updateItem();
+    }
+
+    function updateItem() {
+        itemId = $("#select-item").dxSelectBox("instance").option("value");
+        // $("#main-grid").css("visibility", itemId > 0 ? "visible" : "hidden");
+        reloadData();
+    }
+
+    function gridDataLoaded(records) {
+        console.log("records", records);
+    }
+
+    function onInitNewRow(e) {
+        e.data.Item = itemId;
+        e.data.LostPercent = 10;
+    }
+
+    function onEditorPreparing(e) {
+        if (e.parentType === "dataRow" && e.dataField === "Material") {
+            e.editorOptions.searchEnabled = false;
+        }
+        defaultOnEditorPreparing(e);
+    }
+</script>

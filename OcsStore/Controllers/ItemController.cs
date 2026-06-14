@@ -189,5 +189,35 @@ namespace OcsStore.Controllers
             }
             return Ok();
         }
+
+        [HttpPost]
+        public IActionResult GetMaterialViews(int groupId, DataSourceLoadOptions loadOptions)
+        {
+            var result = DataSourceLoader.Load(_context.MaterialViews.Where(i => i.ItemGroup == groupId), loadOptions);
+            return Ok(result);
+        }
+
+        public Item[] GetAllItems()
+        {
+            return _context.Items.ToArray();
+        }
+
+        public Item[] GetItemsForMaterials()
+        {
+            return _context.Items.Where(i => i.Group > 1).ToArray();
+        }
+
+        public Item[] GetMaterialItems(int itemId)
+        {
+            var itemGroup = _context.Items.FirstOrDefault(i => i.Id  == itemId).Group;
+            return _context.Items.Where(i => i.Group < itemGroup).ToArray();
+        }
+
+        [HttpPost]
+        public IActionResult GetMaterials(int itemId, DataSourceLoadOptions loadOptions)
+        {
+            var result = DataSourceLoader.Load(_context.ItemMaterials.Where(i => i.Item == itemId), loadOptions);
+            return Ok(result);
+        }
     }
 }

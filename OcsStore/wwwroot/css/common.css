@@ -11,12 +11,12 @@
     --blue: #005EE2;
     --brown: #C56722;
     --gray: #666;
-    --common-color-main-dark: #000048; /* #010125 */
+    --common-color-main-dark: #004bb5; /* #010125 */
+    --common-color-main-darker: #004bb5;
     --common-color-main: var(--blue); /* #0000BB */
     --common-color-main-light: #007EE2;
     --common-color-bg: #f2f4f6;
     --common-color-text-highlight: var(--blue);
-
     font-family: var(--bs-font-sans-serif);
     font-feature-settings: 'liga' 1, 'calt' 1; /* fix for Chrome */
 }

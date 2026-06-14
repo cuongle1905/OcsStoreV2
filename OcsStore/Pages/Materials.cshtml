@@ -1,0 +1,97 @@
+﻿@page
+@using OcsStore.Models
+@model OcsStore.Pages.MaterialsModel
+@{
+}
+<style>
+    #main-grid .detail-arrow.dx-button-has-icon .dx-button-content {
+        padding: 4px;
+    }
+    #main-grid .dx-datagrid-group-opened, #main-grid .dx-datagrid-group-closed {
+        padding-top: 2px;
+    }
+    #main-grid .dx-group-row td {
+        padding-top: 2px;
+        padding-bottom: 2px;
+    }
+    .cell-link-button .dx-icon {
+        width: 14px;
+        height: 14px;
+    }
+</style>
+<div id="top-section" class="pb-3">
+    <ul id="groups-tab" class="nav nav-justified">
+        <li class="nav-item">
+            <a class="nav-link nav-link-brown" href="#" onclick="tabClicked(0);">Hạt rang</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link nav-link-blue" href="#" onclick="tabClicked(1);">Cafe</a>
+        </li>
+    </ul>
+</div>
+
+@(Html.DevExtreme().DataGrid<MaterialView>()
+    .ID("main-grid")
+    .DataSource(d => d.Mvc().Controller("Item").LoadAction("GetMaterialViews").LoadMethod("POST").LoadParams(new { GroupId = new JS("function() { return itemGroupId; }") }).OnLoaded("gridDataLoadedForUsedData"))
+    .RemoteOperations(false)
+    .ShowBorders(true)
+    .ShowRowLines(true)
+    .WordWrapEnabled(true)
+    .Sorting(s => s.Mode(GridSortingMode.None))
+    .Paging(p => p.PageSize(100))
+    .Pager(p => p.Visible(false))
+    .OnContentReady("defaultOnGridContentReady")
+    .Columns(columns =>
+    {
+        columns.AddFor(m => m.ItemName).Caption("Tên hàng").Width(120).GroupIndex(0).GroupCellTemplate(new JS("groupCellTemplate"));
+        columns.AddFor(m => m.Name).Caption("Nguyên liệu").Width(120).Fixed(true).FixedPosition(HorizontalEdge.Left);
+        columns.AddFor(m => m.Quantity).Caption("Số lượng").Width(64).Format("#,##0.00");
+        columns.AddFor(m => m.UnitName).Caption("").Width(40);
+        columns.AddFor(m => m.LostPercent).Caption("Hao hụt").Width(64).Format("#,##0").CellTemplate(new JS("percentCellTemplate"));
+    })
+    .Editing(e => e.AllowUpdating(false))
+)
+
+<script>
+    var itemGroupId = 2;
+    pageTitle = "Công thức chế biến";
+
+    $(function () {
+        $("#main-grid").first().prepend($("#top-section"));
+        updateSelectedTab();
+
+        appendAddButtonToGrid("#main-grid", function() {
+            location.href = "/material?sourceurl=materials";
+        });
+    });
+
+    function tabClicked(tabIndex) {
+        let selectedTabIndex = itemGroupId - 1;
+        $(`#groups-tab > :nth-child(${selectedTabIndex}) .nav-link`).removeClass("active");
+        itemGroupId = tabIndex + 2;
+        reloadData();
+        updateSelectedTab();
+    }
+
+    function updateSelectedTab() {
+        let selectedTabIndex = itemGroupId - 1;
+        $(`#groups-tab > :nth-child(${selectedTabIndex}) .nav-link`).addClass("active");
+    }
+
+    function groupCellTemplate(container, options) {
+        console.log("groupCellTemplate options", options);
+        const itemId = options.data.items[0].Item;
+        const groupContent = $(`<div class='d-flex align-items-center ms-3'>${options.text}</div>`)
+        container.append(groupContent);
+        $("<div>").dxButton({
+            text: "",
+            icon: detailArrowSvg,
+            stylingMode: "text",
+            elementAttr: { class: "detail-arrow no-border-button cell-link-button" },
+            onClick: function (e) {
+                location.href = "/material?sourceurl=materials&&item=" + itemId;
+            }
+        }).appendTo(groupContent);
+    }
+
+</script>

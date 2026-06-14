@@ -3,30 +3,97 @@
 @{
 }
 <style>
-    #data-links > div {
-        margin: 2rem;
-        font-size: 1.2rem;
-    }
-
-    #data-links i.bi {
-        margin-right: 0.9rem;
+    .container .dx-button-content {
+        padding-top: 1.5rem;
+        padding-bottom: 1.5rem;
     }
 </style>
-<div id="data-links" style="width: 15rem; margin-left: auto; margin-right: auto">
-    <div>
-        <a href="/items?sourceurl=datamanagement"><i class="bi bi-boxes"></i>Hàng hóa</a>
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col ms-4">
+            <div id="items-button"></div>
+        </div>
+        <div class="col ms-4 me-4">
+            <div id="units-button"></div>
+        </div>
     </div>
-    <div>
-        <a href="/units?sourceurl=datamanagement"><i class="bi bi-crop"></i>Đơn vị</a>
+    <div class="row mt-5">
+        <div class="col ms-4">
+            <div id="materials-button"></div>
+        </div>
+        <div class="col ms-4 me-4">
+            <div id="customers-button"></div>
+        </div>
     </div>
-    <div>
-        <a href="/users?sourceurl=datamanagement"><i class="bi bi-people-fill"></i>Người dùng</a>
-    </div>
-    <div>
-        <a href="/customers?sourceurl=datamanagement"><i class="bi bi-person-vcard-fill"></i>Khách hàng</a>
+    <div class="row mt-5">
+        <div class="col ms-4">
+            <div id="users-button"></div>
+        </div>
+        <div class="col ms-4 me-4">
+        </div>
     </div>
 </div>
 
 <script>
     pageTitle =  "Quản lý dữ liệu";
+
+    $(function () {
+        const buttonStyle = "contained";
+
+        $("#items-button").dxButton({
+            text: "Hàng hóa",
+            width: "100%",
+            type: "default",
+            stylingMode: buttonStyle,
+            icon: "bi bi-boxes",
+            onClick: function() {
+                location.href = "/items?sourceurl=datamanagement";
+            }
+        });
+
+        $("#units-button").dxButton({
+            text: "Đơn vị",
+            width: "100%",
+            type: "default",
+            stylingMode: buttonStyle,
+            icon: "bi bi-crop",
+            onClick: function() {
+                location.href = "/units?sourceurl=datamanagement";
+            }
+        });
+
+        $("#materials-button").dxButton({
+            text: "Công thức",
+            width: "100%",
+            type: "default",
+            stylingMode: buttonStyle,
+            icon: "bi bi-gear-wide-connected",
+            onClick: function() {
+                location.href = "/materials?sourceurl=datamanagement";
+            }
+        });
+
+        $("#customers-button").dxButton({
+            text: "Khách hàng",
+            width: "100%",
+            type: "default",
+            stylingMode: buttonStyle,
+            icon: "bi bi-people-fill",
+            onClick: function() {
+                location.href = "/customers?sourceurl=datamanagement";
+            }
+        });
+
+        $("#users-button").dxButton({
+            text: "Người dùng",
+            width: "100%",
+            type: "default",
+            stylingMode: buttonStyle,
+            icon: "bi bi-person-vcard-fill",
+            onClick: function() {
+                location.href = "/users?sourceurl=datamanagement";
+            }
+        });
+    });
 </script>

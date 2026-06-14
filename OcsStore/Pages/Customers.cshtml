@@ -1,0 +1,46 @@
+﻿@page
+@using OcsStore.Models
+@model OcsStore.Pages.CustomersModel
+@{
+}
+
+@(Html.DevExtreme().DataGrid<CustomerManagementView>()
+    .ID("main-grid")
+    .DataSource(d => d.Mvc().Controller("Sales").LoadAction("GetCustomerManagementViews").LoadMethod("POST").OnLoaded("gridDataLoadedForUsedData"))
+    .RemoteOperations(false)
+    .ShowBorders(true)
+    .ShowRowLines(true)
+    .WordWrapEnabled(true)
+    .Sorting(s => s.Mode(GridSortingMode.None))
+    .Paging(p => p.PageSize(100))
+    .Pager(p => p.Visible(false))
+    .OnContentReady("defaultOnGridContentReady")
+    .OnRowPrepared("onRowPreparedInactive")
+    .OnInitNewRow("onInitNewRow")
+    .Columns(columns =>
+    {
+        columns.AddFor(m => m.Name).Caption("Tên").Width(120).Alignment(HorizontalAlignment.Left).Fixed(true).FixedPosition(HorizontalEdge.Left);
+        columns.AddFor(m => m.Phone).Caption("Điện thoại").Width(100);
+        columns.AddFor(m => m.Address).Caption("Địa chỉ").Width(170);
+        columns.AddFor(m => m.Email).Caption("Email").Width(130);
+        columns.Add().Name("Action").Width(36).Alignment(HorizontalAlignment.Center).Fixed(true).FixedPosition(HorizontalEdge.Right).CellTemplate(new JS("deleteActionCellTemplate"));
+    })
+    .Editing(e => e.AllowUpdating(true).Mode(GridEditMode.Batch).SelectTextOnEditStart(true).NewRowPosition(GridNewRowPosition.PageBottom))
+    .OnEditorPreparing("defaultOnEditorPreparing")
+    .RepaintChangesOnly(true)
+)
+<script>
+    pageTitle = "Khách hàng";
+    deleteUrl = '@Url.Action("DeleteCustomer", "Sales")';
+    saveUrl = '@Url.Action("SaveCustomers", "Sales")';
+
+    $(function () {
+        appendAddButtonToGrid();
+        appendUndoSaveButtonsToGrid();
+    });
+
+    function onInitNewRow(e) {
+        e.data.Id = 0;
+        e.data.Inactive = false;
+    }
+</script>
