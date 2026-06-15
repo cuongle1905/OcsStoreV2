@@ -39,17 +39,17 @@ namespace OcsStore.Controllers
         public IActionResult GetNewDetails(int itemId)
         {
             var materials = _context.ItemMaterialViews.Where(i => i.Item == itemId).ToArray();
-            List<ProcessingInputView> details = new List<ProcessingInputView>();
+            List<ProcessingLotInputView> details = new List<ProcessingLotInputView>();
             foreach (var m in materials)
             {
-                var detail = new ProcessingInputView() { Item = m.Material, ItemName = m.Name, Unit = m.Unit, UnitName = m.UnitName, Lot = m.Lot, Year = (sbyte)(DateTime.Today.Year % 100), UseLot = m.UseLot, ItemType = m.ItemType, Soh = m.Soh, MaterialQuantity = m.Quantity };
+                var detail = new ProcessingLotInputView() { Item = m.Material, ItemName = m.Name, Unit = m.Unit, UnitName = m.UnitName, Lot = m.Lot, Year = (sbyte)(DateTime.Today.Year % 100), UseLot = m.UseLot, ItemType = m.ItemType, Soh = m.Soh, MaterialQuantity = m.Quantity };
                 details.Add(detail);
             }
             return Ok(details);
         }
 
         [HttpPost]
-        public IActionResult Save(DateTime date, string time, int itemId, decimal quantity, ProcessingDetail[] details)
+        public IActionResult Save(DateTime date, string time, int itemId, decimal quantity, ProcessingLotInputView[] details)
         {
             date = Common.GetLocalDateWithoutTime(date); // Remove hour, minute...
             int processingId;
@@ -71,20 +71,45 @@ namespace OcsStore.Controllers
 
             _context.Processings.Add(processing);
 
-            int detailId;
+            int inputId;
             try
             {
-                detailId = _context.ProcessingInputs.Max(i => i.Id) + 1;
+                inputId = _context.ProcessingInputs.Max(i => i.Id);
             }
             catch
             {
-                detailId = 1;
+                inputId = 0;
+            }
+
+            int lotInputId;
+            try
+            {
+                lotInputId = _context.ProcessingLotInputs.Max(i => i.Id) + 1;
+            }
+            catch
+            {
+                lotInputId = 1;
             }
 
             foreach (var detail in details)
             {
-                var processingInput = new ProcessingInput() { Id = detailId++, Processing = processingId, Lot = detail.Lot, Year = detail.Year, Item = detail.Item, Unit = detail.Unit, Quantity = detail.Quantity, Note = detail.Note };
-                _context.ProcessingInputs.AddRange(processingInput);
+                if (detail.Lot == null || detail.Lot == "")
+                {
+                    ++inputId;
+                    var processingInput = new ProcessingInput() { Id = inputId, Processing = processingId, Item = detail.Item, Unit = detail.Unit, Quantity = detail.Quantity, Note = detail.Note };
+                    _context.ProcessingInputs.Add(processingInput);
+
+                    if (!detail.UseLot)
+                    {
+                        var processingLotInput = new ProcessingLotInput() { Id = lotInputId++, Input = inputId, Lot = null, Year = detail.Year, Quantity = detail.Quantity, Note = detail.Note };
+                        _context.ProcessingLotInputs.Add(processingLotInput);
+                    }
+                }
+                else
+                {
+                    var processingLotInput = new ProcessingLotInput() { Id = lotInputId++, Input = inputId, Lot = detail.Lot, Year = detail.Year, Quantity = detail.Quantity, Note = detail.Note };
+                    _context.ProcessingLotInputs.Add(processingLotInput);
+                }
             }
 
             _context.SaveChanges();

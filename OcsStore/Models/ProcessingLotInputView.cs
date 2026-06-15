@@ -3,11 +3,17 @@ using System.Collections.Generic;
 
 namespace OcsStore.Models;
 
-public partial class ProcessingInputView
+public partial class ProcessingLotInputView
 {
     public int Id { get; set; }
 
     public int Processing { get; set; }
+
+    public int Input { get; set; }
+
+    public string Lot { get; set; }
+
+    public sbyte Year { get; set; }
 
     public int Item { get; set; }
 

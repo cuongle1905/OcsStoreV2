@@ -27,6 +27,10 @@ public partial class ItemMaterialView
 
     public string Lot { get; set; }
 
+    public sbyte? Year { get; set; }
+
+    public string LotOrdinal { get; set; }
+
     public decimal? Soh { get; set; }
 
     public string ItemName { get; set; }

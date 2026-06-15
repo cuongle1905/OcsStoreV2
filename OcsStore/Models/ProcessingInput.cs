@@ -11,10 +11,6 @@ public partial class ProcessingInput
 
     public short Store { get; set; }
 
-    public string Lot { get; set; }
-
-    public sbyte Year { get; set; }
-
     public int Item { get; set; }
 
     public short Unit { get; set; }
@@ -24,6 +20,8 @@ public partial class ProcessingInput
     public string Note { get; set; }
 
     public virtual Item ItemNavigation { get; set; }
+
+    public virtual ICollection<ProcessingLotInput> ProcessingLotInputs { get; set; } = new List<ProcessingLotInput>();
 
     public virtual Processing ProcessingNavigation { get; set; }
 
