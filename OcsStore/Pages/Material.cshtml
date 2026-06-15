@@ -68,6 +68,7 @@
     var items = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Items));
     var filteredItems;
     var materialItems;
+    dataRowKeyFields = ["Item", "Material"];
 
     $(function () {
         $("#main-grid").first().prepend($("#top-section"));

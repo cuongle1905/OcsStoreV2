@@ -86,10 +86,12 @@ var deleteUrl = '@Url.Action("Delete", "Item")';
 
 function deleteRowData(rowIndex) {
     let grid = $("#main-grid").dxDataGrid("instance");
+    const hasNameColumn = grid.columnOption("Name") !== undefined;
     const visibleRows = grid.getVisibleRows();
     const rowData = visibleRows[rowIndex].data;
+    const name = (hasNameColumn ? `'${rowData.Name}'` : "dữ liệu");
 
-    DevExpress.ui.dialog.confirm(`<i>Bạn có chắc chắn muốn xóa '${rowData.Name}'?</i>`, "Xác nhận").then(function (dialogResult) {
+    DevExpress.ui.dialog.confirm(`<i>Bạn có chắc chắn muốn xóa ${name}?</i>`, "Xác nhận").then(function (dialogResult) {
         if (dialogResult) {
             $.ajax({
                 url: deleteUrl,
@@ -106,6 +108,7 @@ function deleteRowData(rowIndex) {
         }
     });
 }
+
 function createButton(id, text, width, style, icon, onClickFunc) {
     if (width == undefined)
         width = 160;
@@ -192,28 +195,42 @@ function appendAddButtonToGrid(gridId, onClickFunc) {
 }
 
 var saveUrl = '@Url.Action("SaveItems", "Item")';
+var dataRowKeyFields = ["Id"];
+
+function checkSameRowDataKeys(rowData1, rowData2) {
+    // console.log("rowData1", rowData1, "rowData2", rowData2);
+    for (keyField of dataRowKeyFields) {
+        // console.log("keyField", keyField, "key1", rowData1[keyField], "key2", rowData2[keyField]);
+        if (rowData1[keyField] != rowData2[keyField])
+            return false;
+    }
+    return true;
+}
 
 function save() {
     let grid = $("#main-grid").dxDataGrid("instance");
+    const hasNameColumn = grid.columnOption("Name") !== undefined;
 
-    const editedRows = grid.option("editing.changes");
-    const editedIds = editedRows.filter(i => i.type == "update").map(i => i.key.Id);
-    // console.log("editedRows", editedRows);
-    // console.log("editedIds", editedIds);
+    const editedRows = grid.option("editing.changes").filter(i => i.type == "update").map(i => i.key);
+    console.log("editedRows", editedRows);
 
     var details = []
     let rows = grid.getVisibleRows();
     console.log(rows);
     for (const row of rows) {
-        if (row.rowType == "data" && (row.isNewRow || editedIds.includes(row.data.Id))) {
-            if (row.data.Name == undefined || row.data.Name == null || row.data.Name == "") {
+        if (row.rowType == "data" && (row.isNewRow || editedRows.find(i => checkSameRowDataKeys(i, row.data)) != undefined)) {
+            if (hasNameColumn && (row.data.Name == undefined || row.data.Name == null || row.data.Name == "")) {
                 DevExpress.ui.dialog.alert(`Hãy nhập vào đầy đủ Tên.`, "Cảnh báo");
                 return;
             }
+
+            if (typeof checkRowDataBeforeSaving === "function" && !checkRowDataBeforeSaving(row.data))
+                return;
+
             details.push(row.data);
         }
     }
-    console.log(details);
+    console.log("details", details);
 
     if (details.length == 0) {
         DevExpress.ui.dialog.alert("Hãy chỉnh sửa dữ liệu trước khi lưu.", "Cảnh báo");
