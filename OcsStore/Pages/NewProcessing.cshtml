@@ -5,24 +5,6 @@
     string outputItemCssColor = (Model.Item.ItemType == Item.Product ? "blue" : "brown");
 }
 <style>
-    #main-grid .dx-header-row {
-        font-size: 0.9rem;
-    }
-
-    #main-grid .dx-widget {
-        font-size: 0.9rem;
-    }
-
-    #main-grid .delete-button .dx-button-content {
-        padding-left: 0.2rem;
-        padding-right: 0.2rem;
-    }
-    #main-grid .dx-button-content .dx-icon-trash {
-        margin-right: 2px;
-    }
-    #main-grid .dx-toolbar-items-container {
-        display: none;
-    }
 </style>
 
 <div id="top-section">
@@ -41,7 +23,7 @@
                 .DropDownOptions(o => o.Position(p => p.Of("#dateBox").At(HorizontalAlignment.Left, VerticalAlignment.Bottom).My(HorizontalAlignment.Left, VerticalAlignment.Top).Offset(0, 2)))
             )
         </div>
-        <div class="ms-3">
+        <div class="data-field ms-3">
             <div class="field-title">Giờ:</div>
             @(Html.DevExtreme().DateBox()
                 .ID("timeBox")
@@ -55,7 +37,7 @@
     </div>
 
     <div class="d-flex mb-3">
-        <div>
+        <div class="data-field">
             <div class="field-title">@(Model.Item.GroupName):</div>
             @(
             Html.DevExtreme().SelectBox()
@@ -65,7 +47,7 @@
                 .Height("2rem")
                 .DisplayExpr("Name")
                 .ValueExpr("Id")
-                .OnValueChanged("outputItemValueChanged")
+                .OnValueChanged("itemValueChanged")
                 .ItemTemplate(@<text> <div><span class="@(outputItemCssColor) me-2">●</span><%- Name %></div> </text>)
                 .FieldTemplate(@<text>
                     <div class="d-flex ps-1 pt-1 pe-2">
@@ -86,11 +68,11 @@
             )
             <span id="processing-desc"></span>
         </div>
-        <div class="ms-3">
+        <div class="data-field ms-3">
             <div class="field-title">Số lượng:</div>
             <div class="custom-textbox-wrapper">
                 @(Html.DevExtreme().NumberBox()
-                    .ID("quantityNumberBox")
+                    .ID("item-quantity")
                     .Width("8rem")
                     .Height("2rem")
                     .Format("#,##0.00")
@@ -100,6 +82,7 @@
                     .ElementAttr("class", "align-right-numberbox")
                     .InputAttr(new { @class = "has-suffix" })
                     .OnFocusIn("onNumberBoxFocusIn")
+                    .OnValueChanged("itemQuantityChanged")
                 )
                 <span class="textbox-suffix">@(Model.Item.UnitName)</span>
             </div>
@@ -109,7 +92,7 @@
 @(
 Html.DevExtreme().DataGrid<ProcessingInputView>()
     .ID("main-grid")
-    .DataSource(d => d.Mvc().Controller("Processing").LoadAction("GetNewDetails").LoadMethod("POST").LoadParams(new { ItemId = new JS("function () { return outputItemId; }") }).OnLoaded("gridDataLoaded"))
+    .DataSource(d => d.Mvc().Controller("Processing").LoadAction("GetNewDetails").LoadMethod("POST").LoadParams(new { ItemId = new JS("function () { return itemId; }") }).OnLoaded("gridDataLoaded"))
     .RemoteOperations(false)
     .ShowBorders(true)
     .ShowRowLines(true)
@@ -120,15 +103,15 @@ Html.DevExtreme().DataGrid<ProcessingInputView>()
     .OnContentReady("gridContentReady")
     .Columns(columns =>
     {
-        columns.AddFor(m => m.ItemName).Caption("Nguyên liệu").Width(125).Alignment(HorizontalAlignment.Left).AllowEditing(false).CellTemplate(new JS("itemCellTemplate"));
-        columns.AddFor(m => m.Lot).Caption("Lô").Width(50).Alignment(HorizontalAlignment.Center).AllowEditing(true);
+        columns.AddFor(m => m.ItemName).Caption("Nguyên liệu").Width(125).Alignment(HorizontalAlignment.Left).AllowEditing(false).CellTemplate(new JS("lotTableCellTemplate"));
         columns.AddFor(m => m.Quantity).Caption("Số lượng").Width(60).Alignment(HorizontalAlignment.Right).CustomizeText("emptyZeroNumberCellText")
             .DataType(GridColumnDataType.Number) // Tells the grid to use dxNumberBox
             .Format("#,##0.00") // How the number displays outside of edit mode
-            .EditorOptions(new { format = "#,##0.00", min = 0, max = 10000, step = 1, showSpinButtons = false });
-        columns.AddFor(m => m.UnitName).Caption("").Width(40).Alignment(HorizontalAlignment.Left).AllowEditing(false);
+            .EditorOptions(new { format = "#,##0.00", min = 0, max = 10000, step = 1, showSpinButtons = false })
+            .CellTemplate(new JS("lotTableCellTemplate"));
+        columns.AddFor(m => m.UnitName).Caption("").Width(40).Alignment(HorizontalAlignment.Left).AllowEditing(false).CellTemplate(new JS("lotTableCellTemplate"));
         columns.AddFor(m => m.Soh).Caption("Tồn kho").Width(60).Alignment(HorizontalAlignment.Right).CellTemplate(new JS("sohCellTemplate")).Format("#,##0.00").AllowEditing(false);
-        columns.AddFor(m => m.Note).Caption("Ghi chú").Width(140).Alignment(HorizontalAlignment.Left);
+        columns.AddFor(m => m.Note).Caption("Ghi chú").Width(140).Alignment(HorizontalAlignment.Left).CellTemplate(new JS("lotTableCellTemplate"));
     })
     .Editing(e => e.AllowUpdating(true).Mode(GridEditMode.Batch).SelectTextOnEditStart(true))
     .OnEditorPreparing("onEditorPreparing")
@@ -150,7 +133,8 @@ Html.DevExtreme().DataGrid<ProcessingInputView>()
     pageTitle = "Chế biến - @(Model.Item.ProcessingName)";
 
     let processingDate = new Date('@(DateTime.Today.ToString("yyyy-MM-dd"))');
-    let outputItemId = @(Model.ItemId);
+    let itemId = @(Model.ItemId);
+    let itemQuantity = 0;
     let materialUseLot = false;
 
     $(function () {
@@ -172,6 +156,35 @@ Html.DevExtreme().DataGrid<ProcessingInputView>()
     function onEditorPreparing(e) {
         if (e.parentType === "dataRow") {
             e.editorOptions.valueChangeEvent = "keyup";
+
+            if (e.dataField === "Quantity") {
+                // Save the original onValueChanged handler (prevents breaking DataGrid save logic)
+                let originalOnValueChanged = e.editorOptions.onValueChanged;
+
+                // 3. Override the event
+                e.editorOptions.onValueChanged = function(args) {
+                    let newValue = args.value;
+                    let previousValue = args.previousValue;
+
+                    // Trigger custom logic (e.g., calculating another column)
+                    // console.log("New value: ", newValue);
+
+                    // Update the DataGrid data using setValue
+                    e.setValue(newValue); 
+
+                    // Call the original handler to complete the standard grid operation
+                    if (originalOnValueChanged) {
+                        originalOnValueChanged(args);
+                    }
+
+                    console.log("onEditorPreparing", e);
+
+                    let materialId = e.row.data.Item;
+                    let lot = e.row.data.Lot;
+
+                    console.log("materialId", materialId, "lot", lot);
+                };
+            }
         }
     }
 
@@ -180,8 +193,8 @@ Html.DevExtreme().DataGrid<ProcessingInputView>()
         updateDetailLots();
     }
 
-    function outputItemValueChanged(e) {
-        outputItemId = e.value;
+    function itemValueChanged(e) {
+        itemId = e.value;
 
         var outputItem = e.component.option("selectedItem");
         // console.log(outputItem);
@@ -190,20 +203,23 @@ Html.DevExtreme().DataGrid<ProcessingInputView>()
         $("#main-grid").dxDataGrid("instance").refresh();
     }
 
-    function updateDetailLots() {
-        // let lot = processingDate.ddMM();
-        materialUseLot = false;
+    function itemQuantityChanged(e) {
+        itemQuantity = $("#item-quantity").dxNumberBox("instance").option("value");
         let grid = $("#main-grid").dxDataGrid("instance");
         let rows = grid.getVisibleRows();
         for (var i = 0; i < rows.length; i++) {
             let row = rows[i];
             console.log(row.data); // The raw data object for this row
             if (row.rowType == "data" && row.data.UseLot) {
-                // grid.cellValue(i, "Lot", lot);
-                materialUseLot = true;
-                break;
+                grid.cellValue(i, "Quantity", itemQuantity * row.data.MaterialQuantity);
             }
         }
+    }
+
+    function updateDetailLots() {
+        let grid = $("#main-grid").dxDataGrid("instance");
+        let rows = grid.getVisibleRows();
+        materialUseLot = rows.find(i => i.rowType == "data" && i.data.UseLot) != undefined;
         grid.columnOption("Lot", "visible", materialUseLot);
     }
 
@@ -258,7 +274,7 @@ Html.DevExtreme().DataGrid<ProcessingInputView>()
                 $.ajax({
                     url: '@Url.Action("Save", "Processing")',
                     method: "POST",
-                    data: { date: date, time: time, itemId: outputItemId, quantity: quantity, details: details },
+                    data: { date: date, time: time, itemId: itemId, quantity: quantity, details: details },
                     success: function (result) {
                         DevExpress.ui.dialog.alert("Đã lưu dữ liệu chế biến.", "Thông báo").then(function(dialogResult) {
                             location.href = goBackUrl;

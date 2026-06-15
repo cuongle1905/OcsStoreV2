@@ -219,5 +219,42 @@ namespace OcsStore.Controllers
             var result = DataSourceLoader.Load(_context.ItemMaterials.Where(i => i.Item == itemId), loadOptions);
             return Ok(result);
         }
+
+        [HttpPost]
+        public IActionResult DeleteMaterial(int item, int material)
+        {
+            var itemMaterial = _context.ItemMaterials.FirstOrDefault(i => i.Item == item && i.Material == material);
+            if (itemMaterial != null)
+            {
+                _context.ItemMaterials.Remove(itemMaterial);
+                _context.SaveChanges();
+            }
+            return Ok();
+        }
+
+        private void SaveMaterial(ItemMaterial itemMaterial)
+        {
+            var existingData = _context.ItemMaterials.FirstOrDefault(i => i.Item == itemMaterial.Item && i.Material == itemMaterial.Material);
+            if (existingData != null)
+            {
+                _context.Entry(existingData).State = Microsoft.EntityFrameworkCore.EntityState.Detached;
+                _context.ItemMaterials.Update(itemMaterial);
+            }
+            else
+            {
+                _context.ItemMaterials.Add(itemMaterial);
+            }
+            _context.SaveChanges();
+        }
+
+        [HttpPost]
+        public IActionResult SaveMaterials(ItemMaterial[] data)
+        {
+            foreach (ItemMaterial itemMaterial in data)
+            {
+                SaveMaterial(itemMaterial);
+            }
+            return Ok();
+        }
     }
 }

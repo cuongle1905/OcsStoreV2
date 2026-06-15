@@ -53,6 +53,7 @@
 
         columns.AddFor(m => m.Quantity).Caption("Số lượng").Width(64).Alignment(HorizontalAlignment.Right).Format("#,##0.00");
         columns.AddFor(m => m.LostPercent).Caption("% Hao hụt").Width(64).Alignment(HorizontalAlignment.Right).Format("#,##0");
+        columns.Add().Name("Action").Width(36).Alignment(HorizontalAlignment.Center).CellTemplate(new JS("deleteActionCellTemplate"));
     })
     .Editing(e => e.AllowUpdating(true).Mode(GridEditMode.Batch).SelectTextOnEditStart(true).NewRowPosition(GridNewRowPosition.PageBottom))
     .OnEditorPreparing("onEditorPreparing")
@@ -91,7 +92,6 @@
         let selectedTabIndex = itemGroupId - 1;
         $(`#groups-tab > :nth-child(${selectedTabIndex}) .nav-link`).addClass("active");
         
-
         filteredItems = items.filter(i => i.Group == itemGroupId);
         console.log("materialItems", materialItems);
         $("#select-item").dxSelectBox("option", "dataSource", filteredItems);
@@ -120,6 +120,7 @@
 
     function onInitNewRow(e) {
         e.data.Item = itemId;
+        e.data.Quantity = 1;
         e.data.LostPercent = 10;
     }
 

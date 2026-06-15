@@ -82,6 +82,10 @@ function deleteActionCellTemplate(container, options) {
         container.html(`<a href="#" class="icon-link" onclick="deleteRowData(${options.rowIndex})"><i class="bi bi-trash"></i></a>`)
 }
 
+String.prototype.lowercaseFirstLetter = function () {
+    return this.charAt(0).toLowerCase() + this.slice(1);
+};
+
 var deleteUrl = '@Url.Action("Delete", "Item")';
 
 function deleteRowData(rowIndex) {
@@ -90,13 +94,18 @@ function deleteRowData(rowIndex) {
     const visibleRows = grid.getVisibleRows();
     const rowData = visibleRows[rowIndex].data;
     const name = (hasNameColumn ? `'${rowData.Name}'` : "dữ liệu");
+    let data = {};
+    for (keyField of dataRowKeyFields) {
+        data[keyField] = rowData[keyField];
+    }
+    console.log("deleteRowData", data);
 
     DevExpress.ui.dialog.confirm(`<i>Bạn có chắc chắn muốn xóa ${name}?</i>`, "Xác nhận").then(function (dialogResult) {
         if (dialogResult) {
             $.ajax({
                 url: deleteUrl,
                 method: "POST",
-                data: { id: rowData.Id },
+                "data": data,
                 success: function (result) {
                     reloadData();
                 },
@@ -258,3 +267,29 @@ function save() {
 }
 
 const detailArrowSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" fill="currentColor" stroke="currentColor"><path d="M64 320C64 461.4 178.6 576 320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64C178.6 64 64 178.6 64 320zM305 441C295.6 450.4 280.4 450.4 271.1 441C261.8 431.6 261.7 416.4 271.1 407.1L358.1 320.1L271.1 233.1C261.7 223.7 261.7 208.5 271.1 199.2C280.5 189.9 295.7 189.8 305 199.2L409 303C418.4 312.4 418.4 327.6 409 336.9L305 441z"/></svg>`
+
+function lotTableCellTemplate(container, options) {
+    let itemType = options.data.ItemType;
+    let cssColor = cssColorForItemType(itemType);
+    let cssClass = "";
+    let style = "";
+    let text = options.text;
+    let lot = options.data.Lot;
+    if (lot != null && lot != "") {
+        container.addClass("gray");
+    }
+
+    if (options.column.dataField == "ItemName" || options.column.dataField == "Name") {
+        let iconText = "";
+        if (lot != null && lot != "") {
+            cssClass = "ps-3";
+            text = text + " " + lot;
+        } else {
+            iconText = `<span class='${cssColor} me-2 dot-symbol'>●</span>`; // •
+        }
+        text = `${iconText}<a class='text-link' href='/stockcard?item=${options.data.Item}&lot=${options.data.Lot}&year=${options.data.Year}'><span style='${style}'>${text}</span></a>`;
+    }
+
+    let html = `<div class='${cssClass}'>${text}</div>`
+    container.html(html);
+}

@@ -42,21 +42,8 @@ namespace OcsStore.Controllers
             List<ProcessingInputView> details = new List<ProcessingInputView>();
             foreach (var m in materials)
             {
-                //if (m.Soh > 0 && m.UseLot)
-                //{
-                //    var stocks = _context.StockViews.Where(i => i.Store == m.Store && i.Item == m.Item && i.Unit == m.Unit && !string.IsNullOrEmpty(i.Lot) && i.Soh > 0).ToArray();
-
-                //    foreach (var stock in stocks)
-                //    {
-                //        var detailByLot = new ProcessingDetailView() { Item = m.Item, ItemName = m.ItemName, Unit = m.Unit, UnitName = m.UnitName, Lot = stock.Lot, Year = stock.Year, InOut = m.InOut, IsOutput = m.IsOutput, UseLot = m.UseLot, ItemIsInput = m.ItemIsInput, ItemIsOutput = m.ItemIsOutput, Store = m.Store, Soh = stock.Soh };
-                //        details.Add(detailByLot);
-                //    }
-                //}
-                //else
-                //{
-                var detail = new ProcessingInputView() { Item = m.Material, ItemName = m.Name, Unit = m.Unit, UnitName = m.UnitName, Lot = "", Year = (sbyte)(DateTime.Today.Year % 100), UseLot = m.UseLot, ItemType = m.ItemType, Soh = m.Soh };
+                var detail = new ProcessingInputView() { Item = m.Material, ItemName = m.Name, Unit = m.Unit, UnitName = m.UnitName, Lot = m.Lot, Year = (sbyte)(DateTime.Today.Year % 100), UseLot = m.UseLot, ItemType = m.ItemType, Soh = m.Soh, MaterialQuantity = m.Quantity };
                 details.Add(detail);
-                //}
             }
             return Ok(details);
         }

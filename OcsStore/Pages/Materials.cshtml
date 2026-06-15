@@ -55,13 +55,14 @@
 <script>
     var itemGroupId = 2;
     pageTitle = "Công thức chế biến";
+    goBackUrl = "/datamanagement";
 
     $(function () {
         $("#main-grid").first().prepend($("#top-section"));
         updateSelectedTab();
 
         appendAddButtonToGrid("#main-grid", function() {
-            location.href = "/material?sourceurl=materials";
+            location.href = "/material?sourceurl=materials&&group=" + itemGroupId;
         });
     });
 
