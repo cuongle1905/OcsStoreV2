@@ -1,4 +1,4 @@
-﻿@page "/processings"
+﻿@page "/processing"
 @using OcsStore.Models
 @model OcsStore.Pages.ProcessingsModel
 @{
@@ -64,7 +64,7 @@ Html.DevExtreme().DataGrid<ProcessingView>()
 
     $(function () {
         appendTopAddButtonToGrid("#main-grid", function() {
-            location.href = "processing/new?sourceurl=processings&itemgroup=" + itemGroupId;
+            location.href = "processing/new?sourceurl=processing&itemgroup=" + itemGroupId;
         });
         $("#main-grid").first().prepend($("#groups-tab"));
         updateSelectedTab();

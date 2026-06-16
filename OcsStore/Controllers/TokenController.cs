@@ -92,6 +92,17 @@ namespace OcsStore.Controllers
             }
             Session.SetUsername(Request, username);
             Session.SetIsSuperAdmin(Request, isSuperAdmin);
+
+            var loginSession = _context.LoginSessions.FirstOrDefault().Id + 1;
+
+            if (loginSession >= 2000000000)
+                loginSession = 1;
+            else
+                loginSession += 1;
+
+            Session.SetLoginSession(Request, loginSession);
+            _context.Database.ExecuteSqlRaw("update login_session set id = " + loginSession + ";");
+
             return Ok();
         }
 

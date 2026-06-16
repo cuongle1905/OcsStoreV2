@@ -209,6 +209,7 @@ h6, .h6, h5, .h5, h4, .h4, h3, .h3, h2, .h2, h1, .h1 {
     right: 0;
     bottom: 0;
     left: 0;*/
+    padding-bottom: 30rem;
 }
 
 a.menu-link, a.menu-link:hover, a.menu-link:active, a.menu-link:visited {
@@ -286,7 +287,7 @@ a.back-arrow, a.back-arrow:visited {
 }
 
 a.back-arrow i {
-    font-size: 1.4rem;
+    font-size: 30px;
 }
 
 a.back-arrow .dx-icon-arrowleft::before {
@@ -307,11 +308,18 @@ a.back-arrow .dx-icon-arrowleft::before {
 #go-back {
     position: fixed;
     left: 44px;
-    top: 8px;
+    top: -2px;
+}
+
+#logout-button {
+    position: fixed;
+    right: 12px;
+    top: 6px;
+    font-size: 18px;
 }
 
 .data-field {
-    margin-top: 10px;
+    margin-bottom: 10px;
 }
 
 .field-title {
@@ -390,4 +398,36 @@ a.nav-link.active {
 
 i.bi.bi-trash {
     color: var(--red);
+}
+
+.widget {
+    border-top: solid 4px #333;
+    border-left: solid 1px #ccc;
+    border-right: solid 1px #ccc;
+    border-bottom: solid 1px #ccc;
+    border-radius: 10px;
+    margin: 0.5rem;
+    padding: 1rem;
+    text-align: center;
+}
+
+.widget-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.widget-value {
+    font-size: 1.6rem;
+    font-weight: 600;
+}
+
+#eye-link i {
+    width: 2rem;
+    padding: 0.2rem 0.6rem 0.3rem 0.2rem;
+    color: #8f8f8f;
+    font-size: 14px;
+}
+
+#login-button {
+    margin-top: 2rem;
 }

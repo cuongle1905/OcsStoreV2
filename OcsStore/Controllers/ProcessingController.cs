@@ -10,6 +10,7 @@ using System.Net.Http;
 using System.Net.Mail;
 using System.Text;
 using System.Text.Json;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace OcsStore.Controllers
 {
@@ -49,9 +50,9 @@ namespace OcsStore.Controllers
         }
 
         [HttpPost]
-        public IActionResult Save(DateTime date, string time, int itemId, decimal quantity, ProcessingLotInputView[] details)
+        public IActionResult Save(Processing processing, ProcessingLotInputView[] details, bool createBill, decimal salePrice, Customer customer, bool debit)
         {
-            date = Common.GetLocalDateWithoutTime(date); // Remove hour, minute...
+            processing.Date = Common.GetLocalDateWithoutTime(processing.Date); // Remove hour, minute...
             int processingId;
             try
             {
@@ -62,14 +63,13 @@ namespace OcsStore.Controllers
                 processingId = 1;
             }
 
-            var item = _context.ItemViews.FirstOrDefault(i => i.Id == itemId);
-            var processing = new Processing() { Id = processingId, Year = (sbyte)(date.Year % 100), Item = itemId, Quantity = quantity, Date = date, Time = time, User = Session.UserId(Request) };
-
+            var item = _context.ItemViews.FirstOrDefault(i => i.Id == processing.Item);
+            var newProcessing = new Processing() { Id = processingId, Year = (sbyte)(processing.Date.Year % 100), Item = processing.Item, Quantity = processing.Quantity, Date = processing.Date, Time = processing.Time, User = Session.UserId(Request) };
 
             if (item.UseLot)
-                processing.Lot = date.ToString("ddMM");
+                newProcessing.Lot = processing.Date.ToString("ddMM");
 
-            _context.Processings.Add(processing);
+            _context.Processings.Add(newProcessing);
 
             int inputId;
             try
@@ -116,7 +116,98 @@ namespace OcsStore.Controllers
 
             _context.Database.ExecuteSqlRaw("call calculate_strans_processing(" + processingId + ");");
 
+            if (createBill)
+            {
+                var billDetail = new BillDetail() { Item = processing.Item, Unit = processing.Unit, Quantity = processing.Quantity, Price = salePrice };
+                BillDetail[] billDetails = { billDetail };
+                CreateBill(processing.Date, processing.Time, billDetails.ToArray(), customer, debit);
+            }
+
             return Ok();
+        }
+
+        private void CreateBill(DateTime date, string time, BillDetail[] details, Customer customer, bool debit)
+        {
+            date = Common.GetLocalDateWithoutTime(date); // Remove hour, minute...
+            DateTime currentDate = DateTime.Today;
+            string currentTime = DateTime.Now.ToString("HH:mm");
+            short currentUser = Session.UserId(Request);
+
+            if (customer.Id <= 0 && !string.IsNullOrEmpty(customer.Name))
+            {
+                try
+                {
+                    customer.Id = (short)(_context.Customers.Max(i => i.Id) + 1);
+                }
+                catch
+                {
+                    customer.Id = 1;
+                }
+                _context.Customers.Add(customer);
+            }
+            else
+            {
+                var existingCustomer = _context.Customers.FirstOrDefault(i => i.Id == customer.Id);
+                if (existingCustomer != null)
+                {
+                    existingCustomer.Name = customer.Name;
+                    existingCustomer.Phone = customer.Phone;
+                    existingCustomer.Address = customer.Address;
+                    existingCustomer.Email = customer.Email;
+                }
+                else
+                {
+                    customer.Id = 0; // Unknown customer
+                }
+                _context.Customers.Update(existingCustomer);
+            }
+
+            int billId;
+            try
+            {
+                billId = _context.Bills.Max(i => i.Id) + 1;
+            }
+            catch
+            {
+                billId = 1;
+            }
+
+            var billTotal = details.Sum(i => i.Quantity * (i.Price - i.Discount));
+
+            var bill = new Bill() { Id = billId, Date = date, Time = time, DateCreated = currentDate, TimeCreated = currentTime, UserCreated = currentUser, CustomerName = customer.Name, CustomerPhone = customer.Phone, CustomerAddress = customer.Address, CustomerEmail = customer.Email, Paid = !debit, TotalValue = billTotal };
+            if (customer.Id > 0)
+            {
+                bill.Customer = customer.Id;
+            }
+
+            if (!debit)
+            {
+                bill.DatePaid = currentDate;
+                bill.TimePaid = currentTime;
+                bill.UserPaid = currentUser;
+            }
+            _context.Bills.Add(bill);
+
+            int detailId;
+            try
+            {
+                detailId = _context.BillDetails.Max(i => i.Id) + 1;
+            }
+            catch
+            {
+                detailId = 1;
+            }
+
+            for (int i = 0; i < details.Length; i++)
+            {
+                var detail = details[i];
+                var billDetail = new BillDetail() { Id = detailId++, Bill = billId, Item = detail.Item, Unit = detail.Unit, Quantity = detail.Quantity, Price = detail.Price, Discount = detail.Discount, Note = detail.Note, Ordinal = i + 1 };
+                _context.BillDetails.AddRange(billDetail);
+            }
+
+            _context.SaveChanges();
+
+            _context.Database.ExecuteSqlRaw("call calculate_strans_bill(" + billId + ");");
         }
     }
 }

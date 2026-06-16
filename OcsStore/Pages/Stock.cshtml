@@ -16,13 +16,13 @@
 <div id="top-section" class="pb-3">
     <ul id="groups-tab" class="nav nav-justified">
         <li class="nav-item">
-            <a class="nav-link nav-link-green" aria-current="page" href="#" onclick="tabClicked(0);">Nhân xanh</a>
+            <a class="nav-link" aria-current="page" href="#" onclick="tabClicked(0);">Nhân xanh</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link nav-link-brown" href="#" onclick="tabClicked(1);">Hạt rang</a>
+            <a class="nav-link" href="#" onclick="tabClicked(1);">Hạt rang</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link nav-link-blue" href="#" onclick="tabClicked(2);">Cafe</a>
+            <a class="nav-link" href="#" onclick="tabClicked(2);">Cafe</a>
         </li>
     </ul>
 
@@ -147,7 +147,7 @@ Html.DevExtreme().DataGrid<StockView>()
            
             // $("<div>").dxDropDownButton({
             //     text: "",
-            //     icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" fill="currentColor" stroke="currentColor"><path d="M64 320C64 461.4 178.6 576 320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64C178.6 64 64 178.6 64 320zM305 441C295.6 450.4 280.4 450.4 271.1 441C261.8 431.6 261.7 416.4 271.1 407.1L358.1 320.1L271.1 233.1C261.7 223.7 261.7 208.5 271.1 199.2C280.5 189.9 295.7 189.8 305 199.2L409 303C418.4 312.4 418.4 327.6 409 336.9L305 441z"/></svg>`,
+            //     icon: detailArrowIcon,
             //     stylingMode: "text",
             //     showArrowIcon: false,
             //     items: popupItems,
@@ -165,7 +165,7 @@ Html.DevExtreme().DataGrid<StockView>()
 
             $("<div>").dxButton({
                 text: "",
-                icon: detailArrowSvg,
+                icon: detailArrowIcon,
                 stylingMode: "text",
                 elementAttr: { class: "no-border-button cell-link-button" },
                 onClick: function (e) {

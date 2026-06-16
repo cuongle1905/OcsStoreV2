@@ -79,6 +79,16 @@ namespace OcsStore
             request.HttpContext.Session.SetInt32("IsSuperAdmin", isSuperAdmin ? 1 : 0);
         }
 
+        public static int LoginSession(HttpRequest request)
+        {
+            return (request.HttpContext.Session.GetInt32("LoginSession") ?? 1);
+        }
+
+        public static void SetLoginSession(HttpRequest request, int value)
+        {
+            request.HttpContext.Session.SetInt32("LoginSession", value);
+        }
+
         public static void Logout(HttpRequest request)
         {
             request.HttpContext.Session.Remove("UserId");

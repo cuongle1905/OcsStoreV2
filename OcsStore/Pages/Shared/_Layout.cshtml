@@ -1,5 +1,17 @@
 ﻿<!DOCTYPE html>
 <html>
+@using Microsoft.AspNetCore.Http.Extensions
+@{
+    bool hasToken = !string.IsNullOrEmpty(Session.Token(Context.Request));
+
+    string sourceUrl = Context.Request.Query["SourceUrl"].ToString();
+    int loginSession = Session.LoginSession(Context.Request);
+    if (Context.Request.GetDisplayUrl().Contains("localhost"))
+    {
+        loginSession++;
+        Session.SetLoginSession(Context.Request, loginSession);
+    }
+}
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta charset="utf-8">
@@ -30,23 +42,17 @@
     <link href="~/css/devextreme/bootstrap.css" rel="stylesheet" />
     <link href="~/css/devextreme/dx.light.css" rel="stylesheet" />
 
-    <link rel="stylesheet" href="~/css/site.css?v15" />
-    <link rel="stylesheet" href="~/css/controls.css?v17" />
-    <link rel="stylesheet" href="~/css/common.css?v17" />
+    <link rel="stylesheet" href="~/css/site.css?v@(loginSession)" />
+    <link rel="stylesheet" href="~/css/controls.css?v@(loginSession)" />
+    <link rel="stylesheet" href="~/css/common.css?v@(loginSession)" />
 
-    <script src="~/js/common.js?v10"></script>
+    <script src="~/js/common.js?v@(loginSession)"></script>
 
     <link rel="preconnect" href="https://rsms.me/">
     <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
     
     @RenderSection("HeadSection", false)
 </head>
-@{
-    bool hasToken = !string.IsNullOrEmpty(Session.Token(Context.Request));
-    string fullName = "admin";
-
-    string sourceUrl = Context.Request.Query["SourceUrl"].ToString();
-}
 <body style="padding-top: 0.3rem;" spellcheck="false">
     <script>
         var isShowingUserMenu = false;
@@ -158,7 +164,7 @@
             });
         }
 
-        function logoutButtonClicked() {
+        function logout() {
             $.ajax({
                 url: '@Url.Action("Logout", "Token")',
                 method: "POST",
@@ -176,15 +182,22 @@
             @if (hasToken)
             {
                 <a id="menu-icon" href="#" class="menu-link" onclick="showHideMenu()"><img src="~/images/logo_text_blue.png" style="width: 30px; height: 30px"/></a>
+                <div><a id="go-back" class="back-arrow" href="#"><i class="bi bi-arrow-left-short"></i></a></div>
+                <a id="logout-button" href="#" onclick="logout()"><i class="bi bi-box-arrow-right"></i></a>
             }
-            <div><a id="go-back" class="back-arrow" href="#"><i class="bi bi-chevron-left"></i></a></div>
+            else 
+            {
+                <a id="menu-icon" href="/" class="menu-link"><img src="~/images/logo_text_blue.png" style="width: 30px; height: 30px"/></a>
+            }
             <div id="page-title" class="text-center flex-fill">
                 UNI COFFEE
             </div>
         </div>
     </div>
     <main id="my-container" role="main">
-        <div id="home-left-panel">
+        @if (hasToken)
+        {
+            <div id="home-left-panel">
             @(Html.DevExtreme().ScrollView()
                 .ID("home-left-scrollview")
                 .ScrollByContent(true)
@@ -218,7 +231,7 @@
                                 </div>
                             </div>
                         </a>
-                        <a class="menu-link" href='~/processings'>
+                        <a class="menu-link" href='~/processing'>
                             <div class="home-left-item">
                                 <i class="dx-icon-preferences"></i>
                                 <div class="home-left-item-text">
@@ -263,112 +276,8 @@
                 </text>)
             )
         </div>
+        }
         <div id="home-right-panel">
-            @(Html.DevExtreme().Popup()
-                .ID("user-menu-popup")
-                .Position(config => config.My(HorizontalAlignment.Right, VerticalAlignment.Top).At(HorizontalAlignment.Right, VerticalAlignment.Top).Offset(-10, 52))
-                .Shading(false)
-                .Width(280)
-                .Height(190)
-                .ShowTitle(false)
-                .ShowCloseButton(false)
-                .HideOnOutsideClick(true)
-                .Animation(config => config.Show(s => s.Duration(400)))
-                .OnHidden("userMenuPopupOnHidden")
-                .ContentTemplate(@<text>
-                    <div id="user-menu-popup-fullname">@fullName</div>
-                    @(Html.DevExtreme().Button()
-                        .ID("change-password-button")
-                        .Text("Đổi mật khẩu")
-                        .Icon("key")
-                        .Type(ButtonType.Normal)
-                        .StylingMode(ButtonStylingMode.Contained)
-                        .OnClick("changeUserPassword")
-                    )
-                    @(Html.DevExtreme().Button()
-                        .ID("logout-button")
-                        .Text("Đăng xuất")
-                        .Icon("export")
-                        .Type(ButtonType.Default)
-                        .StylingMode(ButtonStylingMode.Contained)
-                        .OnClick("logoutButtonClicked")
-                    )
-                </text>)
-            )
-            @(Html.DevExtreme().Popup()
-                .ID("change-user-password-popup")
-                .Title("Đổi mật khẩu")
-                .Width(400)
-                .Height(300)
-                .Animation(config => config.Show(s => s.Duration(400)))
-                .HideOnOutsideClick(false)
-                .ShowCloseButton(true)
-                .ToolbarItems(barItems =>
-                {
-                    barItems.Add()
-                        .Toolbar(Toolbar.Bottom)
-                        .Location(ToolbarItemLocation.Center)
-                        .Widget(widget => widget.Button()
-                        .Text("Bỏ qua")
-                        .OnClick(@<text>
-                            function () {
-                            $("#change-user-password-popup").dxPopup("instance").hide();
-                            }
-                        </text>)
-                    );
-                    barItems.Add()
-                        .Toolbar(Toolbar.Bottom)
-                        .Location(ToolbarItemLocation.Center)
-                        .Widget(widget => widget.Button()
-                        .Icon("save")
-                        .Text("Lưu")
-                        .Type(ButtonType.Default)
-                        .OnClick("saveUserPassword")
-                        );
-                })
-                .OnShown("changeUserPasswordPopupOnShow")
-                .ContentTemplate(@<text>
-                    <form>
-                    <input name="username" value="@fullName" type="hidden" />
-                    @(Html.DevExtreme().Form()
-                        .ID("change-user-password-popup-form")
-                        .Items(items =>
-                        {
-                            items.AddSimple().DataField("CurrentPassword")
-                                .Label(l => l.Alignment(HorizontalAlignment.Left).Text("Mật khẩu cũ"))
-                                .Editor(e => e
-                                .TextBox()
-                                .Placeholder("Nhập vào Mật khẩu cũ")
-                                .Mode(TextBoxMode.Password)
-                                .ShowClearButton(true)
-                                .HoverStateEnabled(true)
-                                )
-                                .ValidationRules(r => r.AddRequired().Message("Nhập vào Mật khẩu hiện tại"));
-                            items.AddSimple().DataField("NewPassword")
-                                .Label(l => l.Alignment(HorizontalAlignment.Left).Text("Mật khẩu mới"))
-                                .Editor(e => e
-                                .TextBox()
-                                .Placeholder("Nhập vào Mật khẩu mới")
-                                .Mode(TextBoxMode.Password)
-                                .ShowClearButton(true)
-                                .HoverStateEnabled(true)
-                                )
-                                .ValidationRules(r => r.AddRequired().Message("Nhập vào Mật khẩu mới"));
-                            items.AddSimple().DataField("RetypePassword")
-                                .Label(l => l.Alignment(HorizontalAlignment.Left).Text("Gõ lại mật khẩu"))
-                                .Editor(e => e
-                                .TextBox()
-                                .Placeholder("Gõ lại mật khẩu mới")
-                                .Mode(TextBoxMode.Password)
-                                .ShowClearButton(true)
-                                .HoverStateEnabled(true)
-                                )
-                            .ValidationRules(r => r.AddRequired().Message("Gõ lại mật khẩu"));
-                        })
-                    )
-                    </form>
-                    </text>)
-                )
             <div id="main-content">
                 @RenderBody()
             </div>
@@ -378,6 +287,7 @@
 
 <script>
     $(function () {
+    console.log("loginSession", @(loginSession));
         $("#page-title").html(pageTitle);
 
         if (goBackUrl != "/") {

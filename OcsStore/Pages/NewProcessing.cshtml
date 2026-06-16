@@ -5,10 +5,14 @@
     string outputItemCssColor = (Model.Item.ItemType == Item.Product ? "blue" : "brown");
 }
 <style>
+    #select-customer {
+        margin-top: 1rem;
+        margin-bottom: 1rem;
+    }
 </style>
 
-<div id="top-section">
-    <div class="d-flex mb-3">
+<div id="top-section" class="ms-auto me-auto" style="width: 24rem;">
+    <div class="d-flex">
         <div class="data-field">
             <div class="field-title">Ngày:</div>
             @(Html.DevExtreme().DateBox()
@@ -23,11 +27,11 @@
                 .DropDownOptions(o => o.Position(p => p.Of("#dateBox").At(HorizontalAlignment.Left, VerticalAlignment.Bottom).My(HorizontalAlignment.Left, VerticalAlignment.Top).Offset(0, 2)))
             )
         </div>
-        <div class="data-field ms-3">
+        <div class="data-field" style="margin-left: 2rem;">
             <div class="field-title">Giờ:</div>
             @(Html.DevExtreme().DateBox()
                 .ID("timeBox")
-                .Width("8rem")
+                .Width("10rem")
                 .Height("2rem")
                 .Type(DateBoxType.Time)
                 .Value(DateTime.Now)
@@ -36,7 +40,7 @@
         </div>
     </div>
 
-    <div class="d-flex mb-3">
+    <div class="d-flex mb-2">
         <div class="data-field">
             <div class="field-title">@(Model.Item.GroupName):</div>
             @(
@@ -68,12 +72,12 @@
             )
             <span id="processing-desc"></span>
         </div>
-        <div class="data-field ms-3">
+        <div class="data-field" style="margin-left: 2rem;">
             <div class="field-title">Số lượng:</div>
             <div class="custom-textbox-wrapper">
                 @(Html.DevExtreme().NumberBox()
                     .ID("item-quantity")
-                    .Width("8rem")
+                    .Width("10rem")
                     .Height("2rem")
                     .Format("#,##0.00")
                     .Min(0)
@@ -118,10 +122,95 @@ Html.DevExtreme().DataGrid<ProcessingLotInputView>()
     .RepaintChangesOnly(true)
 )
 
-<div id="bottom-buttons" class="pt-3 text-end">
+<div id="sale-section" class="ms-auto me-auto mt-3 mb-3 p-3" style="border-radius: 10px; border: solid 1px #ccc; width: 26rem; background-color: white;">
+    @(Html.DevExtreme().CheckBox()
+        .ID("sale-check-box")
+        .Value(false)
+        .Text("Bán hàng:")
+        .OnValueChanged("saleChecked")
+    )
+        
+    <div class="data-field mt-2">
+        <div class="field-title">Giá bán:</div>
+        <div>
+            @(Html.DevExtreme().NumberBox()
+                .ID("sale-price")
+                .Width("auto").Height("2rem")
+                .Format("#,##0")
+                .Min(0).Max(100000000)
+                .ShowSpinButtons(false)
+                .ElementAttr("class", "align-right-numberbox")
+                .OnFocusIn("onNumberBoxFocusIn")
+            )
+        </div>
+    </div>
+
+    <ul id="customer-tab" class="nav nav-justified mt-2 mb-2" style="background-color: #f2f2f4;">
+        <li class="nav-item">
+            <a class="nav-link active" aria-current="page" href="#" onclick="tabClicked(0);">Khách cũ</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#" onclick="tabClicked(1);">Khách mới</a>
+        </li>
+    </ul>
+    
+    @(Html.DevExtreme().SelectBox()
+        .Width("auto").Height("2rem")
+        .ID("select-customer")
+        .InputAttr("aria-label", "Customer")
+        .DataSource(d => d
+            .Mvc().Controller("Sales")
+            .LoadAction("GetCustomers").LoadMethod("POST")
+            .LoadMode(DataSourceLoadMode.Raw)
+            .Key("Id")
+        )
+        .DisplayExpr("Name")
+        .ValueExpr("Id")
+        .Placeholder("Chọn khách hàng cũ")
+        .SearchEnabled(true)
+        .DropDownOptions(options => options.Width(300))
+        .OnValueChanged("customerSelectionChanged")
+        .ItemTemplate(@<text>
+            <div class="d-flex align-items-baseline">
+                <div class="customer-name"><%- Name %></div>
+                <div class="customer-phone ms-auto"><%- Phone %></div>
+            </div>
+        </text>)
+    )
+    <div class="data-field">
+        <div class="field-title">Tên KH:</div>
+        @(Html.DevExtreme().TextBox()
+            .Width("auto").Height("2rem")
+            .ID("customer-name")
+            .ShowClearButton(true)
+        )
+    </div>
+    <div class="data-field">
+        <div class="field-title">Điện thoại:</div>
+        @(Html.DevExtreme().TextBox()
+            .Width("auto").Height("2rem")
+            .ID("customer-phone")
+            .ShowClearButton(true)
+        )
+    </div>
+    <div class="data-field">
+        <div class="field-title">Địa chỉ:</div>
+        @(Html.DevExtreme().TextBox()
+            .Width("auto").Height("2rem")
+            .ID("customer-address")
+            .ShowClearButton(true)
+        )
+    </div>
+    @(Html.DevExtreme().CheckBox()
+        .ID("debit-check-box")
+        .Text("Ghi nợ")
+    )
+</div>
+
+<div id="bottom-buttons" class="pt-3 text-center">
     @(Html.DevExtreme().Button()
         .Text("Lưu")
-        .Width(80)
+        .Width(160)
         .Type(ButtonType.Default)
         .StylingMode(ButtonStylingMode.Contained)
         .Icon("bi bi-download")
@@ -129,17 +218,25 @@ Html.DevExtreme().DataGrid<ProcessingLotInputView>()
     )
 </div>
 
+<div id="hidden-section" style="visibility: hidden">
+
+</div>
+
 <script>
     pageTitle = "Chế biến - @(Model.Item.ProcessingName)";
+    let createBill = false;
 
     let processingDate = new Date('@(DateTime.Today.ToString("yyyy-MM-dd"))');
     let itemId = @(Model.Item.Id);
     let itemQuantity = 0;
     let materialUseLot = false;
+    let isNewCustomer = false;
 
     $(function () {
         $("#main-grid").first().prepend($("#top-section"));
+        $("#main-grid").first().append($("#sale-section"));
         $("#main-grid").first().append($("#bottom-buttons"));
+        updatecreateBill();
     });
 
     function gridContentReady() {
@@ -274,6 +371,49 @@ Html.DevExtreme().DataGrid<ProcessingLotInputView>()
         grid.cellValue(rowIndex, "Quantity", soh);
     }
 
+    function saleChecked(e) {
+        createBill = e.value;
+        updatecreateBill();
+    }
+
+    function updatecreateBill() {
+        if (createBill) {
+            $('#sale-section').children().eq(3).before($("#customer-tab"));
+            $('#sale-section').append($("#debit-check-box"));
+        } else {
+            $("#hidden-section").append($("#customer-tab"));
+            $('#hidden-section').append($("#debit-check-box"));
+        }
+        showHideCustomerSelector();
+        $("#sale-section > .data-field").css("display", createBill ? "block" : "none");
+    }
+
+    function showHideCustomerSelector() {
+        if (createBill && !isNewCustomer) {
+            $('#sale-section').children().eq(4).before($("#select-customer"));
+        } else {
+            $("#hidden-section").append($("#select-customer"));
+        }
+    }
+
+    function tabClicked(tabIndex) {
+        $(`#customer-tab > :nth-child(${isNewCustomer ? 2 : 1}) .nav-link`).removeClass("active");
+        isNewCustomer = (tabIndex == 1);
+        updateSelectedTab();
+    }
+
+    function updateSelectedTab() {
+        $(`#customer-tab > :nth-child(${isNewCustomer ? 2 : 1}) .nav-link`).addClass("active");
+        showHideCustomerSelector();
+    }
+    
+    function customerSelectionChanged(e) {
+        var customer = e.component.option("selectedItem");
+        $("#customer-name").dxTextBox("instance").option("value", customer != null ? customer.Name : "");
+        $("#customer-phone").dxTextBox("instance").option("value", customer != null ? customer.Phone : "");
+        $("#customer-address").dxTextBox("instance").option("value", customer != null ? customer.Address : "");
+    }
+
     function save() {
         let quantity = $("#item-quantity").dxNumberBox("instance").option("value");
         if (quantity == null || quantity <= 0) {
@@ -321,17 +461,52 @@ Html.DevExtreme().DataGrid<ProcessingLotInputView>()
             return;
         }
 
-        DevExpress.ui.dialog.confirm("<i>Bạn có chắc chắn lưu thông tin chế biến?</i>", "Xác nhận").then(function(dialogResult) {
+        let salePrice = 0.0;
+        let customer = {};
+        let debit = false;
+        if (createBill) {
+            salePrice = $("#sale-price").dxNumberBox("instance").option("value");
+            if (salePrice == null || salePrice <= 0) {
+                DevExpress.ui.dialog.alert("Hãy nhập vào Giá bán.", "Cảnh báo");
+                return;
+            }
+
+            if (isNewCustomer) {
+                customer.Id = 0;
+            } else {
+                customer.Id = $("#select-customer").dxSelectBox("instance").option("value");
+                if (customer.Id == null)    {
+                    DevExpress.ui.dialog.alert("Hãy nhập chọn khách hàng cũ.", "Cảnh báo");
+                    return;
+                }
+            }
+
+            customer.Name = $("#customer-name").dxTextBox("instance").option("value");
+            customer.Phone = $("#customer-phone").dxTextBox("instance").option("value");
+            customer.Address = $("#customer-address").dxTextBox("instance").option("value");
+
+            if (customer.Name == null || customer.Name.length == 0) {
+                DevExpress.ui.dialog.alert("Hãy nhập vào Tên khách hàng.", "Cảnh báo");
+                return;
+            }
+
+            debit = $("#debit-check-box").dxCheckBox("instance").option("value");
+        }
+
+        DevExpress.ui.dialog.confirm("<i>Bạn có chắc chắn lưu dữ liệu?</i>", "Xác nhận").then(function(dialogResult) {
             if (dialogResult) {
-                let date = $("#dateBox").dxDateBox("instance").option("value").toISOString();
-                let time = $("#timeBox").dxDateBox("instance").option("text");
+                let processing = {};
+                processing.Date = $("#dateBox").dxDateBox("instance").option("value").toISOString();
+                processing.Time = $("#timeBox").dxDateBox("instance").option("text");
+                processing.Item = itemId;
+                processing.Quantity = quantity;
 
                 $.ajax({
                     url: '@Url.Action("Save", "Processing")',
                     method: "POST",
-                    data: { date: date, time: time, itemId: itemId, quantity: quantity, details: details },
+                    data: { processing: processing, details: details, createBill: createBill, salePrice: salePrice, customer: customer, debit: debit },
                     success: function (result) {
-                        DevExpress.ui.dialog.alert("Đã lưu dữ liệu chế biến.", "Thông báo").then(function(dialogResult) {
+                        DevExpress.ui.dialog.alert("Đã lưu dữ liệu.", "Thông báo").then(function(dialogResult) {
                             location.href = goBackUrl;
                         });
                     },

@@ -5,24 +5,9 @@
 }
 <style>
 </style>
-
-<div id="divCaption" class="d-flex align-items-center pb-3">
-    <h5>BÁN HÀNG</h5>
-    <div id="divButtons" class="text-end ms-auto">
-        @(Html.DevExtreme().Button()
-            .Text("Tạo Bill")
-            .Width(90)
-            .Type(ButtonType.Default)
-            .StylingMode(ButtonStylingMode.Contained)
-            .Icon("add")
-            .OnClick("addNew")
-        )
-    </div>
-</div>
-
 @(
 Html.DevExtreme().DataGrid<BillView>()
-    .ID("gridSales")
+    .ID("main-grid")
     .DataSource(d => d.Mvc().Controller("Sales").LoadAction("GetBills").LoadMethod("POST").Key("Id"))
     .RemoteOperations(false)
     .ShowBorders(true)
@@ -31,7 +16,7 @@ Html.DevExtreme().DataGrid<BillView>()
     .Sorting(s => s.Mode(GridSortingMode.None))
     .Paging(p => p.PageSize(100))
     .Pager(p => p.Visible(false))
-    .OnContentReady("gridContentReady")
+    .OnContentReady("defaultOnGridContentReady")
     .Columns(columns =>
     {
         columns.AddFor(m => m.Date).Caption("Ngày").Width(90).Alignment(HorizontalAlignment.Center).Format("dd/MM/yyyy").GroupIndex(0);
@@ -57,21 +42,11 @@ Html.DevExtreme().DataGrid<BillView>()
 )
 
 <script>
+    pageTitle = "Bán hàng"
+
     $(function () {
-        $("#gridSales").first().prepend($("#divCaption"));
+        // appendTopAddButtonToGrid("#main-grid", function() {
+        //     location.href = "sales/new";
+        // });
     });
-
-    function gridContentReady() {
-        $(".dx-header-row > td").css("text-align", "center");
-    }
-
-    function addNew() {
-        location.href = "sales/new";
-    }
-
-    function onCellPrepared(e) {
-        if (e.rowType === 'group' && e.column.command === 'expand') {
-            e.cellElement.css('display', 'none');
-        }
-    }
 </script>

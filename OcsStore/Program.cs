@@ -96,8 +96,9 @@ app.Run();
  * 
  * database: ocsstore   App folder: /home/cuong/unicoffee
  * 
+ * cd /apps/unicoffee/mysql
+ * mysql -u cuong -pcuong@food -h localhost ocsstore -e "source dump-ocsstore.sql"
  * mysql -u cuong -pcuong@food -h localhost ocsstore -e "select * from item;"
- * mysql -u cuong -pcuong@food -h localhost ocsstore -e "source dump-ocsstore-202606162224.sql"
  * 
  * ./canteen-stop
  * ./canteen-reload

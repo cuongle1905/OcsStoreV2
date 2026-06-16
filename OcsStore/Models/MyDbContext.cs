@@ -44,6 +44,8 @@ public partial class MyDbContext : DbContext
 
     public virtual DbSet<LastStoreTransaction> LastStoreTransactions { get; set; }
 
+    public virtual DbSet<LoginSession> LoginSessions { get; set; }
+
     public virtual DbSet<LotStockView> LotStockViews { get; set; }
 
     public virtual DbSet<MaterialView> MaterialViews { get; set; }
@@ -923,6 +925,17 @@ public partial class MyDbContext : DbContext
                 .HasForeignKey(d => d.Unit)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_last_store_transaction_unit");
+        });
+
+        modelBuilder.Entity<LoginSession>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+
+            entity.ToTable("login_session");
+
+            entity.Property(e => e.Id)
+                .ValueGeneratedNever()
+                .HasColumnName("id");
         });
 
         modelBuilder.Entity<LotStockView>(entity =>
