@@ -200,11 +200,11 @@ h6, .h6, h5, .h5, h4, .h4, h3, .h3, h2, .h2, h1, .h1 {
 }
 
 #home-right-panel {
-    position: absolute;
+/*    position: absolute;
     top: 0px;
     right: 0;
     bottom: 0;
-    left: 0;
+    left: 0;*/
 }
 
 a.menu-link, a.menu-link:hover, a.menu-link:active, a.menu-link:visited {

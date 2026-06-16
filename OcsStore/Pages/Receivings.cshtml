@@ -33,18 +33,27 @@ Html.DevExtreme().DataGrid<ReceivingDetailView>()
     .OnContentReady("gridContentReady")
     .Columns(columns =>
     {
-        columns.AddFor(m => m.Date).Caption("Ngày").Width(90).Alignment(HorizontalAlignment.Center).Format("dd/MM/yyyy").GroupIndex(0);
-        columns.AddFor(m => m.Time).Caption("Giờ").Width(50).Alignment(HorizontalAlignment.Center).GroupIndex(1);
-        columns.AddFor(m => m.ItemName).Caption("Hàng hóa").Width(110).Alignment(HorizontalAlignment.Left).CellTemplate(new JS("itemCellTemplate"));
+        columns.AddFor(m => m.Date).Caption("Ngày").Width(90).Alignment(HorizontalAlignment.Center).Format("dd/MM/yyyy")
+            .GroupIndex(0).SortOrder(SortOrder.Desc).AutoExpandGroup(false).GroupCellTemplate(new JS("groupCellTemplate"));
+        columns.AddFor(m => m.Time).Caption("Giờ").Width(50).Alignment(HorizontalAlignment.Center); @* .GroupIndex(1).AutoExpandGroup(true).GroupCellTemplate(new JS("groupCellTemplate")); *@
+        columns.AddFor(m => m.ItemName).Caption("Hàng hóa").Width(130).Alignment(HorizontalAlignment.Left).CellTemplate(new JS("itemCellTemplate"));
         columns.AddFor(m => m.Quantity).Caption("Số lượng").Width(60).Alignment(HorizontalAlignment.Right).Format("#,##0.00");
         columns.AddFor(m => m.UnitName).Caption("").Width(40).Alignment(HorizontalAlignment.Left);
         columns.AddFor(m => m.Price).Caption("Giá").Width(70).Alignment(HorizontalAlignment.Right).Format("#,##0");
         columns.AddFor(m => m.Note).Caption("Ghi chú").Width(140).Alignment(HorizontalAlignment.Left);
-        columns.AddFor(m => m.Value).Caption("Thành tiền").Width(90).Alignment(HorizontalAlignment.Right).Fixed(true).FixedPosition(HorizontalEdge.Right).Format("#,##0");
+        columns.AddFor(m => m.Value).Caption("Thành tiền").Width(90).Alignment(HorizontalAlignment.Right).Fixed(true).FixedPosition(HorizontalEdge.Right).Format("#,##0").CellTemplate(new JS("valueCellTemplate"));
     })
+    .OnCellPrepared("onCellPrepared")
     .Editing(e => e.AllowUpdating(false))
     .Paging(p => p.Enabled(true).PageSize(100))
     .Summary(s => s
+        .GroupItems(items =>
+        {
+            items.AddFor(m => m.Value)
+                 .SummaryType(SummaryType.Sum)
+                 .DisplayFormat("{0}")
+                 .ValueFormat("#,##0");
+        })
         .TotalItems(items =>
         {
             items.AddFor(m => m.Value)
@@ -64,10 +73,22 @@ Html.DevExtreme().DataGrid<ReceivingDetailView>()
 
     function gridContentReady() {
         $(".dx-header-row > td").css("text-align", "center");
+        expandFirstTableGroup();
+    }
+
+    function groupCellTemplate(container, options) {
+        // console.log("groupCellTemplate options", options);
+        const groupContent = $(`<div class='d-flex align-items-center ms-3'>${options.text}</div>`)
+        container.append(groupContent);
     }
 
     function itemCellTemplate(container, options) {
         container.html(`<span class='green me-2'>●</span>${options.text}`);
+    }
+
+    function valueCellTemplate(container, options) {
+        // console.log("valueCellTemplate options", options);
+        container.html(`${options.text}`);
     }
 
     function addNew() {
@@ -75,8 +96,25 @@ Html.DevExtreme().DataGrid<ReceivingDetailView>()
     }
 
     function onCellPrepared(e) {
-        if (e.rowType === 'group' && e.column.command === 'expand') {
-            e.cellElement.css('display', 'none');
+        if (e.rowType === 'group') {
+            /*if (e.column.command === 'expand') {
+                e.cellElement.css('display', 'none');
+            }*/
+            
+            if (e.column.dataField === "Value") {
+                // console.log("onCellPrepared value", e);
+                const value = e.row.data.aggregates[0];
+
+                e.cellElement.text(value.format("#,#00"));
+
+                // 3. Customize the cell's appearance
+                // e.cellElement.style.backgroundColor = "#f0f8ff"; // Custom background
+                // e.cellElement.style.fontWeight = "bold";         // Custom font style
+                // e.cellElement.style.color = "#007bff";           // Custom text color
+            
+                // Note: If the group is collapsed, you can access aggregate/summary 
+                // values via e.node.summaryItems.
+            }
         }
     }
 </script>

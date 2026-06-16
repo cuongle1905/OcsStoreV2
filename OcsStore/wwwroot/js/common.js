@@ -293,3 +293,46 @@ function lotTableCellTemplate(container, options) {
     let html = `<div class='${cssClass}'>${text}</div>`
     container.html(html);
 }
+
+// Extend the Number prototype safely
+if (!Number.prototype.format) {
+    Object.defineProperty(Number.prototype, 'format', {
+        value: function (mask) {
+            // Check if mask specifically targets the '#,#00' behavior
+            if (mask === '#,#00') {
+                return new Intl.NumberFormat('en-US', {
+                    minimumIntegerDigits: 1,
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0
+                }).format(this);
+            }
+            if (mask === '#,#00.00') {
+                return new Intl.NumberFormat('en-US', {
+                    minimumIntegerDigits: 1,
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                }).format(this);
+            }
+
+            // Fallback default formatting for other masks
+            return this.toLocaleString();
+        },
+        enumerable: false, // Keeps it hidden from for...in loops
+        configurable: true,
+        writable: true
+    });
+}
+
+function expandFirstTableGroup(tableId) {
+    const grid = $(tableId ?? "#main-grid").dxDataGrid("instance");
+    let rows = grid.getVisibleRows();
+
+    const firstGroupRow = rows.find(row => row.rowType === "group");
+    // console.log("firstGroupRow", firstGroupRow);
+
+    if (firstGroupRow != undefined) {
+        const firstGroupKey = firstGroupRow.key;
+        // console.log("firstGroupRowKey", firstGroupKey);
+        grid.expandRow(firstGroupKey);
+    }
+}

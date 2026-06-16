@@ -32,9 +32,9 @@
 
     <link rel="stylesheet" href="~/css/site.css?v15" />
     <link rel="stylesheet" href="~/css/controls.css?v15" />
-    <link rel="stylesheet" href="~/css/common.css?v16" />
+    <link rel="stylesheet" href="~/css/common.css?v17" />
 
-    <script src="~/js/common.js?v8"></script>
+    <script src="~/js/common.js?v9"></script>
 
     <link rel="preconnect" href="https://rsms.me/">
     <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
@@ -372,19 +372,19 @@
     $(function () {
         $("#page-title").html(pageTitle);
 
-        if (goBackUrl != "") {
+        if (goBackUrl != "/") {
             $("#go-back").attr("href", goBackUrl);
         } else {
             $("#go-back").css("visibility", "hidden");
         }
 
-        console.log("location.href", location.href);
+        // console.log("location.href", location.href);
         let links = $("#home-left-scrollview-content a.menu-link");
         for (const link of links) {
             const href = $(link).attr("href");
             // console.log("link", link, "href", href);
             if (location.href.toLowerCase().replace("/new?", "?").replace("/stockcard", "/stock").replace("/items", "/datamanagement").includes(href)) {
-                console.log("link.children[0]", link.children[0]);
+                // console.log("link.children[0]", link.children[0]);
                 link.children[0].classList.add("item-active");
                 break;
             }
