@@ -1376,6 +1376,10 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.Note)
                 .HasMaxLength(100)
                 .HasColumnName("note");
+            entity.Property(e => e.Price)
+                .HasPrecision(10, 2)
+                .HasDefaultValueSql("'0.00'")
+                .HasColumnName("price");
             entity.Property(e => e.ProcessingName)
                 .IsRequired()
                 .HasMaxLength(45)
@@ -1385,18 +1389,9 @@ public partial class MyDbContext : DbContext
                 .HasPrecision(10, 2)
                 .HasDefaultValueSql("'1.00'")
                 .HasColumnName("quantity");
-            entity.Property(e => e.Soh)
-                .HasPrecision(10, 2)
-                .HasColumnName("soh");
             entity.Property(e => e.Store)
                 .HasDefaultValueSql("'1'")
                 .HasColumnName("store");
-            entity.Property(e => e.StoreName)
-                .IsRequired()
-                .HasMaxLength(50)
-                .HasColumnName("store_name")
-                .UseCollation("utf8mb3_general_ci")
-                .HasCharSet("utf8mb3");
             entity.Property(e => e.Time)
                 .IsRequired()
                 .HasMaxLength(5)
@@ -1412,6 +1407,9 @@ public partial class MyDbContext : DbContext
                 .UseCollation("utf8mb3_general_ci")
                 .HasCharSet("utf8mb3");
             entity.Property(e => e.UseLot).HasColumnName("use_lot");
+            entity.Property(e => e.Value)
+                .HasPrecision(20, 4)
+                .HasColumnName("value");
             entity.Property(e => e.Year)
                 .HasDefaultValueSql("'26'")
                 .HasColumnName("year");

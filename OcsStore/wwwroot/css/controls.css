@@ -15,6 +15,17 @@
     background-color: var(--common-color-main-dark);
 }
 
+.dx-button-has-text .dx-icon.bi.bi-plus {
+    font-size: 16px;
+    margin-right: 2px;
+    margin-left: -4px;
+}
+
+.dx-button-has-text .dx-icon.bi {
+    margin-right: 4px;
+    margin-left: -2px;
+}
+
 .dx-radio-value-container {
     padding-right: 0.3rem;
 }
@@ -46,7 +57,7 @@
 }
 
 .dx-button-has-text .dx-button-content {
-    padding: 0.4rem 0.35rem;
+    padding: 0.4rem 1rem;
 }
 
 .dx-popup-content {

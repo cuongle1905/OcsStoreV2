@@ -24,9 +24,9 @@ namespace OcsStore.Controllers
         }
 
         [HttpPost]
-        public IActionResult GetProcessings(int type, DataSourceLoadOptions loadOptions)
+        public IActionResult GetProcessings(sbyte itemGroup, DataSourceLoadOptions loadOptions)
         {
-            var result = DataSourceLoader.Load(_context.ProcessingViews, loadOptions);
+            var result = DataSourceLoader.Load(_context.ProcessingViews.Where(i => i.ItemGroup == itemGroup), loadOptions);
             return Ok(result);
         }
 

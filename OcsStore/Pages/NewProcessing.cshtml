@@ -48,10 +48,10 @@
                 .DisplayExpr("Name")
                 .ValueExpr("Id")
                 .OnValueChanged("itemChanged")
-                .ItemTemplate(@<text> <div><span class="@(outputItemCssColor) me-2">●</span><%- Name %></div> </text>)
+                .ItemTemplate(@<text> <div><span class="@(outputItemCssColor) me-2 dot-symbol">●</span><%- Name %></div> </text>)
                 .FieldTemplate(@<text>
                     <div class="d-flex ps-1 pt-1 pe-2">
-                        <div class="@(outputItemCssColor) ms-2">●</div>
+                        <div class="@(outputItemCssColor) ms-2 dot-symbol">●</div>
 
                         @(Html.DevExtreme().TextBox()
                             .Height("1.3rem")
@@ -63,7 +63,7 @@
                         @* <div class="ms-auto" style="margin-top: 1px;"><i class="dx-icon-chevrondown" style="font-size: 0.8rem;"></i></div> *@
                     </div>
                  </text>)
-                .Value(Model.ItemId)
+                .Value(Model.Item.Id)
                 .DropDownOptions(o => o.Position(p => p.Of("#itemSelectBox").At(HorizontalAlignment.Left, VerticalAlignment.Bottom).My(HorizontalAlignment.Left, VerticalAlignment.Top).Offset(0, 2)))
             )
             <span id="processing-desc"></span>
@@ -133,7 +133,7 @@ Html.DevExtreme().DataGrid<ProcessingLotInputView>()
     pageTitle = "Chế biến - @(Model.Item.ProcessingName)";
 
     let processingDate = new Date('@(DateTime.Today.ToString("yyyy-MM-dd"))');
-    let itemId = @(Model.ItemId);
+    let itemId = @(Model.Item.Id);
     let itemQuantity = 0;
     let materialUseLot = false;
 

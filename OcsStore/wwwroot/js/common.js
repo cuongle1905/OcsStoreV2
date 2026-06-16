@@ -162,12 +162,32 @@ function createGridAddButton(buttonId, gridId, onClickFunc) {
     return createButton(buttonId, "Thêm", "auto", "text", "bi bi-plus-circle-fill", onClickFunc);
 }
 
+function createGridTopAddButton(buttonId, gridId, onClickFunc) {
+    if (buttonId == undefined)
+        buttonId = "#grid-top-add-button";
+
+    if (gridId == undefined)
+        gridId = "#main-grid";
+
+    if (onClickFunc == undefined) {
+        onClickFunc = function () {
+            $(gridId).dxDataGrid("addRow");
+        };
+    }
+
+    return createButton(buttonId, "Thêm", "auto", "contained", "bi bi-plus", onClickFunc);
+}
+
 function createGridBottomButtonsDiv() {
     return $(`<div id="grid-bottom-buttons" class="pt-2 text-end d-flex justify-content-end gap-3">`);
 }
 
 function createBottomButtonsDiv() {
     return $(`<div id="bottom-buttons" class="pt-4 text-center d-flex justify-content-center gap-3">`);
+}
+
+function createGridTopButtonsDiv() {
+    return $(`<div id="grid-top-buttons" class="pb-2 text-end d-flex justify-content-end gap-3">`);
 }
 
 function undo() {
@@ -201,6 +221,17 @@ function appendAddButtonToGrid(gridId, onClickFunc) {
     let buttonId = "grid-add-button"
     buttonsDiv.append($(`<div id="${buttonId}">`));
     return createGridAddButton("#" + buttonId, gridId, onClickFunc);
+}
+
+function appendTopAddButtonToGrid(gridId, onClickFunc) {
+    if (gridId == undefined)
+        gridId = "#main-grid";
+
+    let buttonsDiv = createGridTopButtonsDiv();
+    $(gridId).first().prepend(buttonsDiv);
+    let buttonId = "grid-top-add-button"
+    buttonsDiv.append($(`<div id="${buttonId}">`));
+    return createGridTopAddButton("#" + buttonId, gridId, onClickFunc);
 }
 
 var saveUrl = '@Url.Action("SaveItems", "Item")';
@@ -272,7 +303,6 @@ function lotTableCellTemplate(container, options) {
     let itemType = options.data.ItemType;
     let cssColor = cssColorForItemType(itemType);
     let cssClass = "";
-    let style = "";
     let text = options.text;
     let lot = options.data.Lot;
     if (lot != null && lot != "") {
@@ -285,13 +315,17 @@ function lotTableCellTemplate(container, options) {
             cssClass = "ps-3";
             text = text + " " + lot;
         } else {
-            iconText = `<span class='${cssColor} me-2 dot-symbol'>●</span>`; // •
+            iconText = dotSymbolHtml(cssColor); // •
         }
-        text = `${iconText}<a class='text-link' href='/stockcard?item=${options.data.Item}&lot=${options.data.Lot}&year=${options.data.Year}'><span style='${style}'>${text}</span></a>`;
+        text = `${iconText}<a class='text-link' href='/stockcard?item=${options.data.Item}&lot=${options.data.Lot}&year=${options.data.Year}'>${text}</a>`;
     }
 
     let html = `<div class='${cssClass}'>${text}</div>`
     container.html(html);
+}
+
+function dotSymbolHtml(cssColor) {
+    return `<span class='${cssColor} me-2 dot-symbol'>●</span>`;
 }
 
 // Extend the Number prototype safely
@@ -335,4 +369,21 @@ function expandFirstTableGroup(tableId) {
         // console.log("firstGroupRowKey", firstGroupKey);
         grid.expandRow(firstGroupKey);
     }
+}
+
+var fixedRightColumnField = "Value";
+
+function onCellPreparedGroupFixedRightColumn(e) {
+    if (e.rowType === 'group') {
+        if (e.column.dataField === fixedRightColumnField) {
+            const value = e.row.data.aggregates[0];
+            e.cellElement.text(value.format("#,#00"));
+        }
+    }
+}
+
+function groupCellTemplateTextOnly(container, options) {
+    // console.log("groupCellTemplate options", options);
+    const groupContent = $(`<div class='d-flex align-items-center ms-3'>${options.text}</div>`)
+    container.append(groupContent);
 }

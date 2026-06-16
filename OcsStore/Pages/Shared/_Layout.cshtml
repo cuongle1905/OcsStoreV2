@@ -31,10 +31,10 @@
     <link href="~/css/devextreme/dx.light.css" rel="stylesheet" />
 
     <link rel="stylesheet" href="~/css/site.css?v15" />
-    <link rel="stylesheet" href="~/css/controls.css?v15" />
+    <link rel="stylesheet" href="~/css/controls.css?v17" />
     <link rel="stylesheet" href="~/css/common.css?v17" />
 
-    <script src="~/js/common.js?v9"></script>
+    <script src="~/js/common.js?v10"></script>
 
     <link rel="preconnect" href="https://rsms.me/">
     <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
@@ -194,6 +194,14 @@
                     <div id="home-left-scrollview-content" style="">
                     @if (hasToken)
                     {
+                        <a class="menu-link" href='/'>
+                            <div class="home-left-item">
+                                <i class="dx-icon-home"></i>
+                                <div class="home-left-item-text">
+                                    <span>Màn hình chính</span>
+                                </div>
+                            </div>
+                        </a>
                         <a class="menu-link" href='~/stock'>
                             <div class="home-left-item">
                                 <i class="dx-icon-box"></i>
@@ -210,7 +218,7 @@
                                 </div>
                             </div>
                         </a>
-                        <a class="menu-link" href='~/processing'>
+                        <a class="menu-link" href='~/processings'>
                             <div class="home-left-item">
                                 <i class="dx-icon-preferences"></i>
                                 <div class="home-left-item-text">
@@ -380,14 +388,20 @@
 
         // console.log("location.href", location.href);
         let links = $("#home-left-scrollview-content a.menu-link");
-        for (const link of links) {
+        
+        for (var i = 1; i < links.length; i++) {
+            const link = links[i];
             const href = $(link).attr("href");
-            // console.log("link", link, "href", href);
+            console.log("link", link, "href", href, "location.href", location.href);
             if (location.href.toLowerCase().replace("/new?", "?").replace("/stockcard", "/stock").replace("/items", "/datamanagement").includes(href)) {
                 // console.log("link.children[0]", link.children[0]);
                 link.children[0].classList.add("item-active");
                 break;
             }
+        }
+    if (location.href == "" || location.href == "#") {
+            links[0].children[0].classList.add("item-active");
+        } else {
         }
     });
 </script>

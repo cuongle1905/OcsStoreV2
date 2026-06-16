@@ -1,35 +1,22 @@
-﻿@page "/processing"
+﻿@page "/processings"
 @using OcsStore.Models
 @model OcsStore.Pages.ProcessingsModel
 @{
 }
-<style>
-    #gridProcessing .dx-toolbar-items-container {
-        display: none;
-    }
-    #timeBox {
-        margin-left: 0.5rem;
-    }
-</style>
 
-<div id="divCaption" class="d-flex align-items-center pb-3">
-    <h5>CHẾ BIẾN - @(Model.TypeName)</h5>
-    <div id="divButtons" class="text-end ms-auto">
-        @(Html.DevExtreme().Button()
-            .Text("Thêm")
-            .Width(80)
-            .Type(ButtonType.Default)
-            .StylingMode(ButtonStylingMode.Contained)
-            .Icon("add")
-            .OnClick("addNew")
-        )
-    </div>
-</div>
+<ul id="groups-tab" class="nav nav-justified mb-3">
+    <li class="nav-item">
+        <a class="nav-link nav-link-brown" href="#" onclick="tabClicked(0);">Hạt rang</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link nav-link-blue" href="#" onclick="tabClicked(1);">Cafe</a>
+    </li>
+</ul>
 
 @(
 Html.DevExtreme().DataGrid<ProcessingView>()
-    .ID("gridProcessing")
-    .DataSource(d => d.Mvc().Controller("Processing").LoadAction("GetProcessings").LoadMethod("POST").Key("Id").LoadParams(new { Type = Model.Type }))
+    .ID("main-grid")
+    .DataSource(d => d.Mvc().Controller("Processing").LoadAction("GetProcessings").LoadMethod("POST").Key("Id").LoadParams(new { ItemGroup = new JS("function() { return itemGroupId; }") }))
     .RemoteOperations(false)
     .ShowBorders(true)
     .ShowRowLines(true)
@@ -40,38 +27,70 @@ Html.DevExtreme().DataGrid<ProcessingView>()
     .OnContentReady("gridContentReady")
     .Columns(columns =>
     {
-        columns.AddFor(m => m.Date).Caption("Ngày").Width(90).Alignment(HorizontalAlignment.Center).Format("dd/MM/yyyy").GroupIndex(0);
-        columns.AddFor(m => m.Time).Caption("Giờ").Width(50).Alignment(HorizontalAlignment.Center).GroupIndex(1);
-        columns.AddFor(m => m.ItemName).Caption("Hàng hóa").Width(110).Alignment(HorizontalAlignment.Left).CellTemplate(new JS("processingCellTemplate"));
-        columns.AddFor(m => m.Lot).Caption("Lô").Width(50).Alignment(HorizontalAlignment.Center).CellTemplate(new JS("processingCellTemplate"));
-        columns.AddFor(m => m.Quantity).Caption("Số lượng").Width(60).Alignment(HorizontalAlignment.Right).Format("#,##0.00").CellTemplate(new JS("processingCellTemplate"));
-        columns.AddFor(m => m.UnitName).Caption("").Width(40).Alignment(HorizontalAlignment.Left).CellTemplate(new JS("processingCellTemplate"));
-        columns.AddFor(m => m.Note).Caption("Ghi chú").Width(140).Alignment(HorizontalAlignment.Left).CellTemplate(new JS("processingCellTemplate"));
+        columns.AddFor(m => m.Date).Caption("Ngày").Width(90).Alignment(HorizontalAlignment.Center).Format("dd/MM/yyyy")
+            .GroupIndex(0).SortOrder(SortOrder.Desc).AutoExpandGroup(false).GroupCellTemplate(new JS("groupCellTemplateTextOnly"));
+        columns.AddFor(m => m.Time).Caption("Giờ").Width(50).Alignment(HorizontalAlignment.Center);
+        columns.AddFor(m => m.ItemName).Caption("Hàng hóa").Width(130).Alignment(HorizontalAlignment.Left).CellTemplate(new JS("itemCellTemplate"));
+        columns.AddFor(m => m.Quantity).Caption("Số lượng").Width(60).Alignment(HorizontalAlignment.Right).Format("#,##0.00");
+        columns.AddFor(m => m.UnitName).Caption("").Width(40).Alignment(HorizontalAlignment.Left);
+        columns.AddFor(m => m.Price).Caption("Giá COS").Width(70).Alignment(HorizontalAlignment.Right).Format("#,##0");
+        columns.AddFor(m => m.Note).Caption("Ghi chú").Width(140).Alignment(HorizontalAlignment.Left);
+        columns.AddFor(m => m.Value).Caption("Thành tiền").Width(90).Alignment(HorizontalAlignment.Right).Fixed(true).FixedPosition(HorizontalEdge.Right).Format("#,##0");
     })
+    .OnCellPrepared("onCellPreparedGroupFixedRightColumn")
     .Editing(e => e.AllowUpdating(false))
     .Paging(p => p.Enabled(true).PageSize(100))
+    .Summary(s => s
+        .GroupItems(items =>
+        {
+            items.AddFor(m => m.Value)
+                 .SummaryType(SummaryType.Sum)
+                 .DisplayFormat("{0}")
+                 .ValueFormat("#,##0");
+        })
+        .TotalItems(items =>
+        {
+            items.AddFor(m => m.Value)
+                 .SummaryType(SummaryType.Sum)
+                 .DisplayFormat("{0}")
+                 .ValueFormat("#,##0");
+        })
+    )
 )
 
 <script>
+    pageTitle = "CHẾ BIẾN";
+    var itemGroupId = 2;
+
     $(function () {
-        $("#gridProcessing").first().prepend($("#divCaption"));
+        appendTopAddButtonToGrid("#main-grid", function() {
+            location.href = "processing/new?sourceurl=processings&itemgroup=" + itemGroupId;
+        });
+        $("#main-grid").first().prepend($("#groups-tab"));
+        updateSelectedTab();
     });
+
+    function tabClicked(tabIndex) {
+        let selectedTabIndex = itemGroupId - 1;
+        $(`#groups-tab > :nth-child(${selectedTabIndex}) .nav-link`).removeClass("active");
+        itemGroupId = tabIndex + 2;
+        reloadData();
+        updateSelectedTab();
+    }
+
+    function updateSelectedTab() {
+        let selectedTabIndex = itemGroupId - 1;
+        $(`#groups-tab > :nth-child(${selectedTabIndex}) .nav-link`).addClass("active");
+    }
 
     function gridContentReady() {
         $(".dx-header-row > td").css("text-align", "center");
+        expandFirstTableGroup();
     }
 
-    function addNew() {
-        location.href = "processing/new?type=@(Model.Type)";
+    function itemCellTemplate(container, options) {
+        const cssColor = cssColorForItemType(options.data.ItemType);
+        container.html(dotSymbolHtml(cssColor) + options.text);
     }
 
-    function onCellPrepared(e) {
-        if (e.rowType === 'group' && e.column.command === 'expand') {
-            e.cellElement.css('display', 'none');
-        }
-    }
-
-    function processingCellTemplate(container, options) {
-        displayCell(container, options, cssColorForItemType(options.data.ItemType));
-    }
 </script>

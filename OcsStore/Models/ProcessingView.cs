@@ -39,7 +39,7 @@ public partial class ProcessingView
 
     public string Time { get; set; }
 
-    public string StoreName { get; set; }
+    public decimal? Price { get; set; }
 
-    public decimal? Soh { get; set; }
+    public decimal? Value { get; set; }
 }

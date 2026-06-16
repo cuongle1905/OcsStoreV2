@@ -17,6 +17,7 @@
     --common-color-main-light: #007EE2;
     --common-color-bg: #f2f4f6;
     --common-color-text-highlight: var(--blue);
+    --bs-body-bg: var(--common-color-bg) !important;
     font-family: var(--bs-font-sans-serif);
     font-feature-settings: 'liga' 1, 'calt' 1; /* fix for Chrome */
 }
@@ -50,7 +51,10 @@ html {
     font-size: 12px;
     background-color: var(--common-color-bg);
     /* font-family: Roboto, "Segoe UI", sans-serif */ /* , Arial, "Segoe UI", "Helvetica Neue" */
-    ;
+}
+
+body {
+    background-color: var(--common-color-bg);
 }
 
 .dx-widget {

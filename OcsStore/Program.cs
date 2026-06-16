@@ -89,12 +89,28 @@ app.Run();
 
 // dotnet publish -c Release -o ./publish
 
-
 /* ssh cuong@103.15.222.91
  * cd ~
+ * ./unicoffee-stop
+ * ./unicoffee-reload
+ * 
+ * database: ocsstore   App folder: /home/cuong/unicoffee
+ * 
+ * mysql -u cuong -pcuong@food -h localhost ocsstore -e "select * from item;"
+ * mysql -u cuong -pcuong@food -h localhost ocsstore -e "source dump-ocsstore-202606162224.sql"
+ * 
+ * ./canteen-stop
+ * ./canteen-reload
+ * 
+ * ./ghg-stop
+ * ./ghg-reload
+ * mysql -u cuong -pcuong@food -h localhost ghg -e "select * from company_info;"
+ * mysql -u cuong -pcuong@food -h localhost ghg -e "source dump-ghg-202606162357.sql"
+ * 
  * ./stop-food-app
  * ./reload-food-app
  * mysql -u cuong -pcuong@food -h localhost food -e "source food_20251016.sql"
  * mysql -u cuong -pcuong@food -h localhost food -e "select * from param;"
  * mysqldump --skip-lock-tables --routines --add-drop-table --disable-keys --extended-insert -u cuong -pcuong@food --host=localhost food > food_dump.sql
+ * 
  */

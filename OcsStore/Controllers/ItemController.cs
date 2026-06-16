@@ -64,6 +64,11 @@ namespace OcsStore.Controllers
             return _context.ItemViews.FirstOrDefault(i => i.Id == itemId);
         }
 
+        public ItemView GetItemViewOfGroup(int itemGroupId)
+        {
+            return _context.ItemViews.FirstOrDefault(i => i.Group == itemGroupId);
+        }
+
         public Item GetItem(int itemId)
         {
             return _context.Items.FirstOrDefault(i => i.Id == itemId);
