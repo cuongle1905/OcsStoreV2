@@ -69,14 +69,14 @@ namespace OcsStore
             request.HttpContext.Session.SetString("Username", username);
         }
 
-        public static bool IsSuperAdmin(HttpRequest request)
+        public static bool IsAdmin(HttpRequest request)
         {
-            return (request.HttpContext.Session.GetInt32("IsSuperAdmin") ?? 0) == 1;
+            return (request.HttpContext.Session.GetInt32("IsAdmin") ?? 0) == 1;
         }
 
-        public static void SetIsSuperAdmin(HttpRequest request, bool isSuperAdmin)
+        public static void SetIsAdmin(HttpRequest request, bool isAdmin)
         {
-            request.HttpContext.Session.SetInt32("IsSuperAdmin", isSuperAdmin ? 1 : 0);
+            request.HttpContext.Session.SetInt32("IsAdmin", isAdmin ? 1 : 0);
         }
 
         public static int LoginSession(HttpRequest request)

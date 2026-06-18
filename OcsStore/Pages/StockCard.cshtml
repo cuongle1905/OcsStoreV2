@@ -25,34 +25,51 @@ Html.DevExtreme().DataGrid<StockCardView>()
         columns.AddFor(m => m.Time).Caption("Giờ").Width(55).Alignment(HorizontalAlignment.Center).CellTemplate(new JS("stockCellTemplate"));
         columns.AddFor(m => m.Description).Caption("Mô tả").Width(80).Alignment(HorizontalAlignment.Left).CellTemplate(new JS("stockCellTemplate"));
         columns.AddFor(m => m.Lot).Caption("Lô").Width(46).Alignment(HorizontalAlignment.Center).CellTemplate(new JS("stockCellTemplate"));
-        columns.AddFor(m => m.Quantity).Caption("Số lượng").Width(60).Alignment(HorizontalAlignment.Right).Format("#,##0.00").CellTemplate(new JS("stockCellTemplate"));
+        columns.AddFor(m => m.Quantity).Caption("Số lượng").Width(70).Alignment(HorizontalAlignment.Right).Format("#,##0.0").CellTemplate(new JS("stockCellTemplate"));
         columns.AddFor(m => m.Price).Caption("Giá").Width(64).Alignment(HorizontalAlignment.Right).Format("#,##0").CellTemplate(new JS("stockCellTemplate"));
-        columns.Add().Caption("Tồn kho " + Model.Item.Name + " " + Model.Lot).Columns(cols =>
+
+        if (useLot)
         {
-            if (useLot)
-            {
-                cols.AddFor(m => m.LotSoh).Caption("SL tồn").Width(55).Alignment(HorizontalAlignment.Right).Format("#,##0.00").CellTemplate(new JS("stockCellTemplate"));
-                cols.AddFor(m => m.LotAve).Caption("Giá TB").Width(64).Alignment(HorizontalAlignment.Right).Format("#,##0").CellTemplate(new JS("stockCellTemplate"));
-                cols.AddFor(m => m.LotValue).Caption("Giá trị").Width(86).Alignment(HorizontalAlignment.Right).Format("#,##0").CellTemplate(new JS("stockCellTemplate"));
-            }
-            else
-            {
-                cols.AddFor(m => m.Soh).Caption("SL").Width(55).Alignment(HorizontalAlignment.Right).Format("#,##0.00").CellTemplate(new JS("stockCellTemplate"));
-                cols.AddFor(m => m.Ave).Caption("Giá TB").Width(64).Alignment(HorizontalAlignment.Right).Format("#,##0").CellTemplate(new JS("stockCellTemplate"));
-                cols.AddFor(m => m.Value).Caption("Giá trị").Width(86).Alignment(HorizontalAlignment.Right).Format("#,##0").CellTemplate(new JS("stockCellTemplate"));
-            }
-        });
+            columns.AddFor(m => m.LotSoh).Caption("SL tồn").Width(55).Alignment(HorizontalAlignment.Right).Format("#,##0.0").CellTemplate(new JS("stockCellTemplate"));
+            columns.AddFor(m => m.LotAve).Caption("Giá TB").Width(64).Alignment(HorizontalAlignment.Right).Format("#,##0").CellTemplate(new JS("stockCellTemplate"));
+            columns.AddFor(m => m.LotValue).Caption("Giá trị").Width(86).Alignment(HorizontalAlignment.Right).Format("#,##0").CellTemplate(new JS("stockCellTemplate"));
+        }
+        else
+        {
+            columns.AddFor(m => m.Soh).Caption("SL tồn").Width(55).Alignment(HorizontalAlignment.Right).Format("#,##0.0").CellTemplate(new JS("stockCellTemplate"));
+            columns.AddFor(m => m.Ave).Caption("Giá TB").Width(64).Alignment(HorizontalAlignment.Right).Format("#,##0").CellTemplate(new JS("stockCellTemplate"));
+            columns.AddFor(m => m.Value).Caption("Giá trị").Width(86).Alignment(HorizontalAlignment.Right).Format("#,##0").CellTemplate(new JS("stockCellTemplate"));
+        }
     })
     .Editing(e => e.AllowUpdating(false))
     .Paging(p => p.Enabled(true).PageSize(100))
 )
 
 <script>
-    pageTitle = "Thẻ kho @(Model.Item.Name) @(Model.Lot)";
+    pageTitle = "Thẻ kho @(Model.Item.Name) @(Model.Lot ?? "")";
     goBackUrl = "/stock";
+    const itemId = @(Model.ItemId);
 
     $(function () {
+        addBottomButtonToGrid("#main-grid", "calculate-soh", "Tính toán lại tồn kho", "auto", "contained", "bi bi-calculator", function() {
+            calculateItemSoh();
+        });
     });
+
+    function calculateItemSoh() {
+        $.ajax({
+            url: '@Url.Action("CalculateItemSoh", "Stock")',
+            method: "POST",
+            data: { itemId: itemId },
+            success: function (result) {
+                location.reload();
+            },
+            error: function (xhr, status, error) {
+                console.log("xhr", xhr, "status", status, "error", error);
+                DevExpress.ui.dialog.alert("Có lỗi xảy ra. Vui lòng thử lại sau.", "Cảnh báo");
+            }
+        });
+    }
 
     function stockCellTemplate(container, options) {
         let tranType = options.data.Type;

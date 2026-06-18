@@ -1,6 +1,6 @@
 :root {
     --bs-body-color: black;
-    --bs-font-sans-serif: Inter, Roboto, "Segoe UI", sans-serif /* , Arial, "Segoe UI", "Helvetica Neue" */;
+    --bs-font-sans-serif: Roboto, "Segoe UI", sans-serif; /* Inter, Arial, "Segoe UI", "Helvetica Neue" */
     /* --common-color-main: #9f224e;
     --common-color-main-dark: #801B3E;
     --common-color-main-light: #CD2B64; */
@@ -300,22 +300,20 @@ a.back-arrow .dx-icon-arrowleft::before {
 }
 
 #menu-icon {
-    position: fixed;
-    left: 6px;
-    top: 6px;
 }
 
 #go-back {
-    position: fixed;
-    left: 44px;
-    top: -2px;
+    padding: 4px;
+}
+
+#expand-collapse-button {
+    font-size: 16px;
+    padding: 4px;
 }
 
 #logout-button {
-    position: fixed;
-    right: 12px;
-    top: 6px;
     font-size: 18px;
+    padding: 4px;
 }
 
 .data-field {

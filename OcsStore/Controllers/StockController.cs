@@ -41,5 +41,12 @@ namespace OcsStore.Controllers
             var result = DataSourceLoader.Load(data, loadOptions);
             return Ok(result);
         }
+
+        [HttpPost]
+        public IActionResult CalculateItemSoh(int itemId)
+        {
+            _context.Database.ExecuteSqlRaw("call calculate_strans_item(" + itemId + ");");
+            return Ok();
+        }
     }
 }

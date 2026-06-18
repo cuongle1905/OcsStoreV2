@@ -97,7 +97,7 @@ app.Run();
  * database: ocsstore   App folder: /home/cuong/unicoffee
  * 
  * cd /apps/unicoffee/mysql
- * mysql -u cuong -pcuong@food -h localhost ocsstore -e "source dump-ocsstore.sql"
+ * mysql -u cuong -pcuong@food -h localhost ocsstore -e "source ocsstore_update_20260618.sql"
  * mysql -u cuong -pcuong@food -h localhost ocsstore -e "select * from item;"
  * 
  * ./canteen-stop
@@ -106,7 +106,7 @@ app.Run();
  * ./ghg-stop
  * ./ghg-reload
  * mysql -u cuong -pcuong@food -h localhost ghg -e "select * from company_info;"
- * mysql -u cuong -pcuong@food -h localhost ghg -e "source dump-ghg-202606162357.sql"
+ * mysql -u cuong -pcuong@food -h localhost ghg -e "source ocsstore_update_20260618.sql"
  * 
  * ./stop-food-app
  * ./reload-food-app

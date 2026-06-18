@@ -5,8 +5,20 @@ Date.prototype.ddMM = function () {
     return `${dd}${MM}`;
 };
 
+Date.prototype.ddMMyyyy = function () {
+    const dd = this.getDate().toString().padStart(2, '0');
+    // JavaScript months are 0-indexed, so we add 1
+    const MM = (this.getMonth() + 1).toString().padStart(2, '0');
+    const yyyy = this.getFullYear();
+    return `${dd}/${MM}/${yyyy}`;
+};
+
 function defaultOnGridContentReady() {
     $(".dx-header-row > td").css("text-align", "center");
+
+    if (typeof expandCollapseData === "function") {
+        expandCollapseData();
+    }
 }
 
 function defaultOnCellPrepared(e) {
@@ -212,6 +224,13 @@ function appendUndoSaveButtonsToGrid(gridId) {
     createSaveButton();
 }
 
+function addBottomButtonToGrid(gridId, buttonId, buttonText, width, style, buttonIcon, onClickFunc) {
+    let buttonsDiv = createBottomButtonsDiv();
+    $(gridId).first().append(buttonsDiv);
+    buttonsDiv.append($(`<div id="${buttonId}">`));
+    return createButton("#" + buttonId, buttonText, width, style, buttonIcon, onClickFunc);
+}
+
 function appendAddButtonToGrid(gridId, onClickFunc) {
     if (gridId == undefined)
         gridId = "#main-grid";
@@ -386,4 +405,28 @@ function groupCellTemplateTextOnly(container, options) {
     // console.log("groupCellTemplate options", options);
     const groupContent = $(`<div class='d-flex align-items-center ms-3'>${options.text}</div>`)
     container.append(groupContent);
+}
+
+
+Date.prototype.addDays = function (days) {
+    var date = new Date(this.valueOf());
+    date.setDate(date.getDate() + days);
+    return date;
+}
+
+function addDateOverlayLabel(dateBoxId, onDateChangedFunc) {
+    const label = $(`<div class="date-overlay-label">`);
+    const dateDiv = $(`#${dateBoxId}`);
+    dateDiv.append(label);
+    const dateBox = dateDiv.dxDateBox("instance");
+    const date = dateBox.option("value");
+    label.html(`<div>${date.ddMMyyyy()}</div>`);
+
+    dateBox.option("onValueChanged", function (e) {
+        $(`#${dateBoxId} .date-overlay-label`).html(`<div>${e.value.ddMMyyyy()}</div>`);
+
+        if (typeof onDateChangedFunc === "function") {
+            onDateChangedFunc(e);
+        }
+    });
 }

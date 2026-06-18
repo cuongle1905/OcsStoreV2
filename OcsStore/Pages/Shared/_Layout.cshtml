@@ -3,10 +3,14 @@
 @using Microsoft.AspNetCore.Http.Extensions
 @{
     bool hasToken = !string.IsNullOrEmpty(Session.Token(Context.Request));
-
+    bool isAdmin = Session.IsAdmin(Context.Request);
     string sourceUrl = Context.Request.Query["SourceUrl"].ToString();
     int loginSession = Session.LoginSession(Context.Request);
-    if (Context.Request.GetDisplayUrl().Contains("localhost"))
+    if (!hasToken && (Context.Request.Path != "/" && Context.Request.Path != "/index"))
+    {
+        Context.Response.Redirect("/");
+    }
+    else if (Context.Request.GetDisplayUrl().Contains("localhost"))
     {
         loginSession++;
         Session.SetLoginSession(Context.Request, loginSession);
@@ -55,10 +59,14 @@
 </head>
 <body style="padding-top: 0.3rem;" spellcheck="false">
     <script>
+        const True = true;
+        const False = false;
+        const isAdmin = @(isAdmin);
         var isShowingUserMenu = false;
         var isShowingMobileMenu = false;
         var pageTitle = "";
         var goBackUrl = "/@(sourceUrl)";
+        var isDataExpanded = false;
         
         function menuContainerOnClick() {
             console.log("menuContainerOnClick");
@@ -165,25 +173,39 @@
         }
 
         function logout() {
-            $.ajax({
-                url: '@Url.Action("Logout", "Token")',
-                method: "POST",
-                success: function (result) {
-                    location.href = 'Index';
-                },
-                error: function (xhr, status, error) {
+            DevExpress.ui.dialog.confirm("<i>Bạn có chắc chắn muốn Logout?</i>", "Xác nhận").then(function(dialogResult) {
+                if (dialogResult) {
+                    $.ajax({
+                        url: '@Url.Action("Logout", "Token")',
+                        method: "POST",
+                        success: function (result) {
+                            location.href = 'Index';
+                        },
+                        error: function (xhr, status, error) {
+                        }
+                    });
                 }
             });
         }
 
+        function expandCollapseButtonClicked() {
+            isDataExpanded = !isDataExpanded
+            const buttonIcon = $("#expand-collapse-button i");
+            buttonIcon.removeClass(isDataExpanded ? "bi-arrows-expand-vertical" : "bi-arrows-collapse-vertical");
+            buttonIcon.addClass(isDataExpanded ? "bi-arrows-collapse-vertical" : "bi-arrows-expand-vertical");
+            
+            if (typeof expandCollapseData === "function") {
+                expandCollapseData();
+            }
+        }
+
     </script>
     <div style="position: fixed; left: 0; right: 0; top: 0; z-index: 1000">
-        <div id="top-bar" class="d-flex align-items-center">
+        <div id="top-bar" class="d-flex align-items-center p-2">
             @if (hasToken)
             {
                 <a id="menu-icon" href="#" class="menu-link" onclick="showHideMenu()"><img src="~/images/logo_text_blue.png" style="width: 30px; height: 30px"/></a>
                 <div><a id="go-back" class="back-arrow" href="#"><i class="bi bi-arrow-left-short"></i></a></div>
-                <a id="logout-button" href="#" onclick="logout()"><i class="bi bi-box-arrow-right"></i></a>
             }
             else 
             {
@@ -192,6 +214,11 @@
             <div id="page-title" class="text-center flex-fill">
                 UNI COFFEE
             </div>
+            @if (hasToken)
+            {
+                <a id="expand-collapse-button" href="#" class="me-2" onclick="expandCollapseButtonClicked()"><i class="bi bi-arrows-expand-vertical"></i></a>
+                <a id="logout-button" href="#" onclick="logout()"><i class="bi bi-box-arrow-right"></i></a>
+            }
         </div>
     </div>
     <main id="my-container" role="main">

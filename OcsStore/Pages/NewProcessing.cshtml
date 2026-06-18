@@ -23,7 +23,6 @@
                 .Type(DateBoxType.Date)
                 .Value(DateTime.Today)
                 .DisplayFormat("dd/MM/yyyy")
-                .OnValueChanged("dateChanged")
                 .DropDownOptions(o => o.Position(p => p.Of("#dateBox").At(HorizontalAlignment.Left, VerticalAlignment.Bottom).My(HorizontalAlignment.Left, VerticalAlignment.Top).Offset(0, 2)))
             )
         </div>
@@ -233,6 +232,7 @@ Html.DevExtreme().DataGrid<ProcessingLotInputView>()
     let isNewCustomer = false;
 
     $(function () {
+        addDateOverlayLabel("dateBox", dateChanged);
         $("#main-grid").first().prepend($("#top-section"));
         $("#main-grid").first().append($("#sale-section"));
         $("#main-grid").first().append($("#bottom-buttons"));

@@ -34,7 +34,7 @@ namespace OcsStore.Controllers
                 return BadRequest(0);
 
             int userId = -1;
-            bool isSuperAdmin = false;
+            bool isAdmin = false;
             string username = "";
             User user;
             try
@@ -43,7 +43,7 @@ namespace OcsStore.Controllers
                 if (user != null)
                 {
                     userId = user.Id;
-                    isSuperAdmin = user.IsSuper;
+                    isAdmin = user.IsAdmin;
                     username = user.Username;
                 }
             }
@@ -62,7 +62,7 @@ namespace OcsStore.Controllers
                 new Claim(JwtRegisteredClaimNames.Iat, DateTime.UtcNow.ToString()),
                 new Claim("UserId", userId.ToString()),
                 //new Claim(ClaimTypes.Name, user.Username.ToString()),
-                new Claim("IsSuperAdmin", isSuperAdmin ? "1" : "0")
+                new Claim("isAdmin", isAdmin ? "1" : "0")
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
@@ -91,7 +91,7 @@ namespace OcsStore.Controllers
                 _context.SaveChanges();
             }
             Session.SetUsername(Request, username);
-            Session.SetIsSuperAdmin(Request, isSuperAdmin);
+            Session.SetIsAdmin(Request, isAdmin);
 
             var loginSession = _context.LoginSessions.FirstOrDefault().Id + 1;
 

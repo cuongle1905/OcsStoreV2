@@ -26,6 +26,9 @@ namespace OcsStore.Pages
 
         public void OnGet()
         {
+            if (Lot == "null")
+                Lot = null;
+
             Item = _itemController.GetItemView(ItemId);
         }
     }

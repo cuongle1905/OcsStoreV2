@@ -57,7 +57,7 @@ Html.DevExtreme().DataGrid<StockView>()
         columns.AddFor(m => m.ItemName).Caption("Hàng hóa").Width(120).Alignment(HorizontalAlignment.Left).Fixed(true).FixedPosition(HorizontalEdge.Left).CellTemplate(new JS("stockCellTemplate"));
         @* columns.AddFor(m => m.UnitName).Caption("").Width(40).Alignment(HorizontalAlignment.Left); *@
         
-        columns.AddFor(m => m.Soh).Caption("Số lượng").Width(70).Alignment(HorizontalAlignment.Right).Format("#,##0.00").CellTemplate(new JS("stockCellTemplate"));
+        columns.AddFor(m => m.Soh).Caption("Số lượng").Width(70).Alignment(HorizontalAlignment.Right).Format("#,##0.0").CellTemplate(new JS("stockCellTemplate"));
         columns.AddFor(m => m.Ave).Caption("Giá TB").Width(64).Alignment(HorizontalAlignment.Right).Format("#,##0").CellTemplate(new JS("stockCellTemplate"));
         columns.AddFor(m => m.Value).Caption("Giá trị").Width(86).Alignment(HorizontalAlignment.Right).Format("#,##0").CellTemplate(new JS("stockCellTemplate"));
         
@@ -102,6 +102,12 @@ Html.DevExtreme().DataGrid<StockView>()
         $("#main-grid").first().prepend($("#top-section"));
         updateSelectedTab();
     });
+
+    function expandCollapseData() {
+        let grid = $("#main-grid").dxDataGrid("instance");
+        grid.columnOption("Date", "visible", isDataExpanded);
+        grid.columnOption("Time", "visible", isDataExpanded);
+    }
 
     function tabClicked(tabIndex) {
         $(`#groups-tab > :nth-child(${itemGroupId}) .nav-link`).removeClass("active");

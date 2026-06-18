@@ -181,7 +181,7 @@ public partial class MyDbContext : DbContext
                 .IsFixedLength()
                 .HasColumnName("time_paid");
             entity.Property(e => e.TotalValue)
-                .HasPrecision(10, 2)
+                .HasPrecision(12, 2)
                 .HasColumnName("total_value");
             entity.Property(e => e.UserCreated).HasColumnName("user_created");
             entity.Property(e => e.UserModified)
@@ -396,7 +396,7 @@ public partial class MyDbContext : DbContext
                 .IsFixedLength()
                 .HasColumnName("time_paid");
             entity.Property(e => e.TotalValue)
-                .HasPrecision(10, 2)
+                .HasPrecision(12, 2)
                 .HasColumnName("total_value");
             entity.Property(e => e.UserCreated).HasColumnName("user_created");
             entity.Property(e => e.UserModified)
@@ -450,7 +450,7 @@ public partial class MyDbContext : DbContext
                 .HasDefaultValueSql("'1'")
                 .HasColumnName("customer");
             entity.Property(e => e.Debt)
-                .HasPrecision(32, 2)
+                .HasPrecision(34, 2)
                 .HasColumnName("debt");
         });
 
@@ -500,7 +500,7 @@ public partial class MyDbContext : DbContext
                 .UseCollation("utf8mb3_general_ci")
                 .HasCharSet("utf8mb3");
             entity.Property(e => e.Debt)
-                .HasPrecision(32, 2)
+                .HasPrecision(34, 2)
                 .HasColumnName("debt");
             entity.Property(e => e.Email)
                 .HasMaxLength(50)
@@ -727,6 +727,7 @@ public partial class MyDbContext : DbContext
                 .HasColumnName("lot");
             entity.Property(e => e.LotOrdinal)
                 .HasMaxLength(8)
+                .HasDefaultValueSql("''")
                 .HasColumnName("lot_ordinal");
             entity.Property(e => e.Material).HasColumnName("material");
             entity.Property(e => e.MaterialGroup)
@@ -810,7 +811,7 @@ public partial class MyDbContext : DbContext
                 .HasColumnName("unit");
             entity.Property(e => e.UseLot).HasColumnName("use_lot");
             entity.Property(e => e.Value)
-                .HasPrecision(10, 2)
+                .HasPrecision(14, 2)
                 .HasColumnName("value");
             entity.Property(e => e.Year)
                 .HasDefaultValueSql("'26'")
@@ -990,7 +991,7 @@ public partial class MyDbContext : DbContext
                 .HasColumnName("unit");
             entity.Property(e => e.UseLot).HasColumnName("use_lot");
             entity.Property(e => e.Value)
-                .HasPrecision(10, 2)
+                .HasPrecision(14, 2)
                 .HasColumnName("value");
             entity.Property(e => e.Year)
                 .HasDefaultValueSql("'26'")
@@ -1631,7 +1632,7 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.Unit).HasColumnName("unit");
             entity.Property(e => e.UseLot).HasColumnName("use_lot");
             entity.Property(e => e.Value)
-                .HasPrecision(10, 2)
+                .HasPrecision(14, 2)
                 .HasColumnName("value");
             entity.Property(e => e.Year).HasColumnName("year");
         });
@@ -1664,7 +1665,7 @@ public partial class MyDbContext : DbContext
                 .HasPrecision(10, 2)
                 .HasColumnName("lot_soh");
             entity.Property(e => e.LotValue)
-                .HasPrecision(10, 2)
+                .HasPrecision(14, 2)
                 .HasColumnName("lot_value");
             entity.Property(e => e.MainId).HasColumnName("main_id");
             entity.Property(e => e.Ordinal)
@@ -1695,7 +1696,7 @@ public partial class MyDbContext : DbContext
                 .HasDefaultValueSql("'1'")
                 .HasColumnName("user");
             entity.Property(e => e.Value)
-                .HasPrecision(10, 2)
+                .HasPrecision(14, 2)
                 .HasColumnName("value");
             entity.Property(e => e.Year).HasColumnName("year");
         });
@@ -1768,7 +1769,7 @@ public partial class MyDbContext : DbContext
                 .HasCharSet("utf8mb3");
             entity.Property(e => e.UseLot).HasColumnName("use_lot");
             entity.Property(e => e.Value)
-                .HasPrecision(10, 2)
+                .HasPrecision(14, 2)
                 .HasColumnName("value");
             entity.Property(e => e.Year).HasColumnName("year");
         });
@@ -1825,7 +1826,7 @@ public partial class MyDbContext : DbContext
                 .HasPrecision(10, 2)
                 .HasColumnName("lot_soh");
             entity.Property(e => e.LotValue)
-                .HasPrecision(10, 2)
+                .HasPrecision(14, 2)
                 .HasColumnName("lot_value");
             entity.Property(e => e.MainId).HasColumnName("main_id");
             entity.Property(e => e.Ordinal)
@@ -1856,7 +1857,7 @@ public partial class MyDbContext : DbContext
                 .HasDefaultValueSql("'1'")
                 .HasColumnName("user");
             entity.Property(e => e.Value)
-                .HasPrecision(10, 2)
+                .HasPrecision(14, 2)
                 .HasColumnName("value");
             entity.Property(e => e.Year).HasColumnName("year");
 
@@ -1957,7 +1958,7 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.Id)
                 .ValueGeneratedNever()
                 .HasColumnName("id");
-            entity.Property(e => e.IsSuper).HasColumnName("is_super");
+            entity.Property(e => e.IsAdmin).HasColumnName("is_admin");
             entity.Property(e => e.Name)
                 .IsRequired()
                 .HasMaxLength(100)

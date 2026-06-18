@@ -18,14 +18,13 @@ Html.DevExtreme().DataGrid<ReceivingDetailView>()
     .OnContentReady("gridContentReady")
     .Columns(columns =>
     {
-        columns.AddFor(m => m.Date).Caption("Ngày").Width(90).Alignment(HorizontalAlignment.Center).Format("dd/MM/yyyy")
+        columns.AddFor(m => m.Date).Caption("Ngày").Width(80).Alignment(HorizontalAlignment.Center).Format("dd/MM/yyyy")
             .GroupIndex(0).SortOrder(SortOrder.Desc).AutoExpandGroup(false).GroupCellTemplate(new JS("groupCellTemplateTextOnly"));
         columns.AddFor(m => m.Time).Caption("Giờ").Width(50).Alignment(HorizontalAlignment.Center);
-        columns.AddFor(m => m.ItemName).Caption("Hàng hóa").Width(130).Alignment(HorizontalAlignment.Left).CellTemplate(new JS("itemCellTemplate"));
-        columns.AddFor(m => m.Quantity).Caption("Số lượng").Width(60).Alignment(HorizontalAlignment.Right).Format("#,##0.00");
-        columns.AddFor(m => m.UnitName).Caption("").Width(40).Alignment(HorizontalAlignment.Left);
-        columns.AddFor(m => m.Price).Caption("Giá").Width(70).Alignment(HorizontalAlignment.Right).Format("#,##0");
-        columns.AddFor(m => m.Note).Caption("Ghi chú").Width(140).Alignment(HorizontalAlignment.Left);
+        columns.AddFor(m => m.ItemName).Caption("Hàng hóa").Width(120).Alignment(HorizontalAlignment.Left).CellTemplate(new JS("itemCellTemplate"));
+        columns.AddFor(m => m.Quantity).Caption("Số lượng").Width(60).Alignment(HorizontalAlignment.Right).Format("#,##0");
+        @* columns.AddFor(m => m.UnitName).Caption("").Width(40).Alignment(HorizontalAlignment.Left); *@
+        columns.AddFor(m => m.Price).Caption("Giá").Width(60).Alignment(HorizontalAlignment.Right).Format("#,##0");
         columns.AddFor(m => m.Value).Caption("Thành tiền").Width(90).Alignment(HorizontalAlignment.Right).Fixed(true).FixedPosition(HorizontalEdge.Right).Format("#,##0");
     })
     .OnCellPrepared("onCellPreparedGroupFixedRightColumn")
@@ -54,7 +53,7 @@ Html.DevExtreme().DataGrid<ReceivingDetailView>()
 
     $(function () {
         appendTopAddButtonToGrid("#main-grid", function() {
-            location.href = "receiving/new";
+            location.href = "receiving/new?sourceurl=receiving";
         });
     });
 

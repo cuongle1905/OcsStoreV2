@@ -249,3 +249,21 @@
 .dx-box-item-content {
     font-size: 1rem;
 }
+
+.date-overlay-label {
+    position: absolute;
+    background-color: white;
+    left: 2px;
+    top: 1px;
+    right: 2.8rem;
+    bottom: 1px;
+    z-index: 99;
+    text-align: center;
+}
+
+.date-overlay-label div {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}

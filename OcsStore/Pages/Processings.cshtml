@@ -31,7 +31,7 @@ Html.DevExtreme().DataGrid<ProcessingView>()
             .GroupIndex(0).SortOrder(SortOrder.Desc).AutoExpandGroup(false).GroupCellTemplate(new JS("groupCellTemplateTextOnly"));
         columns.AddFor(m => m.Time).Caption("Giờ").Width(50).Alignment(HorizontalAlignment.Center);
         columns.AddFor(m => m.ItemName).Caption("Hàng hóa").Width(130).Alignment(HorizontalAlignment.Left).CellTemplate(new JS("itemCellTemplate"));
-        columns.AddFor(m => m.Quantity).Caption("Số lượng").Width(60).Alignment(HorizontalAlignment.Right).Format("#,##0.00");
+        columns.AddFor(m => m.Quantity).Caption("Số lượng").Width(60).Alignment(HorizontalAlignment.Right).Format("#,##0.0");
         columns.AddFor(m => m.UnitName).Caption("").Width(40).Alignment(HorizontalAlignment.Left);
         columns.AddFor(m => m.Price).Caption("Giá COS").Width(70).Alignment(HorizontalAlignment.Right).Format("#,##0");
         columns.AddFor(m => m.Note).Caption("Ghi chú").Width(140).Alignment(HorizontalAlignment.Left);
