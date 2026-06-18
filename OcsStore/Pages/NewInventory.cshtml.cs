@@ -5,8 +5,9 @@ using OcsStore.Models;
 
 namespace OcsStore.Pages
 {
-    public class StockModel : PageModel
+    public class NewInventoryModel : PageModel
     {
+
         public void OnGet()
         {
         }

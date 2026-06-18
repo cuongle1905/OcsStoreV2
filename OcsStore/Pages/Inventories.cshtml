@@ -1,0 +1,61 @@
+﻿@page "/inventory"
+@using OcsStore.Models
+@model OcsStore.Pages.InventoriesModel
+@{
+}
+
+<div id="top-section" class="pb-3"></div>
+
+@(
+Html.DevExtreme().DataGrid<InventoryDetailView>()
+    .ID("main-grid")
+    .DataSource(d => d.Mvc().Controller("Stock").LoadAction("GetInventoryDetails").LoadMethod("POST").Key("Id").LoadParams(new { ItemGroupId = new JS("function() { return itemGroupId; }") }))
+    .RemoteOperations(false)
+    .ShowBorders(true)
+    .ShowRowLines(true)
+    .WordWrapEnabled(true)
+    .Sorting(s => s.Mode(GridSortingMode.None))
+    .Paging(p => p.PageSize(100))
+    .Pager(p => p.Visible(false))
+    .OnContentReady("gridContentReady")
+    .Columns(columns =>
+    {
+        columns.AddFor(m => m.Date).Caption("Ngày").Width(80).Alignment(HorizontalAlignment.Center).Format("dd/MM/yyyy")
+            .GroupIndex(0).SortOrder(SortOrder.Desc).AutoExpandGroup(false).GroupCellTemplate(new JS("groupCellTemplateTextOnly"));
+        columns.AddFor(m => m.Time).Caption("Giờ").Width(50).Alignment(HorizontalAlignment.Center);
+        columns.AddFor(m => m.ItemName).Caption("Hàng hóa").Width(120).Alignment(HorizontalAlignment.Left).CellTemplate(new JS("itemCellTemplate"));
+        columns.AddFor(m => m.Soh).Caption("Số lượng").Width(60).Alignment(HorizontalAlignment.Right).Format("#,##0.0");
+        columns.AddFor(m => m.Ave).Caption("Giá TB").Width(60).Alignment(HorizontalAlignment.Right).Format("#,##0");
+    })
+    .OnCellPrepared("onCellPreparedGroupFixedRightColumn")
+    .Editing(e => e.AllowUpdating(false))
+    .Paging(p => p.Enabled(true).PageSize(100))
+)
+<script>
+    pageTitle = "KIỂM KÊ";
+    deleteUrl = '@Url.Action("DeleteInventoryDetail", "Stock")';
+
+    $(function () {
+        appendTopAddButtonToGrid("#main-grid", function() {
+            location.href = `inventory/new?sourceurl=inventory&&itemGroup=${itemGroupId}`;
+        });
+        $("#main-grid").first().prepend($("#top-section"));
+        addTabList("top-section", "groups-tab", ["Nhân xanh", "Hạt rang", "Cafe"], itemGroupId - 1, tabClicked);
+    });
+
+    function tabClicked(tabIndex) {
+        console.log("tabClicked", tabIndex);
+        itemGroupId = tabIndex + 1;
+        $("#main-grid").dxDataGrid("instance").refresh();
+    }
+
+    function gridContentReady(e) {
+        defaultOnGridContentReady(e);
+        expandFirstTableGroup();
+    }
+
+    function itemCellTemplate(container, options) {
+        container.html(dotSymbolHtml(cssColorForItemType(options.data.ItemGroup)) + options.text);
+    }
+
+</script>

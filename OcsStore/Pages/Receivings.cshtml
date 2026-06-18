@@ -2,6 +2,7 @@
 @using OcsStore.Models
 @model OcsStore.Pages.ReceivingsModel
 @{
+    bool isAdmin = Session.IsAdmin(Request);
 }
 
 @(
@@ -20,12 +21,15 @@ Html.DevExtreme().DataGrid<ReceivingDetailView>()
     {
         columns.AddFor(m => m.Date).Caption("Ngày").Width(80).Alignment(HorizontalAlignment.Center).Format("dd/MM/yyyy")
             .GroupIndex(0).SortOrder(SortOrder.Desc).AutoExpandGroup(false).GroupCellTemplate(new JS("groupCellTemplateTextOnly"));
-        columns.AddFor(m => m.Time).Caption("Giờ").Width(50).Alignment(HorizontalAlignment.Center);
-        columns.AddFor(m => m.ItemName).Caption("Hàng hóa").Width(120).Alignment(HorizontalAlignment.Left).CellTemplate(new JS("itemCellTemplate"));
-        columns.AddFor(m => m.Quantity).Caption("Số lượng").Width(60).Alignment(HorizontalAlignment.Right).Format("#,##0");
-        @* columns.AddFor(m => m.UnitName).Caption("").Width(40).Alignment(HorizontalAlignment.Left); *@
-        columns.AddFor(m => m.Price).Caption("Giá").Width(60).Alignment(HorizontalAlignment.Right).Format("#,##0");
-        columns.AddFor(m => m.Value).Caption("Thành tiền").Width(90).Alignment(HorizontalAlignment.Right).Fixed(true).FixedPosition(HorizontalEdge.Right).Format("#,##0");
+        columns.AddFor(m => m.Time).Caption("Giờ").Width(45).Alignment(HorizontalAlignment.Center);
+        columns.AddFor(m => m.ItemName).Caption("Hàng hóa").Width(110).Alignment(HorizontalAlignment.Left).CellTemplate(new JS("itemCellTemplate"));
+        columns.AddFor(m => m.Quantity).Caption("Số lượng").Width(50).Alignment(HorizontalAlignment.Right).Format("#,##0");
+        columns.AddFor(m => m.Price).Caption("Giá\n(đồng)").Width(65).HeaderCellTemplate(new JS("subLineHeaderCellTemplate")).Format("#,##0");
+        columns.AddFor(m => m.Value).Caption("Thành tiền\n(x 1000đ)").Width(70).HeaderCellTemplate(new JS("subLineHeaderCellTemplate")).Fixed(true).FixedPosition(HorizontalEdge.Right).Format("#,##0");
+        if (isAdmin)
+        {
+            columns.Add().Name("Action").Width(30).Alignment(HorizontalAlignment.Center).Fixed(true).FixedPosition(HorizontalEdge.Right).CellTemplate(new JS("deleteActionCellTemplate"));
+        }
     })
     .OnCellPrepared("onCellPreparedGroupFixedRightColumn")
     .Editing(e => e.AllowUpdating(false))
@@ -50,6 +54,7 @@ Html.DevExtreme().DataGrid<ReceivingDetailView>()
 
 <script>
     pageTitle = "NHẬP KHO";
+    deleteUrl = '@Url.Action("DeleteDetail", "Receiving")';
 
     $(function () {
         appendTopAddButtonToGrid("#main-grid", function() {
@@ -57,8 +62,8 @@ Html.DevExtreme().DataGrid<ReceivingDetailView>()
         });
     });
 
-    function gridContentReady() {
-        $(".dx-header-row > td").css("text-align", "center");
+    function gridContentReady(e) {
+        defaultOnGridContentReady(e);
         expandFirstTableGroup();
     }
 

@@ -83,13 +83,20 @@ namespace OcsStore.Controllers
             foreach (var detail in details)
             {
                 var receivingDetail = new ReceivingDetail() { Id = detailId++, Receiving = receivingId, Item = detail.Item, Unit = detail.Unit, Quantity = detail.Quantity, Price = detail.Price, Note = detail.Note, Ordinal = detail.Ordinal };
-                _context.ReceivingDetails.AddRange(receivingDetail);
+                _context.ReceivingDetails.Add(receivingDetail);
             }
 
             _context.SaveChanges();
 
             _context.Database.ExecuteSqlRaw("call calculate_strans_receiving(" + receivingId + ");");
 
+            return Ok();
+        }
+
+        [HttpPost]
+        public IActionResult DeleteDetail(int id)
+        {
+            _context.Database.ExecuteSqlRaw("call delete_receiving_detail(" + id + ");");
             return Ok();
         }
     }

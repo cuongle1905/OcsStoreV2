@@ -13,30 +13,7 @@
     }
 </style>
 
-<div id="top-section" class="pb-3">
-    <ul id="groups-tab" class="nav nav-justified">
-        <li class="nav-item">
-            <a class="nav-link" aria-current="page" href="#" onclick="tabClicked(0);">Nhân xanh</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="#" onclick="tabClicked(1);">Hạt rang</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="#" onclick="tabClicked(2);">Cafe</a>
-        </li>
-    </ul>
-
-@*     <div id="top-buttons" class="pt-3 text-end">
-        @(Html.DevExtreme().Button()
-            .Text("Tạo hàng hóa mới")
-            .Width(160)
-            .Type(ButtonType.Default)
-            .StylingMode(ButtonStylingMode.Text)
-            .Icon("add")
-            .OnClick("addNewItem")
-        )
-    </div> *@
-</div>
+<div id="top-section" class="pb-3"></div>
 
 @(
 Html.DevExtreme().DataGrid<StockView>()
@@ -52,14 +29,10 @@ Html.DevExtreme().DataGrid<StockView>()
     .OnContentReady("defaultOnGridContentReady")
     .Columns(columns =>
     {
-        @* columns.AddFor(m => m.GroupName).Caption("Nhóm").Width(140).GroupIndex(0).CellTemplate(new JS("stockCellTemplate")); *@
-        @* columns.Add().Caption("").Width(30).Alignment(HorizontalAlignment.Center).FixedPosition(HorizontalEdge.Left).Fixed(true).CellTemplate(new JS("stockLinkCellTemplate")); *@
         columns.AddFor(m => m.ItemName).Caption("Hàng hóa").Width(120).Alignment(HorizontalAlignment.Left).Fixed(true).FixedPosition(HorizontalEdge.Left).CellTemplate(new JS("stockCellTemplate"));
-        @* columns.AddFor(m => m.UnitName).Caption("").Width(40).Alignment(HorizontalAlignment.Left); *@
-        
         columns.AddFor(m => m.Soh).Caption("Số lượng").Width(70).Alignment(HorizontalAlignment.Right).Format("#,##0.0").CellTemplate(new JS("stockCellTemplate"));
-        columns.AddFor(m => m.Ave).Caption("Giá TB").Width(64).Alignment(HorizontalAlignment.Right).Format("#,##0").CellTemplate(new JS("stockCellTemplate"));
-        columns.AddFor(m => m.Value).Caption("Giá trị").Width(86).Alignment(HorizontalAlignment.Right).Format("#,##0").CellTemplate(new JS("stockCellTemplate"));
+        columns.AddFor(m => m.Ave).Caption("Giá TB\n(đồng)").Width(60).HeaderCellTemplate(new JS("subLineHeaderCellTemplate")).Format("#,##0").CellTemplate(new JS("stockCellTemplate"));
+        columns.AddFor(m => m.Value).Caption("Giá trị\n(x 1000đ)").Width(70).HeaderCellTemplate(new JS("subLineHeaderCellTemplate")).Format("#,##0").CellTemplate(new JS("stockCellTemplate"));
         
         columns.AddFor(m => m.Date).Caption("Ngày").Width(90).Alignment(HorizontalAlignment.Center).Format("dd/MM/yyyy").CellTemplate(new JS("stockCellTemplate"));
         columns.AddFor(m => m.Time).Caption("Giờ").Width(50).Alignment(HorizontalAlignment.Center).CellTemplate(new JS("stockCellTemplate"));
@@ -95,12 +68,11 @@ Html.DevExtreme().DataGrid<StockView>()
 )
 
 <script>
-    var itemGroupId = @(Model.ItemGroupId);
     pageTitle = "Tồn kho";
 
     $(function () {
         $("#main-grid").first().prepend($("#top-section"));
-        updateSelectedTab();
+        addTabList("top-section", "groups-tab", ["Nhân xanh", "Hạt rang", "Cafe"], itemGroupId - 1, tabClicked);
     });
 
     function expandCollapseData() {
@@ -110,14 +82,9 @@ Html.DevExtreme().DataGrid<StockView>()
     }
 
     function tabClicked(tabIndex) {
-        $(`#groups-tab > :nth-child(${itemGroupId}) .nav-link`).removeClass("active");
+        console.log("tabClicked", tabIndex);
         itemGroupId = tabIndex + 1;
         $("#main-grid").dxDataGrid("instance").refresh();
-        updateSelectedTab();
-    }
-
-    function updateSelectedTab() {
-        $(`#groups-tab > :nth-child(${itemGroupId}) .nav-link`).addClass("active");
     }
 
     function stockCellTemplate(container, options) {

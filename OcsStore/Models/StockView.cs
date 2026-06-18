@@ -33,7 +33,7 @@ public partial class StockView
 
     public bool? AllowSale { get; set; }
 
-    public sbyte UseLot { get; set; }
+    public bool? UseLot { get; set; }
 
     public string LotOrdinal { get; set; }
 

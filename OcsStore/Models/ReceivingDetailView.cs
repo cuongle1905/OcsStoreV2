@@ -29,7 +29,7 @@ public partial class ReceivingDetailView
 
     public string Note { get; set; }
 
-    public decimal Value { get; set; }
+    public decimal? Value { get; set; }
 
     public decimal? Soh { get; set; }
 

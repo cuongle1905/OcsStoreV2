@@ -250,7 +250,7 @@
     font-size: 1rem;
 }
 
-.date-overlay-label {
+.date-overlay-layer {
     position: absolute;
     background-color: white;
     left: 2px;
@@ -261,7 +261,7 @@
     text-align: center;
 }
 
-.date-overlay-label div {
+.date-overlay-layer div {
     position: absolute;
     top: 50%;
     left: 50%;

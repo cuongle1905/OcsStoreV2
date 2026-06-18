@@ -13,7 +13,7 @@ Date.prototype.ddMMyyyy = function () {
     return `${dd}/${MM}/${yyyy}`;
 };
 
-function defaultOnGridContentReady() {
+function defaultOnGridContentReady(e) {
     $(".dx-header-row > td").css("text-align", "center");
 
     if (typeof expandCollapseData === "function") {
@@ -231,6 +231,13 @@ function addBottomButtonToGrid(gridId, buttonId, buttonText, width, style, butto
     return createButton("#" + buttonId, buttonText, width, style, buttonIcon, onClickFunc);
 }
 
+function addBottomSaveButtonToGrid(gridId, buttonId, onClickFunc) {
+    let buttonsDiv = createBottomButtonsDiv();
+    $(gridId).first().append(buttonsDiv);
+    buttonsDiv.append($(`<div id="${buttonId}">`));
+    return createButton("#" + buttonId, "Lưu", "50%", "contained", "bi bi-download", onClickFunc);
+}
+
 function appendAddButtonToGrid(gridId, onClickFunc) {
     if (gridId == undefined)
         gridId = "#main-grid";
@@ -344,7 +351,7 @@ function lotTableCellTemplate(container, options) {
 }
 
 function dotSymbolHtml(cssColor) {
-    return `<span class='${cssColor} me-2 dot-symbol'>●</span>`;
+    return `<span class='${cssColor} me-1 dot-symbol'>●</span>`;
 }
 
 // Extend the Number prototype safely
@@ -414,19 +421,116 @@ Date.prototype.addDays = function (days) {
     return date;
 }
 
-function addDateOverlayLabel(dateBoxId, onDateChangedFunc) {
-    const label = $(`<div class="date-overlay-label">`);
+function addDateOverlay(dateBoxId, onDateChangedFunc) {
     const dateDiv = $(`#${dateBoxId}`);
-    dateDiv.append(label);
+    const div = $(`<div class="date-overlay-layer">`);
+    dateDiv.append(div);
+
     const dateBox = dateDiv.dxDateBox("instance");
     const date = dateBox.option("value");
-    label.html(`<div>${date.ddMMyyyy()}</div>`);
+    div.html(`<div>${date.ddMMyyyy()}</div>`);
 
     dateBox.option("onValueChanged", function (e) {
-        $(`#${dateBoxId} .date-overlay-label`).html(`<div>${e.value.ddMMyyyy()}</div>`);
+        $(`#${dateBoxId} .date-overlay-layer`).html(`<div>${e.value.ddMMyyyy()}</div>`);
 
         if (typeof onDateChangedFunc === "function") {
             onDateChangedFunc(e);
         }
     });
+}
+
+function createDateBox(dateBoxId, width, height, onDateChangedFunc) {
+    $(`#${dateBoxId}`).dxDateBox({
+        width: width,
+        height: height,
+        inputAttr: { "aria-label": "Date" },
+        type: "date",
+        value: new Date(),
+        displayFormat: "dd/MM/yyyy",
+        dropDownOptions: {
+            position: { of: `#${dateBoxId}`, at: "left bottom", my: "left top", offset: "0 2" }
+        }
+    });
+
+    addDateOverlay(dateBoxId, onDateChangedFunc);
+}
+
+function createTimeBox(id, width, height) {
+    $("#" + id).dxDateBox({
+        width: width,
+        height: height,
+        type: "time",
+        value: new Date(),
+        displayFormat: "HH:mm"
+    });
+}
+
+function addDateTimeBoxes(containerId, idPrefix, dateWidth, timeWidth, height, onDateChangedFunc) {
+    const div = $(`<div class="d-flex mb-3">`);
+    $("#" + containerId).append(div);
+
+    const dateField = $(`<div class="data-field">`);
+    div.append(dateField);
+    dateField.append($(`<div class="field-title">Ngày:</div>`));
+
+    const dateBoxId = idPrefix + "dateBox";
+    const dateBoxContainer = $(`<div id="${dateBoxId}">`);
+    dateField.append(dateBoxContainer);
+    createDateBox(dateBoxId, dateWidth, height, onDateChangedFunc);
+
+
+    const timeField = $(`<div class="data-field ms-3">`);
+    div.append(timeField);
+    timeField.append($(`<div class="field-title">Giờ:</div>`));
+
+    const timeBoxId = (idPrefix ?? "") + "timeBox";
+    const timeBoxContainer = $(`<div id="${timeBoxId}">`);
+    timeField.append(timeBoxContainer);
+    createTimeBox(timeBoxId, timeWidth, height);
+}
+
+function subLineHeaderCellTemplate(container, options) {
+    const texts = options.column.caption.split("\n");
+    console.log("subLineHeaderCellTemplate", texts);
+    container.html(`${texts[0]}<div style="font-size:0.9rem">${texts[1]}</div>`);
+}
+
+function addTabList(containerId, tabId, texts, selectedTabIndex, tabItemClickedFunc) {
+    console.log("addTabList", texts);
+    const tabDiv = $(`<ul id="${tabId}" class="nav nav-justified">`);
+    $(`#${containerId}`).append(tabDiv);
+    for (var i = 0; i < texts.length; i++) {
+        console.log("addTabList", i, texts[i]);
+        const tabItem = $(`<li class="nav-item">`);
+        tabDiv.append(tabItem);
+        const tabLink = $(`<a class="nav-link" href="#">${texts[i]}</a>`);
+        tabItem.append(tabLink);
+        const childIndex = i + 1;
+        tabLink.on("click", function () {
+            $(`#${tabId} .nav-link`).removeClass("active");
+            $(`#${tabId} li:nth-child(${childIndex}) .nav-link`).addClass("active");
+            tabItemClickedFunc(childIndex - 1);
+        });
+    }
+    setSelectedTabIndex(tabId, selectedTabIndex);
+}
+
+function getSelectedTabIndex(tabId) {
+    const items = $(`#${tabId}`).children();
+    console.log("getSelectedTabIndex", items);
+    for (var i = 0; i < items.length; i++) {
+        if (items[i].children().first().hasClass("active"))
+            return i;
+    }
+    return 0;
+}
+
+function setSelectedTabIndex(tabId, index) {
+    $(`#${tabId} .nav-link`).removeClass("active");
+    const childIndex = index + 1;
+    $(`#${tabId} > :nth-child(${childIndex}) .nav-link`).trigger("click");
+}
+
+function isEmpty(text) {
+    return text == undefined || text == null || text == "";
 }

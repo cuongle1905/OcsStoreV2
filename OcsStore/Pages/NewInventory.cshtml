@@ -1,0 +1,101 @@
+﻿@page "/inventory/new"
+@using OcsStore.Models
+@model OcsStore.Pages.NewInventoryModel
+@{
+}
+<style>
+</style>
+<div id="top-section">
+</div>
+@(
+Html.DevExtreme().DataGrid<InventoryDetailView>()
+    .ID("main-grid")
+    .DataSource(d => d.Mvc().Controller("Stock").LoadAction("GetNewInventoryDetails").LoadMethod("POST").LoadParams(new { ItemGroupId = new JS("function() { return itemGroupId; }") }))
+    .RemoteOperations(false)
+    .ShowBorders(true)
+    .ShowRowLines(true)
+    .WordWrapEnabled(true)
+    .Sorting(s => s.Mode(GridSortingMode.None))
+    .Paging(p => p.PageSize(100))
+    .Pager(p => p.Visible(false))
+    .OnContentReady("defaultOnGridContentReady")
+    .Columns(columns =>
+    {
+        columns.AddFor(m => m.Selected).Caption("").Width(30).AllowEditing(true);
+        columns.AddFor(m => m.ItemName).Caption("Hàng hóa").Width(140).AllowEditing(false).CellTemplate(new JS("itemCellTemplate"));
+        columns.AddFor(m => m.Lot).Caption("Lô").Width(40).AllowEditing(true);
+        var col = columns.AddFor(m => m.Soh).Caption("Số lượng").Width(60);
+        GridUI.FormatNumberColumn(col, true, null, false);
+
+        col = columns.AddFor(m => m.Ave).Width(70).Caption("Giá\n(đồng)").HeaderCellTemplate(new JS("subLineHeaderCellTemplate"));
+        GridUI.FormatNumberColumn(col);
+    })
+    .Editing(e => e.AllowUpdating(true).Mode(GridEditMode.Batch).SelectTextOnEditStart(true))
+)
+
+<script>
+    pageTitle = "Tạo kiểm kê mới";
+
+    function dateValueChanged(e) {
+        console.log("dateValueChanged", e);
+    }
+
+    $(function () {
+        addDateTimeBoxes("top-section", "", "12rem", "8rem", "2rem", dateValueChanged);
+        
+        addBottomSaveButtonToGrid("#main-grid", "save-button", save);
+
+        $("#main-grid").first().prepend($("#top-section"));
+    });
+
+    function itemCellTemplate(container, options) {
+        let cssColor = cssColorForItemType(options.data.ItemGroup);
+        displayCell(container, options, "●", cssColor);
+    }
+
+    function save() {
+        let grid = $("#main-grid").dxDataGrid("instance");
+        // grid.saveEditData();
+
+        var details = []
+        let rows = grid.getVisibleRows();
+        for (const row of rows) {
+            if (row.rowType == "data" && row.data.Selected) {
+                console.log("row.data.UseLot", row.data.UseLot);
+                if (row.data.UseLot && isEmpty(row.data.Lot)) {
+                    DevExpress.ui.dialog.alert(`Hãy nhập vào số Lô cho '${row.data.ItemName}'.`, "Cảnh báo");
+                    return;
+                }
+                details.push(row.data);
+            }
+        }
+        console.log(details);
+
+        if (details.length == 0) {
+            DevExpress.ui.dialog.alert("Hãy nhập vào chi tiết kiểm kê.", "Cảnh báo");
+            return;
+        }
+
+        DevExpress.ui.dialog.confirm("<i>Bạn có chắc chắn lưu dữ liệu kiểm kê?</i>", "Xác nhận").then(function(dialogResult) {
+            if (dialogResult) {
+                let date = $("#dateBox").dxDateBox("instance").option("value").toISOString();
+                let time = $("#timeBox").dxDateBox("instance").option("text");
+
+                $.ajax({
+                    url: '@Url.Action("SaveInventory", "Stock")',
+                    method: "POST",
+                    data: { date: date, time: time, details: details },
+                    success: function (result) {
+                        DevExpress.ui.dialog.alert("Đã lưu dữ liệu kiểm kê.", "Thông báo").then(function(dialogResult) {
+                            location.href = goBackUrl;
+                        });
+                    },
+                    error: function (xhr, status, error) {
+                        console.log("xhr", xhr, "status", status, "error", error);
+                        DevExpress.ui.dialog.alert("Có lỗi xảy ra. Vui lòng thử lại sau.", "Cảnh báo");
+                    }
+                });
+            }
+        });
+    }
+</script>

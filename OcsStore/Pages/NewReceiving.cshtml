@@ -5,33 +5,7 @@
 }
 <style>
 </style>
-<div id="top-section" class="d-flex align-items-center mb-3">
-    <div class="d-flex mb-3">
-        <div class="data-field">
-            <div class="field-title">Ngày:</div>
-            @(Html.DevExtreme().DateBox()
-                .ID("dateBox")
-                .Width("12rem")
-                .Height("2rem")
-                .InputAttr("aria-label", "Date")
-                .Type(DateBoxType.Date)
-                .Value(DateTime.Today)
-                .DisplayFormat("dd/MM/yyyy")
-                .DropDownOptions(o => o.Position(p => p.Of("#dateBox").At(HorizontalAlignment.Left, VerticalAlignment.Bottom).My(HorizontalAlignment.Left, VerticalAlignment.Top).Offset(0, 2)))
-            )
-        </div>
-        <div class="data-field ms-3">
-            <div class="field-title">Giờ:</div>
-            @(Html.DevExtreme().DateBox()
-                .ID("timeBox")
-                .Width("8rem")
-                .Height("2rem")
-                .Type(DateBoxType.Time)
-                .Value(DateTime.Now)
-                .DisplayFormat("HH:mm")
-            )
-        </div>
-    </div>
+<div id="top-section">
 </div>
 @(
 Html.DevExtreme().DataGrid<ReceivingDetailView>()
@@ -44,53 +18,42 @@ Html.DevExtreme().DataGrid<ReceivingDetailView>()
     .Sorting(s => s.Mode(GridSortingMode.None))
     .Paging(p => p.PageSize(100))
     .Pager(p => p.Visible(false))
-    .OnContentReady("gridContentReady")
+    .OnContentReady("defaultOnGridContentReady")
     .Columns(columns =>
     {
         columns.AddFor(m => m.ItemName).Caption("Hàng hóa").Width(140).Alignment(HorizontalAlignment.Left).AllowEditing(false).CellTemplate(new JS("itemCellTemplate"));
-        columns.AddFor(m => m.Quantity).Caption("Số lượng").Width(60).Alignment(HorizontalAlignment.Right).CustomizeText("emptyZeroNumberCellText")
-            .DataType(GridColumnDataType.Number) // Tells the grid to use dxNumberBox
-            .Format("#,##0") // How the number displays outside of edit mode
-            .EditorOptions(new { format = "#,##0", min = 0, max = 10000, step = 1, showSpinButtons = false });
+        var col = columns.AddFor(m => m.Quantity).Caption("Số lượng").Width(60);
+        GridUI.FormatNumberColumn(col);
+
         columns.AddFor(m => m.UnitName).Caption("").Width(40).Alignment(HorizontalAlignment.Left).AllowEditing(false);
-        columns.AddFor(m => m.Price).Caption("Giá").Width(80).Alignment(HorizontalAlignment.Right).CustomizeText("emptyZeroNumberCellText")
-            .DataType(GridColumnDataType.Number) // Tells the grid to use dxNumberBox
-            .Format("#,##0") // How the number displays outside of edit mode
-            .EditorOptions(new { format = "#,##0", min = 0, max = 10000000, step = 1000, showSpinButtons = false });
+        col = columns.AddFor(m => m.Price).Width(80).Caption("Giá\n(ngàn đồng)").HeaderCellTemplate(new JS("subLineHeaderCellTemplate"));
+        GridUI.FormatNumberColumn(col, true, "K");
+
         columns.AddFor(m => m.Soh).Caption("Tồn kho").Width(60).Alignment(HorizontalAlignment.Right).Format("#,##0").AllowEditing(false).CellTemplate(new JS("sohCellTemplate"));
         columns.AddFor(m => m.Note).Caption("Ghi chú").Width(140).Alignment(HorizontalAlignment.Left);
     })
     .Editing(e => e.AllowUpdating(true).Mode(GridEditMode.Batch).SelectTextOnEditStart(true))
 )
 
-<div id="bottom-buttons" class="pt-3 text-end">
-    @(Html.DevExtreme().Button()
-        .Text("Lưu")
-        .Width(80)
-        .Type(ButtonType.Default)
-        .StylingMode(ButtonStylingMode.Contained)
-        .Icon("bi bi-download")
-        .OnClick("save")
-    )
-</div>
-
 <script>
     pageTitle = "Nhập kho";
 
-    $(function () {
-        $("#main-grid").first().prepend($("#top-section"));
-        $("#main-grid").first().append($("#bottom-buttons"));
-        addDateOverlayLabel("dateBox", dateValueChanged);
-    });
-
-    function gridContentReady() {
-        let cells = $(".dx-header-row > td");
-        // console.log(cells);
-        cells.css("text-align", "center");
+    function dateValueChanged(e) {
+        console.log("dateValueChanged", e);
     }
 
-    function dateValueChanged(e) {
-        console.log(e);
+    $(function () {
+        addDateTimeBoxes("top-section", "", "12rem", "8rem", "2rem", dateValueChanged);
+        
+        addBottomSaveButtonToGrid("#main-grid", "save-button", save);
+
+        $("#main-grid").first().prepend($("#top-section"));
+    });
+
+    function expandCollapseData() {
+        let grid = $("#main-grid").dxDataGrid("instance");
+        grid.columnOption("Soh", "visible", isDataExpanded);
+        grid.columnOption("Note", "visible", isDataExpanded);
     }
 
     function sohCellTemplate(container, options) {
@@ -115,6 +78,7 @@ Html.DevExtreme().DataGrid<ReceivingDetailView>()
                     DevExpress.ui.dialog.alert(`Hãy nhập vào Giá cho sản phẩm '${row.data.ItemName}'.`, "Cảnh báo");
                     return;
                 }
+                row.data.Price *= 1000;
                 details.push(row.data);
             }
         }

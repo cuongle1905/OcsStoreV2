@@ -48,5 +48,69 @@ namespace OcsStore.Controllers
             _context.Database.ExecuteSqlRaw("call calculate_strans_item(" + itemId + ");");
             return Ok();
         }
+
+
+        [HttpPost]
+        public IActionResult GetInventoryDetails(sbyte itemGroupId, DataSourceLoadOptions loadOptions)
+        {
+            var result = DataSourceLoader.Load(_context.InventoryDetailViews.Where(i => i.ItemGroup == itemGroupId), loadOptions);
+            return Ok(result);
+        }
+
+        [HttpPost]
+        public IActionResult GetNewInventoryDetails(sbyte itemGroupId, DataSourceLoadOptions loadOptions)
+        {
+            var stocks = _context.StockViews.Where(i => i.ItemGroup == itemGroupId);
+            List<InventoryDetailView> details = new List<InventoryDetailView>();
+
+            foreach (var s in stocks)
+            {
+                var detail = new InventoryDetailView() { Selected = false, Item = s.Item, ItemName = s.ItemName, UseLot = s.UseLot ?? false, Lot = s.Lot, Year = (sbyte)(s.Year ?? DateTime.Today.Year % 100), Soh = s.Soh ?? 0 };
+                details.Add(detail);
+            }
+
+            var result = DataSourceLoader.Load(details, loadOptions);
+            return Ok(result);
+        }
+
+        [HttpPost]
+        public IActionResult SaveInventory(DateTime date, string time, InventoryDetail[] details)
+        {
+            date = Common.GetLocalDateWithoutTime(date); // Remove hour, minute...
+            int inventoryId;
+            try
+            {
+                inventoryId = _context.Inventories.Max(i => i.Id) + 1;
+            }
+            catch
+            {
+                inventoryId = 1;
+            }
+
+            var inventory = new Inventory() { Id = inventoryId, Date = date, Time = time, UserCreated = Session.UserId(Request) };
+            _context.Inventories.Add(inventory);
+
+            int detailId;
+            try
+            {
+                detailId = _context.InventoryDetails.Max(i => i.Id) + 1;
+            }
+            catch
+            {
+                detailId = 1;
+            }
+
+            foreach (var d in details)
+            {
+                var inventoryDetail = new InventoryDetail() { Id = detailId++, Inventory = inventoryId, Item = d.Item, Unit = d.Unit, Lot = d.Lot, Year = d.Year, Soh = d.Soh, Ave = d.Ave };
+                _context.InventoryDetails.Add(inventoryDetail);
+            }
+
+            _context.SaveChanges();
+
+            _context.Database.ExecuteSqlRaw("call calculate_strans_inventory(" + inventoryId + ");");
+
+            return Ok();
+        }
     }
 }
