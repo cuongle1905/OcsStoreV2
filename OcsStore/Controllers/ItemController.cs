@@ -34,9 +34,20 @@ namespace OcsStore.Controllers
         }
 
         [HttpPost]
-        public IActionResult GetItemManagementViews(int groupId, DataSourceLoadOptions loadOptions)
+        public IActionResult GetItemManagementViews(int groupId, int[] materialIds, DataSourceLoadOptions loadOptions)
         {
-            var result = DataSourceLoader.Load(_context.ItemManagementViews.Where(i => i.Group == groupId), loadOptions);
+            IQueryable<ItemManagementView> data;
+            if (groupId == 3 && materialIds.Length > 0)
+            {
+                var itemIds = _context.ItemMaterials.Where(i => materialIds.Contains(i.Material)).Select(i => i.Item).Distinct().ToList();
+                data = _context.ItemManagementViews.Where(i => i.Group == groupId && itemIds.Contains(i.Id));
+            }
+            else
+            {
+                data = _context.ItemManagementViews.Where(i => i.Group == groupId);
+            }
+
+            var result = DataSourceLoader.Load(data, loadOptions);
             return Ok(result);
         }
 
