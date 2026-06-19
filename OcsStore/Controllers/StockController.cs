@@ -65,7 +65,7 @@ namespace OcsStore.Controllers
 
             foreach (var s in stocks)
             {
-                var detail = new InventoryDetailView() { Selected = false, Item = s.Item, ItemName = s.ItemName, UseLot = s.UseLot ?? false, Lot = s.Lot, Year = (sbyte)(s.Year ?? DateTime.Today.Year % 100), Soh = s.Soh ?? 0 };
+                var detail = new InventoryDetailView() { Selected = false, Item = s.Item, ItemGroup = s.ItemGroup, ItemName = s.ItemName, UseLot = s.UseLot ?? false, Lot = s.Lot, Year = (sbyte)(s.Year ?? DateTime.Today.Year % 100), Soh = s.Soh ?? 0 };
                 details.Add(detail);
             }
 

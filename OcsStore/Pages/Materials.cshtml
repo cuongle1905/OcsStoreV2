@@ -19,20 +19,10 @@
         height: 14px;
     }
 </style>
-<div id="top-section" class="pb-3">
-    <ul id="groups-tab" class="nav nav-justified">
-        <li class="nav-item">
-            <a class="nav-link nav-link-brown" href="#" onclick="tabClicked(0);">Hạt rang</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link nav-link-blue" href="#" onclick="tabClicked(1);">Cafe</a>
-        </li>
-    </ul>
-</div>
 
 @(Html.DevExtreme().DataGrid<MaterialView>()
     .ID("main-grid")
-    .DataSource(d => d.Mvc().Controller("Item").LoadAction("GetMaterialViews").LoadMethod("POST").LoadParams(new { GroupId = new JS("function() { return itemGroupId; }") }).OnLoaded("gridDataLoadedForUsedData"))
+    .DataSource(d => d.Mvc().Controller("Item").LoadAction("GetMaterialViews").LoadMethod("POST").LoadParams(new { GroupId = 3 }).OnLoaded("gridDataLoadedForUsedData"))
     .RemoteOperations(false)
     .ShowBorders(true)
     .ShowRowLines(true)
@@ -53,31 +43,15 @@
 )
 
 <script>
-    var itemGroupId = 2;
     pageTitle = "Công thức chế biến";
     goBackUrl = "/datamanagement";
 
     $(function () {
-        $("#main-grid").first().prepend($("#top-section"));
-        updateSelectedTab();
-
-        appendAddButtonToGrid("#main-grid", function() {
+        appendAddButtonToGrid("main-grid", "add-button", "Thêm", function() {
             location.href = "/material?sourceurl=materials&&group=" + itemGroupId;
         });
     });
 
-    function tabClicked(tabIndex) {
-        let selectedTabIndex = itemGroupId - 1;
-        $(`#groups-tab > :nth-child(${selectedTabIndex}) .nav-link`).removeClass("active");
-        itemGroupId = tabIndex + 2;
-        reloadData();
-        updateSelectedTab();
-    }
-
-    function updateSelectedTab() {
-        let selectedTabIndex = itemGroupId - 1;
-        $(`#groups-tab > :nth-child(${selectedTabIndex}) .nav-link`).addClass("active");
-    }
 
     function groupCellTemplate(container, options) {
         console.log("groupCellTemplate options", options);
@@ -86,7 +60,7 @@
         container.append(groupContent);
         $("<div>").dxButton({
             text: "",
-            icon: detailArrowSvg,
+            icon: detailArrowIcon,
             stylingMode: "text",
             elementAttr: { class: "detail-arrow no-border-button cell-link-button" },
             onClick: function (e) {

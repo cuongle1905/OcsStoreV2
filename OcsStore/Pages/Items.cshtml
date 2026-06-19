@@ -5,17 +5,6 @@
 }
 
 <div id="top-section" class="pb-3">
-    <ul id="groups-tab" class="nav nav-justified">
-        <li class="nav-item">
-            <a class="nav-link nav-link-green" aria-current="page" href="#" onclick="tabClicked(0);">Nhân xanh</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link nav-link-brown" href="#" onclick="tabClicked(1);">Hạt rang</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link nav-link-blue" href="#" onclick="tabClicked(2);">Cafe</a>
-        </li>
-    </ul>
 </div>
 
 @(Html.DevExtreme().DataGrid<ItemManagementView>()
@@ -48,32 +37,33 @@
 )
 
 <script>
-    var itemGroupId = 1;
     pageTitle = "Hàng hóa";
     deleteUrl = '@Url.Action("Delete", "Item")';
     saveUrl = '@Url.Action("SaveItems", "Item")';
 
     $(function () {
+        if (itemGroupId < 2)
+            itemGroupId = 2;
+
         $("#main-grid").first().prepend($("#top-section"));
+
+        appendAddButtonToGrid("main-grid", "quick-add-button", "Tạo từ công thức", function() {
+            location.href = "/item/quicknew";
+        });
         appendAddButtonToGrid();
         appendUndoSaveButtonsToGrid();
-        updateSelectedTab();
+        addTabList("top-section", "groups-tab", ["Hạt rang", "Cafe"], itemGroupId - 2, tabClicked);
     });
 
     function tabClicked(tabIndex) {
-        $(`#groups-tab > :nth-child(${itemGroupId}) .nav-link`).removeClass("active");
-        itemGroupId = tabIndex + 1;
+        itemGroupId = tabIndex + 2;
+        $("#quick-add-button").css("visibility", itemGroupId == 3 ? "visible" : "hidden");
         reloadData();
-        updateSelectedTab();
-    }
-
-    function updateSelectedTab() {
-        $(`#groups-tab > :nth-child(${itemGroupId}) .nav-link`).addClass("active");
     }
 
     function onInitNewRow(e) {
         e.data.Id = 0;
-        e.data.ItemGroup = itemGroupId;
+        e.data.Group = itemGroupId;
         e.data.Unit = 1;
         e.data.UseLot = (itemGroupId == 2);
         e.data.AllowSale = (itemGroupId == 3);

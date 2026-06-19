@@ -7,6 +7,7 @@ namespace OcsStore.Models;
 
 public partial class MyDbContext : DbContext
 {
+
     public MyDbContext(DbContextOptions<MyDbContext> options)
         : base(options)
     {
@@ -674,9 +675,6 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.Ordinal)
                 .HasDefaultValueSql("'1'")
                 .HasColumnName("ordinal");
-            entity.Property(e => e.ProcessingDesc)
-                .HasMaxLength(45)
-                .HasColumnName("processing_desc");
             entity.Property(e => e.SalePrice)
                 .HasPrecision(8)
                 .HasColumnName("sale_price");
@@ -758,9 +756,6 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.Ordinal)
                 .HasDefaultValueSql("'1'")
                 .HasColumnName("ordinal");
-            entity.Property(e => e.ProcessingDesc)
-                .HasMaxLength(45)
-                .HasColumnName("processing_desc");
             entity.Property(e => e.SalePrice)
                 .HasPrecision(8)
                 .HasColumnName("sale_price");
@@ -969,9 +964,6 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.Ordinal)
                 .HasDefaultValueSql("'1'")
                 .HasColumnName("ordinal");
-            entity.Property(e => e.ProcessingDesc)
-                .HasMaxLength(45)
-                .HasColumnName("processing_desc");
             entity.Property(e => e.ProcessingName)
                 .IsRequired()
                 .HasMaxLength(45)
@@ -1725,7 +1717,9 @@ public partial class MyDbContext : DbContext
                 .HasMaxLength(10)
                 .HasColumnName("lot");
             entity.Property(e => e.LotOrdinal)
+                .IsRequired()
                 .HasMaxLength(8)
+                .HasDefaultValueSql("''")
                 .HasColumnName("lot_ordinal");
             entity.Property(e => e.Soh)
                 .HasPrecision(10, 2)

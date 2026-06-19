@@ -25,8 +25,6 @@ public partial class ItemManagementView
 
     public decimal MinSoh { get; set; }
 
-    public string ProcessingDesc { get; set; }
-
     public bool AllowSale { get; set; }
 
     public decimal? SalePrice { get; set; }

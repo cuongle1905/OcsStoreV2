@@ -23,8 +23,6 @@ public partial class ItemView
 
     public bool UseLot { get; set; }
 
-    public string ProcessingDesc { get; set; }
-
     public bool Inactive { get; set; }
 
     public string UnitName { get; set; }

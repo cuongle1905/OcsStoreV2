@@ -110,10 +110,38 @@ namespace OcsStore.Controllers
                     item.Code = item.Name;
 
                 _context.Items.Add(item);
+
+                if (item.Group == 2)
+                {
+                    var materialId = item.Id + 1;
+                    string materialName = item.Name + " N.Xanh";
+                    var material = new Item() { Id = materialId, Name = materialName, Code = materialName, FullName = materialName };
+                    _context.Items.Add(material);
+
+                    var itemMaterial = new ItemMaterial() { Item = item.Id, Material = materialId };
+                    _context.ItemMaterials.Add(itemMaterial);
+                }
             }
             else
             {
                 _context.Items.Update(item);
+
+                if (item.Group == 2)
+                {
+                    var itemMaterial = _context.ItemMaterials.FirstOrDefault(i => i.Item == item.Id);
+                    if (itemMaterial != null)
+                    {
+                        var material = _context.Items.FirstOrDefault(i => i.Id == itemMaterial.Material);
+                        if (material != null)
+                        {
+                            string materialName = item.Name + " N.Xanh";
+                            material.Name = materialName;
+                            material.Code = materialName;
+                            material.FullName = materialName;
+                            _context.Items.Update(material);
+                        }
+                    }
+                }
             }
             _context.SaveChanges();
         }
@@ -137,7 +165,25 @@ namespace OcsStore.Controllers
                 var item = _context.Items.FirstOrDefault(i => i.Id == id);
                 if (item != null)
                 {
-                    _context.Items.Remove(item);
+                    if (item.Group == 2)
+                    {
+                        var itemMaterial = _context.ItemMaterials.FirstOrDefault(i => i.Item == item.Id);
+                        if (itemMaterial != null)
+                        {
+                            var material = _context.Items.FirstOrDefault(i => i.Id == itemMaterial.Material);
+                            if (material != null && _context.ReceivingDetails.FirstOrDefault(i => i.Item == material.Id) == null
+                                    && _context.ProcessingInputs.FirstOrDefault(i => i.Item == material.Id) == null)
+                            {
+                                _context.ItemMaterials.Remove(itemMaterial);
+                                _context.Items.Remove(material);
+                                _context.Items.Remove(item);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        _context.Items.Remove(item);
+                    }
                     _context.SaveChanges();
                 }
             }
