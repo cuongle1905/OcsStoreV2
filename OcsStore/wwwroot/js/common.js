@@ -130,32 +130,32 @@ function deleteRowData(rowIndex) {
     });
 }
 
-function createButton(id, text, width, style, icon, onClickFunc) {
-    if (width == undefined)
-        width = 160;
+function createButton(e) {
+    console.log("createButton", e);
 
-    return $(id).dxButton({
-        text: text,
-        width: width,
+    $(`#${e.id}`).dxButton({
+        text: e.text,
+        width: e.width,
         type: "default",
-        stylingMode: style,
-        icon: icon,
-        onClick: onClickFunc
+        stylingMode: e.style,
+        icon: e.icon,
+        onClick: e.onClick
     });
+    return $(`#${e.id}`).dxButton("instance");
 }
 
 function createSaveButton(width, style) {
     if (style == undefined)
         style = "contained";
 
-    return createButton("#save-button", "Lưu", width, style, "bi bi-download", save)
+    return createButton({ id: "save-button", text: "Lưu", width: width, style: style, icon: "bi bi-download", onClick: save });
 }
 
 function createUndoButton(width, style) {
     if (style == undefined)
         style = "outlined";
 
-    return createButton("#undo-button", "Bỏ qua", width, style, "undo", undo)
+    return createButton({ id: "#undo-button", text: "Bỏ qua", width: width, style: style, icon: "undo", onClick: undo });
 }
 
 function createGridTopAddButton(buttonId, gridId, onClickFunc) {
@@ -195,22 +195,15 @@ function reloadData() {
 }
 
 function appendUndoSaveButtonsToGrid(gridId) {
-    if (gridId == undefined)
-        gridId = "#main-grid";
-
-    let buttonsDiv = createBottomButtonsDiv();
-    $(gridId).first().append(buttonsDiv);
-    buttonsDiv.append($(`<div id="undo-button">`));
-    buttonsDiv.append($(`<div id="save-button">`));
-    createUndoButton();
-    createSaveButton();
+    appendButtonToGrid({ gridId: gridId, level: 2, action: "undo", fill: true, onClick: undo });
+    appendButtonToGrid({ gridId: gridId, level: 2, action: "save", fill: true, onClick: save });
 }
 
-function addBottomButtonToGrid(gridId, buttonId, buttonText, width, style, buttonIcon, onClickFunc) {
+function addBottomButtonToGrid(e) {
     let buttonsDiv = createBottomButtonsDiv();
     $(gridId).first().append(buttonsDiv);
     buttonsDiv.append($(`<div id="${buttonId}">`));
-    return createButton("#" + buttonId, buttonText, width, style, buttonIcon, onClickFunc);
+    return createButton(e);
 }
 
 function addBottomSaveButtonToGrid(gridId, buttonId, onClickFunc) {
@@ -253,6 +246,103 @@ function appendAddButtonToGrid(gridId, buttonId, text, onClickFunc) {
 
     buttonsDiv.append($(`<div id="${buttonId}">`));
     return createGridAddButton(buttonId, text, gridId, onClickFunc);
+}
+
+function appendBottomRightButtonToGrid(e) {
+    if (e.gridId == undefined)
+        e.gridId = "main-grid";
+
+    let buttonsDiv = gridBottomButtonsDiv(e.gridId);
+    if (e.buttonId == undefined)
+        e.buttonId = `${e.gridId}-add-button`;
+
+    buttonsDiv.append($(`<div id="${buttonId}">`));
+
+    return createButton(`#${buttonId}`, text, "auto", "text", "bi bi-plus-circle-fill", onClickFunc);
+}
+
+function gridButtonContainer(e) {
+    setupGridButtonParam(e);
+
+    let container = $(`#${e.containerId}`);
+    if (container.length === 0) {
+        const paddingTop = e.level + 1;
+        container = $(`<div id="${e.containerId}" class="pt-${paddingTop} text-${e.align} d-flex justify-content-${e.align} gap-3">`);
+        if (e.position == "bottom")
+            $(`#${e.gridId}`).first().append(container);
+        else
+            $(`#${e.gridId}`).first().prepend(container);
+    }
+    return container;
+}
+
+function setupGridButtonParam(e) {
+    if (e.gridId == undefined)
+        e.gridId = "main-grid";
+
+    if (e.level == undefined)
+        e.level = 1;
+
+    if (e.position == undefined)
+        e.position = "bottom";
+
+    if (e.containerId == undefined)
+        e.containerId = `${e.gridId}-${e.position}-buttons${e.level}`;
+
+    if (e.action == undefined)
+        e.action = "add";
+
+    if (e.style == undefined) {
+        if (e.action == "undo")
+            e.style = "outlined";
+        else
+            e.style = "contained";
+    }
+
+    if (e.icon == undefined) {
+        if (e.action == "save") {
+            e.icon = "bi bi-download";
+        } else if (e.action == "add") {
+            e.icon = (e.style == "contained" ? "bi bi-plus" : "bi bi-plus-circle-fill");
+        } else if (e.action == "undo") {
+            e.icon = "undo";
+        }
+    }
+
+    if (e.text == undefined) {
+        if (e.action == "save") {
+            e.text = "Lưu";
+        } else if (e.action == "add") {
+            e.text = "Thêm";
+        } else if (e.action == "undo") {
+            e.text = "Bỏ qua";
+        }
+    }
+
+    if (e.id == undefined)
+        e.id = `${e.containerId}-${e.action}`;
+
+    if (e.align == undefined)
+        e.align = (e.level == 1 ? "end" : "center");
+
+    if (e.width == undefined)
+        e.width = "auto";
+
+    if (e.height == undefined)
+        e.height = "2rem";
+
+    if (e.action == "add" && e.onClick == undefined) {
+        e.onClick = function () {
+            $(`#${e.gridId}`).dxDataGrid("addRow");
+        };
+    }
+}
+
+function appendButtonToGrid(e) {
+    const container = gridButtonContainer(e);
+    const cssClass = (e.fill ? "flex-fill" : "")
+    container.append($(`<div id="${e.id}" class="${cssClass}">`));
+    return createButton(e);
 }
 
 function appendTopAddButtonToGrid(gridId, onClickFunc) {

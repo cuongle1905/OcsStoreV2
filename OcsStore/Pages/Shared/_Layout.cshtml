@@ -62,7 +62,7 @@
     
     @RenderSection("HeadSection", false)
 </head>
-<body style="padding-top: 0.3rem;" spellcheck="false">
+<body spellcheck="false">
     <script>
         const True = true;
         const False = false;
@@ -227,102 +227,98 @@
             }
         </div>
     </div>
-    <main id="my-container" role="main">
-        @if (hasToken)
-        {
-            <div id="home-left-panel">
-            @(Html.DevExtreme().ScrollView()
-                .ID("home-left-scrollview")
-                .ScrollByContent(true)
-                .ScrollByThumb(true)
-                .ShowScrollbar(ShowScrollbarMode.Never)
-                .Content(@<text>
-                    <div id="home-left-scrollview-content" style="">
-                    @if (hasToken)
-                    {
-                        <a class="menu-link" href='/'>
-                            <div class="home-left-item">
-                                <i class="dx-icon-home"></i>
-                                <div class="home-left-item-text">
-                                    <span>Màn hình chính</span>
-                                </div>
+    @if (hasToken)
+    {
+        <div id="home-left-panel">
+        @(Html.DevExtreme().ScrollView()
+            .ID("home-left-scrollview")
+            .ScrollByContent(true)
+            .ScrollByThumb(true)
+            .ShowScrollbar(ShowScrollbarMode.Never)
+            .Content(@<text>
+                <div id="home-left-scrollview-content" style="">
+                @if (hasToken)
+                {
+                    <a class="menu-link" href='/'>
+                        <div class="home-left-item">
+                            <i class="dx-icon-home"></i>
+                            <div class="home-left-item-text">
+                                <span>Màn hình chính</span>
                             </div>
-                        </a>
-                        <a class="menu-link" href='~/stock'>
-                            <div class="home-left-item">
-                                <i class="dx-icon-box"></i>
-                                <div class="home-left-item-text">
-                                    <span>Tồn kho</span>
-                                </div>
+                        </div>
+                    </a>
+                    <a class="menu-link" href='~/stock'>
+                        <div class="home-left-item">
+                            <i class="dx-icon-box"></i>
+                            <div class="home-left-item-text">
+                                <span>Tồn kho</span>
                             </div>
-                        </a>
-                        <a class="menu-link" href='~/receiving'>
-                            <div class="home-left-item">
-                                <i class="dx-icon-cart"></i>
-                                <div class="home-left-item-text">
-                                    <span>Nhập kho</span>
-                                </div>
+                        </div>
+                    </a>
+                    <a class="menu-link" href='~/receiving'>
+                        <div class="home-left-item">
+                            <i class="dx-icon-cart"></i>
+                            <div class="home-left-item-text">
+                                <span>Nhập kho</span>
                             </div>
-                        </a>
-                        <a class="menu-link" href='~/processing'>
-                            <div class="home-left-item">
-                                <i class="dx-icon-preferences"></i>
-                                <div class="home-left-item-text">
-                                    <span>Chế biến</span>
-                                </div>
+                        </div>
+                    </a>
+                    <a class="menu-link" href='~/processing'>
+                        <div class="home-left-item">
+                            <i class="dx-icon-preferences"></i>
+                            <div class="home-left-item-text">
+                                <span>Chế biến</span>
                             </div>
-                        </a>
-                        <a class="menu-link" href='~/sales'>
-                            <div class="home-left-item">
-                                <i class="dx-icon-coffee"></i>
-                                <div class="home-left-item-text">
-                                    <span>Bán hàng</span>
-                                </div>
+                        </div>
+                    </a>
+                    <a class="menu-link" href='~/sales'>
+                        <div class="home-left-item">
+                            <i class="dx-icon-coffee"></i>
+                            <div class="home-left-item-text">
+                                <span>Bán hàng</span>
                             </div>
-                        </a>
-                        <a class="menu-link" href='~/customer'>
-                            <div class="home-left-item">
-                                <i class="dx-icon-box"></i>
-                                <div class="home-left-item-text">
-                                    <span>Khách hàng - Công nợ</span>
-                                </div>
+                        </div>
+                    </a>
+                    <a class="menu-link" href='~/customer'>
+                        <div class="home-left-item">
+                            <i class="dx-icon-box"></i>
+                            <div class="home-left-item-text">
+                                <span>Khách hàng - Công nợ</span>
                             </div>
-                        </a>
-                        <a class="menu-link" href='~/inventory'>
-                            <div class="home-left-item">
-                                <i class="dx-icon-coffee"></i>
-                                <div class="home-left-item-text">
-                                    <span>Kiểm kê</span>
-                                </div>
+                        </div>
+                    </a>
+                    <a class="menu-link" href='~/inventory'>
+                        <div class="home-left-item">
+                            <i class="dx-icon-coffee"></i>
+                            <div class="home-left-item-text">
+                                <span>Kiểm kê</span>
                             </div>
-                        </a>
-                        <a class="menu-link" href='~/report'>
-                            <div class="home-left-item">
-                                <i class="dx-icon-chart"></i>
-                                <div class="home-left-item-text">
-                                    <span>Báo cáo</span>
-                                </div>
+                        </div>
+                    </a>
+                    <a class="menu-link" href='~/report'>
+                        <div class="home-left-item">
+                            <i class="dx-icon-chart"></i>
+                            <div class="home-left-item-text">
+                                <span>Báo cáo</span>
                             </div>
-                        </a>
-                        <a class="menu-link" href='~/datamanagement'>
-                            <div class="home-left-item">
-                                <i class="bi bi-stack"></i>
-                                <div class="home-left-item-text">
-                                    <span>Quản lý dữ liệu</span>
-                                </div>
+                        </div>
+                    </a>
+                    <a class="menu-link" href='~/datamanagement'>
+                        <div class="home-left-item">
+                            <i class="bi bi-stack"></i>
+                            <div class="home-left-item-text">
+                                <span>Quản lý dữ liệu</span>
                             </div>
-                        </a>
-                    }
-                    </div>
-                </text>)
-            )
-        </div>
-        }
-        <div id="home-right-panel">
-            <div id="main-content">
-                @RenderBody()
-            </div>
-        </div>
+                        </div>
+                    </a>
+                }
+                </div>
+            </text>)
+        )
+    </div>
+    }
+    <main id="main-content">
+        @RenderBody()
     </main>
 @*<a id="scroll-to-top-button" class="my-floating-button" href="#" onclick="scrollToTop()"><i class="dx-icon-chevronup"></i></a>*@
 

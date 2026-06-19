@@ -9,7 +9,7 @@
     }
 </style>
 
-<div class="container mt-5">
+<div class="container pt-4">
     <div class="row">
         <div class="col ms-4">
             <div id="items-button"></div>
@@ -20,17 +20,10 @@
     </div>
     <div class="row mt-5">
         <div class="col ms-4">
-            <div id="materials-button"></div>
-        </div>
-        <div class="col ms-4 me-4">
             <div id="customers-button"></div>
         </div>
-    </div>
-    <div class="row mt-5">
-        <div class="col ms-4">
-            <div id="users-button"></div>
-        </div>
         <div class="col ms-4 me-4">
+            <div id="users-button"></div>
         </div>
     </div>
 </div>
@@ -63,16 +56,16 @@
             }
         });
 
-        $("#materials-button").dxButton({
-            text: "Công thức",
-            width: "100%",
-            type: "default",
-            stylingMode: buttonStyle,
-            icon: "bi bi-gear-wide-connected",
-            onClick: function() {
-                location.href = "/materials?sourceurl=datamanagement";
-            }
-        });
+        // $("#materials-button").dxButton({
+        //     text: "Công thức",
+        //     width: "100%",
+        //     type: "default",
+        //     stylingMode: buttonStyle,
+        //     icon: "bi bi-gear-wide-connected",
+        //     onClick: function() {
+        //         location.href = "/materials?sourceurl=datamanagement";
+        //     }
+        // });
 
         $("#customers-button").dxButton({
             text: "Khách hàng",

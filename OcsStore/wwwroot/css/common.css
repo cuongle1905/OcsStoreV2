@@ -158,14 +158,6 @@ h6, .h6, h5, .h5, h4, .h4, h3, .h3, h2, .h2, h1, .h1 {
     border-bottom: 1px solid #e4e3e5;
 }
 
-#my-container {
-    position: absolute;
-    top: 48px;
-    left: 0;
-    right: 0;
-    bottom: 0;
-}
-
 #top-bar {
     background-color: var(--common-color-main);
     height: 40px;
@@ -201,15 +193,6 @@ h6, .h6, h5, .h5, h4, .h4, h3, .h3, h2, .h2, h1, .h1 {
     z-index: 500;
     bottom: auto;
     visibility: hidden;
-}
-
-#home-right-panel {
-/*    position: absolute;
-    top: 0px;
-    right: 0;
-    bottom: 0;
-    left: 0;*/
-    padding-bottom: 30rem;
 }
 
 a.menu-link, a.menu-link:hover, a.menu-link:active, a.menu-link:visited {
@@ -262,7 +245,18 @@ a.icon-link, a.icon-link:active, a.icon-link:hover, a.icon-link:hover {
 }
 
 #main-content {
-    padding: 1rem 1rem;
+    padding-top: 48px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 430px;
+}
+
+@media (max-width: 430px) {
+    #main-content {
+        margin-left: 0;
+        margin-right: 0;
+        width: auto;
+    }
 }
 
 #caption {

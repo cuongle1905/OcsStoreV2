@@ -38,8 +38,10 @@
 
 <script>
     pageTitle = "Hàng hóa";
+    goBackUrl = "/datamanagement";
     deleteUrl = '@Url.Action("Delete", "Item")';
     saveUrl = '@Url.Action("SaveItems", "Item")';
+    let addButton;
 
     $(function () {
         if (itemGroupId < 2)
@@ -47,18 +49,29 @@
 
         $("#main-grid").first().prepend($("#top-section"));
 
-        appendAddButtonToGrid("main-grid", "quick-add-button", "Tạo từ công thức", function() {
-            location.href = "/item/quicknew";
-        });
-        appendAddButtonToGrid();
+        addButton = appendButtonToGrid({style: "text", onClick: addData});
         appendUndoSaveButtonsToGrid();
+
         addTabList("top-section", "groups-tab", ["Hạt rang", "Cafe"], itemGroupId - 2, tabClicked);
     });
 
     function tabClicked(tabIndex) {
         itemGroupId = tabIndex + 2;
-        $("#quick-add-button").css("visibility", itemGroupId == 3 ? "visible" : "hidden");
+        console.log("tabClicked addButton", addButton);
+        addButton.option("text", isProduct() ? "Tạo từ công thức" : "Thêm")
         reloadData();
+    }
+
+    function addData() {
+        if (isProduct()) {
+            location.href = "/item/quicknew";
+        } else {
+            $(`#main-grid`).dxDataGrid("addRow");
+        }
+    }
+
+    function isProduct() {
+        return itemGroupId == 3;
     }
 
     function onInitNewRow(e) {
