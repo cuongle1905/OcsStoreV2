@@ -28,11 +28,9 @@ namespace OcsStore.Controllers
             return Ok(result);
         }
 
-        [HttpPost]
-        public IActionResult GetItems(int groupId, DataSourceLoadOptions loadOptions)
+        public Item[] GetItems(short groupId)
         {
-            var result = DataSourceLoader.Load(_context.ItemViews.Where(i => i.Group == groupId), loadOptions);
-            return Ok(result);
+            return _context.Items.Where(i => i.Group == groupId).ToArray();
         }
 
         [HttpPost]
@@ -304,6 +302,72 @@ namespace OcsStore.Controllers
             foreach (ItemMaterial itemMaterial in data)
             {
                 SaveMaterial(itemMaterial);
+            }
+            return Ok();
+        }
+
+        public int FirstMaterialIdToCreateItem()
+        {
+            return _context.Items.FirstOrDefault(i => i.Group == 2).Id;
+        }
+
+        public int SecondMaterialIdToCreateItem()
+        {
+            return _context.Items.FirstOrDefault(i => i.Group == 2 && i.Name.ToLower().StartsWith("ao")).Id;
+        }
+
+        [HttpPost]
+        public IActionResult GetItemCoupleMaterials(int material1, int material2, DataSourceLoadOptions loadOptions)
+        {
+            var itemMaterials = _context.ItemMaterialViews.Where(i => i.ItemGroup == 3).ToList();
+
+            List<ItemCoupleMaterialView> data = new List<ItemCoupleMaterialView>();
+            for (int i = 0; i <= 10; i++)
+            {
+                ItemCoupleMaterialView v = new ItemCoupleMaterialView() { Selected = false, Item = 0, Material1 = material1,MaterialName1 = GetItem(material1).Name, Quantity1 = (10 - i), Material2 = material2, MaterialName2 = GetItem(material2).Name, Quantity2 = i};
+
+                if (i == 0)
+                    v.CalculatedName = "100" + v.MaterialName1;
+                else if (i == 10)
+                    v.CalculatedName = "100" + v.MaterialName2;
+                else
+                    v.CalculatedName = "Cf " + (10 - i) + v.MaterialName1 + " - " + i + v.MaterialName2;
+
+
+                var itemMaterial1s = itemMaterials.Where(i => i.Material ==  material1 && i.Quantity * 10 == v.Quantity1).ToArray();
+                foreach (var itemMaterial1 in itemMaterial1s)
+                {
+                    var itemMaterial2 = itemMaterials.FirstOrDefault(i => i.Item == itemMaterial1.Item && i.Material == material2 && i.Quantity * 10 == v.Quantity2);
+                    if (itemMaterial2 != null)
+                    {
+                        v.Item = itemMaterial2.Item;
+                        v.ItemName = itemMaterial2.ItemName;
+                        break;
+                    }
+                }
+
+                data.Add(v);
+            }
+
+            var result = DataSourceLoader.Load(data, loadOptions);
+            return Ok(result);
+        }
+
+        [HttpPost]
+        public IActionResult SaveItemCoupleMaterials(ItemCoupleMaterialView[] data)
+        {
+            foreach (var record in data)
+            {
+                var item = new Item() { Id = 0, Name = record.CalculatedName, Group = 3 };
+                SaveItem(item);
+
+                var itemMaterial1 = new ItemMaterial() { Item = item.Id, Material = record.Material1, Quantity = record.Quantity1 / 10 };
+                _context.ItemMaterials.Add(itemMaterial1);
+
+                var itemMaterial2 = new ItemMaterial() { Item = item.Id, Material = record.Material2, Quantity = record.Quantity2 / 10 };
+                _context.ItemMaterials.Add(itemMaterial2);
+
+                _context.SaveChanges();
             }
             return Ok();
         }

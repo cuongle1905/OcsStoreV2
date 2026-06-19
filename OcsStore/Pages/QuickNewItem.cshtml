@@ -1,8 +1,92 @@
 ﻿@page "/item/quicknew"
+@using OcsStore.Models
 @model OcsStore.Pages.QuickNewItemModel
 @{
 }
+
+<div id="top-section" class="d-flex pt-3" style="position: relative; margin-left: auto; margin-right: auto;">
+    <div class="data-field">
+        <div class="field-title">Nguyên liệu 1:</div>
+        <div id="select-material1"></div>
+    </div>
+    <div class="data-field ms-3">
+        <div class="field-title">Nguyên liệu 2:</div>
+        <div id="select-material2"></div>
+    </div>
+</div>
+
+@(Html.DevExtreme().DataGrid<ItemCoupleMaterialView>()
+    .ID("main-grid")
+    .DataSource(d => d.Mvc().Controller("Item").LoadAction("GetItemCoupleMaterials").LoadMethod("POST").LoadParams(new { Material1 = new JS("function() { return material1; }"), Material2 = new JS("function() { return material2; }") }))
+    .RemoteOperations(false)
+    .ShowBorders(true)
+    .ShowRowLines(true)
+    .WordWrapEnabled(true)
+    .Sorting(s => s.Mode(GridSortingMode.None))
+    .Paging(p => p.PageSize(100))
+    .Pager(p => p.Visible(false))
+    .OnContentReady("defaultOnGridContentReady")
+    .Columns(columns =>
+    {
+        columns.AddFor(m => m.Selected).Caption("").Width(30).AllowEditing(true);
+        columns.AddFor(m => m.CalculatedName).Caption("Công thức").Width(140).AllowEditing(false);
+        columns.AddFor(m => m.ItemName).Caption("Sản phẩm đã tạo").Width(140).AllowEditing(false);
+    })
+    .Editing(e => e.AllowUpdating(true).Mode(GridEditMode.Batch).SelectTextOnEditStart(true))
+    .OnCellPrepared("onCellPrepared")
+)
+
 <script>
     pageTitle = "Tạo hàng từ công thức";
-    goBackUrl = "/items";
+    goBackUrl = "/items?itemGroup=3";
+    var materials = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Materials));
+    var material1 = @(Model.DefaultMaterial1);
+    var material2 = @(Model.DefaultMaterial2);
+    dataRowKeyFields = ["Quantity1", "Quantity2"];
+    saveUrl = '@Url.Action("SaveItemCoupleMaterials", "Item")';
+    goBackAfterSaving = true;
+
+    $(function () {
+        $("#main-grid").first().prepend($("#top-section"));
+
+        $(`#select-material1`).dxSelectBox({
+            dataSource: materials,
+            width: "auto",
+            height: "2rem",
+            displayExpr: "Name",
+            valueExpr: "Id",
+            value: material1,
+            onValueChanged: function(e) {
+                material1 = e.value;
+                reloadData();
+            }
+        });
+        $(`#select-material2`).dxSelectBox({
+            dataSource: materials,
+            width: "auto",
+            height: "2rem",
+            displayExpr: "Name",
+            valueExpr: "Id",
+            value: material2,
+            onValueChanged: function(e) {
+                material2 = e.value;
+                reloadData();
+            }
+        });
+
+        appendSaveButtonToGrid();
+    });
+
+    function onCellPrepared(e) {
+        if (e.rowType === "data" && e.column.dataField === "Selected") {
+            if (e.data.Item != 0) {
+                // e.cellElement.find(".dx-widget").hide();
+                e.cellElement.empty();
+            }
+        }
+    }
+
+    function allowToSaveRowData(data) {
+        return data.Selected;
+    }
 </script>

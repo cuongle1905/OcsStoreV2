@@ -7,7 +7,6 @@ namespace OcsStore.Models;
 
 public partial class MyDbContext : DbContext
 {
-
     public MyDbContext(DbContextOptions<MyDbContext> options)
         : base(options)
     {
@@ -36,6 +35,8 @@ public partial class MyDbContext : DbContext
     public virtual DbSet<InventoryDetailView> InventoryDetailViews { get; set; }
 
     public virtual DbSet<Item> Items { get; set; }
+
+    public virtual DbSet<ItemCoupleMaterialView> ItemCoupleMaterialViews { get; set; }
 
     public virtual DbSet<ItemGroup> ItemGroups { get; set; }
 
@@ -689,6 +690,50 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.UserCreated).HasColumnName("user_created");
         });
 
+        modelBuilder.Entity<ItemCoupleMaterialView>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToView("item_couple_material_view");
+
+            entity.Property(e => e.CalculatedName)
+                .IsRequired()
+                .HasMaxLength(100)
+                .HasColumnName("calculated_name")
+                .UseCollation("utf8mb3_general_ci")
+                .HasCharSet("utf8mb3");
+            entity.Property(e => e.Item).HasColumnName("item");
+            entity.Property(e => e.ItemName)
+                .IsRequired()
+                .HasMaxLength(100)
+                .HasColumnName("item_name")
+                .UseCollation("utf8mb3_general_ci")
+                .HasCharSet("utf8mb3");
+            entity.Property(e => e.Material1).HasColumnName("material1");
+            entity.Property(e => e.Material2).HasColumnName("material2");
+            entity.Property(e => e.MaterialName1)
+                .IsRequired()
+                .HasMaxLength(100)
+                .HasColumnName("material_name1")
+                .UseCollation("utf8mb3_general_ci")
+                .HasCharSet("utf8mb3");
+            entity.Property(e => e.MaterialName2)
+                .IsRequired()
+                .HasMaxLength(100)
+                .HasColumnName("material_name2")
+                .UseCollation("utf8mb3_general_ci")
+                .HasCharSet("utf8mb3");
+            entity.Property(e => e.Quantity1)
+                .HasPrecision(10, 2)
+                .HasDefaultValueSql("'1.00'")
+                .HasColumnName("quantity1");
+            entity.Property(e => e.Quantity2)
+                .HasPrecision(10, 2)
+                .HasDefaultValueSql("'1.00'")
+                .HasColumnName("quantity2");
+            entity.Property(e => e.Selected).HasColumnName("selected");
+        });
+
         modelBuilder.Entity<ItemGroup>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PRIMARY");
@@ -794,7 +839,6 @@ public partial class MyDbContext : DbContext
 
             entity.HasOne(d => d.ItemNavigation).WithMany(p => p.ItemMaterialItemNavigations)
                 .HasForeignKey(d => d.Item)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_item_material_item");
 
             entity.HasOne(d => d.MaterialNavigation).WithMany(p => p.ItemMaterialMaterialNavigations)

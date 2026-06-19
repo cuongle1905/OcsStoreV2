@@ -249,6 +249,7 @@ a.icon-link, a.icon-link:active, a.icon-link:hover, a.icon-link:hover {
     margin-left: auto;
     margin-right: auto;
     width: 430px;
+    padding-bottom: 200px;
 }
 
 @media (max-width: 430px) {

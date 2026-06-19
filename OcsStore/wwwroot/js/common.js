@@ -199,6 +199,10 @@ function appendUndoSaveButtonsToGrid(gridId) {
     appendButtonToGrid({ gridId: gridId, level: 2, action: "save", fill: true, onClick: save });
 }
 
+function appendSaveButtonToGrid(gridId) {
+    appendButtonToGrid({ gridId: gridId, level: 2, action: "save", width: "50%", onClick: save });
+}
+
 function addBottomButtonToGrid(e) {
     let buttonsDiv = createBottomButtonsDiv();
     $(gridId).first().append(buttonsDiv);
@@ -360,14 +364,16 @@ var saveUrl = '@Url.Action("SaveItems", "Item")';
 var dataRowKeyFields = ["Id"];
 
 function checkSameRowDataKeys(rowData1, rowData2) {
-    // console.log("rowData1", rowData1, "rowData2", rowData2);
+    console.log("rowData1", rowData1, "rowData2", rowData2);
     for (keyField of dataRowKeyFields) {
-        // console.log("keyField", keyField, "key1", rowData1[keyField], "key2", rowData2[keyField]);
+        console.log("keyField", keyField, "key1", rowData1[keyField], "key2", rowData2[keyField]);
         if (rowData1[keyField] != rowData2[keyField])
             return false;
     }
     return true;
 }
+
+var goBackAfterSaving = false;
 
 function save() {
     let grid = $("#main-grid").dxDataGrid("instance");
@@ -389,6 +395,9 @@ function save() {
             if (typeof checkRowDataBeforeSaving === "function" && !checkRowDataBeforeSaving(row.data))
                 return;
 
+            if (typeof allowToSaveRowData === "function" && !allowToSaveRowData(row.data))
+                continue;
+
             details.push(row.data);
         }
     }
@@ -407,7 +416,12 @@ function save() {
                 data: { data: details },
                 success: function (result) {
                     // DevExpress.ui.dialog.alert("Đã lưu dữ liệu.", "Thông báo").then(function(dialogResult) {
-                    reloadData();
+                    if (typeof doAfterSaving === "function")
+                        doAfterSaving();
+                    else if (goBackAfterSaving)
+                        location.href = goBackUrl;
+                    else
+                        reloadData();
                     // });
                 },
                 error: function (xhr, status, error) {
