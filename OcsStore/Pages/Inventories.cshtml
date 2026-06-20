@@ -17,7 +17,7 @@ Html.DevExtreme().DataGrid<InventoryDetailView>()
     .Sorting(s => s.Mode(GridSortingMode.None))
     .Paging(p => p.PageSize(100))
     .Pager(p => p.Visible(false))
-    .OnContentReady("gridContentReady")
+    .OnContentReady("onGridContentReadyExpandFirstGroup")
     .Columns(columns =>
     {
         columns.AddFor(m => m.Date).Caption("Ngày").Width(80).Alignment(HorizontalAlignment.Center).Format("dd/MM/yyyy")
@@ -36,9 +36,9 @@ Html.DevExtreme().DataGrid<InventoryDetailView>()
     deleteUrl = '@Url.Action("DeleteInventoryDetail", "Stock")';
 
     $(function () {
-        appendTopAddButtonToGrid("#main-grid", function() {
+        appendTopAddButtonToGrid({onClick: function() {
             location.href = `inventory/new?sourceurl=inventory&&itemGroup=${itemGroupId}`;
-        });
+        }});
         $("#main-grid").first().prepend($("#top-section"));
         addTabList("top-section", "groups-tab", ["Nhân xanh", "Hạt rang", "Cafe"], itemGroupId - 1, tabClicked);
     });
@@ -47,11 +47,6 @@ Html.DevExtreme().DataGrid<InventoryDetailView>()
         console.log("tabClicked", tabIndex);
         itemGroupId = tabIndex + 1;
         $("#main-grid").dxDataGrid("instance").refresh();
-    }
-
-    function gridContentReady(e) {
-        defaultOnGridContentReady(e);
-        expandFirstTableGroup();
     }
 
     function itemCellTemplate(container, options) {

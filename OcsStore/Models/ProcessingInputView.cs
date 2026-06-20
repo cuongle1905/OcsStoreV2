@@ -9,33 +9,31 @@ public partial class ProcessingInputView
 
     public int Processing { get; set; }
 
-    public int Item { get; set; }
-
-    public short Unit { get; set; }
-
-    public short Store { get; set; }
-
-    public decimal Quantity { get; set; }
-
-    public string ItemName { get; set; }
-
-    public bool UseLot { get; set; }
-
-    public sbyte ItemType { get; set; }
-
-    public string UnitName { get; set; }
-
-    public string Note { get; set; }
-
     public DateTime Date { get; set; }
 
     public string Time { get; set; }
 
-    public string StoreName { get; set; }
+    public int Item { get; set; }
 
-    public decimal? Soh { get; set; }
+    public string Lot { get; set; }
 
-    public decimal? MaterialQuantity { get; set; }
+    public double? ItemLotName { get; set; }
 
-    public decimal? MaterialLostPercent { get; set; }
+    public string ItemName { get; set; }
+
+    public decimal Quantity { get; set; }
+
+    public short Unit { get; set; }
+
+    public string UnitName { get; set; }
+
+    public sbyte ItemGroup { get; set; }
+
+    public int Material { get; set; }
+
+    public decimal MaterialQuantity { get; set; }
+
+    public string MaterialName { get; set; }
+
+    public bool MaterialUseLot { get; set; }
 }

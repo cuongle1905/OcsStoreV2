@@ -1,0 +1,58 @@
+﻿@page "/processingraw/new"
+@using OcsStore.Models
+@model OcsStore.Pages.NewRawProcessingModel
+@{
+}
+<style>
+</style>
+
+<div id="top-section" class="ms-auto me-auto pt-3" style="width: 24rem;">
+</div>
+
+<script>
+    pageTitle = "Rang mới";
+    let itemId;
+    let materialQuantity = 0.0;
+    let itemQuantity = 0.0;
+
+    $(function () {
+        $("#main-grid").first().prepend($("#top-section"));
+
+        appendDateTimeFields({ containerId: "top-section" });
+
+        appendSaveButtonToGrid();
+    });
+
+    function save() {
+        let quantity = $("#item-quantity").dxNumberBox("instance").option("value");
+        if (quantity == null || quantity <= 0) {
+            DevExpress.ui.dialog.alert("Hãy nhập vào Số lượng.", "Cảnh báo");
+            return;
+        }
+
+        DevExpress.ui.dialog.confirm("<i>Bạn có chắc chắn lưu dữ liệu?</i>", "Xác nhận").then(function(dialogResult) {
+            if (dialogResult) {
+                let processing = {};
+                processing.Date = $("#dateBox").dxDateBox("instance").option("value").toISOString();
+                processing.Time = $("#timeBox").dxDateBox("instance").option("text");
+                processing.Item = itemId;
+                processing.Quantity = quantity;
+
+                $.ajax({
+                    url: '@Url.Action("Save", "Processing")',
+                    method: "POST",
+                    data: { processing: processing, details: details, createBill: createBill, salePrice: salePrice, customer: customer, debit: debit },
+                    success: function (result) {
+                        DevExpress.ui.dialog.alert("Đã lưu dữ liệu.", "Thông báo").then(function(dialogResult) {
+                            location.href = goBackUrl;
+                        });
+                    },
+                    error: function (xhr, status, error) {
+                        console.log("xhr", xhr, "status", status, "error", error);
+                        DevExpress.ui.dialog.alert("Có lỗi xảy ra. Vui lòng thử lại sau.", "Cảnh báo");
+                    }
+                });
+            }
+        });
+    }
+</script>

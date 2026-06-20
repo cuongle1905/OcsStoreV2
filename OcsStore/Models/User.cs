@@ -17,9 +17,13 @@ public partial class User
 
     public string Token { get; set; }
 
+    public sbyte? Group { get; set; }
+
     public virtual ICollection<Bill> BillUserCreatedNavigations { get; set; } = new List<Bill>();
 
     public virtual ICollection<Bill> BillUserModifiedNavigations { get; set; } = new List<Bill>();
+
+    public virtual UserGroup GroupNavigation { get; set; }
 
     public virtual ICollection<Processing> Processings { get; set; } = new List<Processing>();
 

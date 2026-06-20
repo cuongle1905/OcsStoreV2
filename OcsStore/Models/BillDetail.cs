@@ -23,5 +23,13 @@ public partial class BillDetail
 
     public int Ordinal { get; set; }
 
+    public int? Processing { get; set; }
+
+    public string Type { get; set; }
+
+    public string Name { get; set; }
+
     public virtual Bill BillNavigation { get; set; }
+
+    public virtual Processing ProcessingNavigation { get; set; }
 }

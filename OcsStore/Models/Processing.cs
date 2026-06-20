@@ -27,6 +27,8 @@ public partial class Processing
 
     public short User { get; set; }
 
+    public virtual ICollection<BillDetail> BillDetails { get; set; } = new List<BillDetail>();
+
     public virtual Item ItemNavigation { get; set; }
 
     public virtual ICollection<ProcessingInput> ProcessingInputs { get; set; } = new List<ProcessingInput>();

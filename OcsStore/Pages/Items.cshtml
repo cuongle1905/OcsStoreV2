@@ -13,6 +13,7 @@
         .Width("100%")
         .DataSource(d => d.Mvc().Controller("Item").LoadAction("GetItemViews").LoadMethod("POST").LoadParams(new { GroupId = new JS("function() { return itemGroupId - 1; }") }).Key("Id"))
         .KeyExpr("Id")
+        .ShowNavButtons(false)
         .ItemTemplate(new JS("materialTabTemplate"))
         .SelectionMode(NavSelectionMode.Multiple)
         .OnSelectionChanged("materialTabSelectionChanged")

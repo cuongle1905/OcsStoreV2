@@ -16,7 +16,7 @@ Html.DevExtreme().DataGrid<ReceivingDetailView>()
     .Sorting(s => s.Mode(GridSortingMode.None))
     .Paging(p => p.PageSize(100))
     .Pager(p => p.Visible(false))
-    .OnContentReady("gridContentReady")
+    .OnContentReady("onGridContentReadyExpandFirstGroup")
     .Columns(columns =>
     {
         columns.AddFor(m => m.Date).Caption("Ngày").Width(80).Alignment(HorizontalAlignment.Center).Format("dd/MM/yyyy")
@@ -57,15 +57,10 @@ Html.DevExtreme().DataGrid<ReceivingDetailView>()
     deleteUrl = '@Url.Action("DeleteDetail", "Receiving")';
 
     $(function () {
-        appendTopAddButtonToGrid("#main-grid", function() {
+        appendTopAddButtonToGrid({ onClick: function() {
             location.href = "receiving/new?sourceurl=receiving";
-        });
+        }});
     });
-
-    function gridContentReady(e) {
-        defaultOnGridContentReady(e);
-        expandFirstTableGroup();
-    }
 
     function itemCellTemplate(container, options) {
         container.html(dotSymbolHtml("green") + options.text);

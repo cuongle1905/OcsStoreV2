@@ -38,6 +38,8 @@ public partial class MyDbContext : DbContext
 
     public virtual DbSet<ItemCoupleMaterialView> ItemCoupleMaterialViews { get; set; }
 
+    public virtual DbSet<ItemForm> ItemForms { get; set; }
+
     public virtual DbSet<ItemGroup> ItemGroups { get; set; }
 
     public virtual DbSet<ItemManagementView> ItemManagementViews { get; set; }
@@ -95,6 +97,8 @@ public partial class MyDbContext : DbContext
     public virtual DbSet<UnitManagementView> UnitManagementViews { get; set; }
 
     public virtual DbSet<User> Users { get; set; }
+
+    public virtual DbSet<UserGroup> UserGroups { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder.UseMySql("name=MySqlConnection", Microsoft.EntityFrameworkCore.ServerVersion.Parse("9.3.0-mysql"));
@@ -225,6 +229,8 @@ public partial class MyDbContext : DbContext
 
             entity.HasIndex(e => e.Bill, "fk_bill_detail_idx");
 
+            entity.HasIndex(e => e.Processing, "fk_bill_detail_processing_idx");
+
             entity.Property(e => e.Id)
                 .ValueGeneratedNever()
                 .HasColumnName("id");
@@ -233,6 +239,10 @@ public partial class MyDbContext : DbContext
                 .HasPrecision(10, 2)
                 .HasColumnName("discount");
             entity.Property(e => e.Item).HasColumnName("item");
+            entity.Property(e => e.Name)
+                .IsRequired()
+                .HasMaxLength(45)
+                .HasColumnName("name");
             entity.Property(e => e.Note)
                 .HasMaxLength(100)
                 .HasColumnName("note")
@@ -244,10 +254,16 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.Price)
                 .HasPrecision(10, 2)
                 .HasColumnName("price");
+            entity.Property(e => e.Processing).HasColumnName("processing");
             entity.Property(e => e.Quantity)
                 .HasPrecision(10, 2)
                 .HasDefaultValueSql("'1.00'")
                 .HasColumnName("quantity");
+            entity.Property(e => e.Type)
+                .IsRequired()
+                .HasMaxLength(20)
+                .HasDefaultValueSql("''")
+                .HasColumnName("type");
             entity.Property(e => e.Unit)
                 .HasDefaultValueSql("'1'")
                 .HasColumnName("unit");
@@ -255,6 +271,10 @@ public partial class MyDbContext : DbContext
             entity.HasOne(d => d.BillNavigation).WithMany(p => p.BillDetails)
                 .HasForeignKey(d => d.Bill)
                 .HasConstraintName("fk_bill_detail");
+
+            entity.HasOne(d => d.ProcessingNavigation).WithMany(p => p.BillDetails)
+                .HasForeignKey(d => d.Processing)
+                .HasConstraintName("fk_bill_detail_processing");
         });
 
         modelBuilder.Entity<BillDetailView>(entity =>
@@ -732,6 +752,21 @@ public partial class MyDbContext : DbContext
                 .HasDefaultValueSql("'1.00'")
                 .HasColumnName("quantity2");
             entity.Property(e => e.Selected).HasColumnName("selected");
+        });
+
+        modelBuilder.Entity<ItemForm>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+
+            entity.ToTable("item_form");
+
+            entity.Property(e => e.Id)
+                .ValueGeneratedNever()
+                .HasColumnName("id");
+            entity.Property(e => e.Name)
+                .IsRequired()
+                .HasMaxLength(20)
+                .HasColumnName("name");
         });
 
         modelBuilder.Entity<ItemGroup>(entity =>
@@ -1340,44 +1375,35 @@ public partial class MyDbContext : DbContext
                 .HasColumnName("date");
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.Item).HasColumnName("item");
+            entity.Property(e => e.ItemGroup)
+                .HasDefaultValueSql("'1'")
+                .HasColumnName("item_group");
+            entity.Property(e => e.ItemLotName).HasColumnName("item_lot_name");
             entity.Property(e => e.ItemName)
                 .IsRequired()
                 .HasMaxLength(100)
                 .HasColumnName("item_name")
                 .UseCollation("utf8mb3_general_ci")
                 .HasCharSet("utf8mb3");
-            entity.Property(e => e.ItemType)
-                .HasDefaultValueSql("'1'")
-                .HasColumnName("item_type");
-            entity.Property(e => e.MaterialLostPercent)
-                .HasPrecision(5, 2)
-                .HasDefaultValueSql("'10.00'")
-                .HasColumnName("material_lost_percent");
-            entity.Property(e => e.MaterialQuantity)
-                .HasPrecision(10, 2)
-                .HasDefaultValueSql("'1.00'")
-                .HasColumnName("material_quantity");
-            entity.Property(e => e.Note)
+            entity.Property(e => e.Lot)
+                .HasMaxLength(10)
+                .HasColumnName("lot");
+            entity.Property(e => e.Material).HasColumnName("material");
+            entity.Property(e => e.MaterialName)
+                .IsRequired()
                 .HasMaxLength(100)
-                .HasColumnName("note")
+                .HasColumnName("material_name")
                 .UseCollation("utf8mb3_general_ci")
                 .HasCharSet("utf8mb3");
+            entity.Property(e => e.MaterialQuantity)
+                .HasPrecision(10, 2)
+                .HasColumnName("material_quantity");
+            entity.Property(e => e.MaterialUseLot).HasColumnName("material_use_lot");
             entity.Property(e => e.Processing).HasColumnName("processing");
             entity.Property(e => e.Quantity)
                 .HasPrecision(10, 2)
+                .HasDefaultValueSql("'1.00'")
                 .HasColumnName("quantity");
-            entity.Property(e => e.Soh)
-                .HasPrecision(10, 2)
-                .HasColumnName("soh");
-            entity.Property(e => e.Store)
-                .HasDefaultValueSql("'1'")
-                .HasColumnName("store");
-            entity.Property(e => e.StoreName)
-                .IsRequired()
-                .HasMaxLength(50)
-                .HasColumnName("store_name")
-                .UseCollation("utf8mb3_general_ci")
-                .HasCharSet("utf8mb3");
             entity.Property(e => e.Time)
                 .IsRequired()
                 .HasMaxLength(5)
@@ -1392,7 +1418,6 @@ public partial class MyDbContext : DbContext
                 .HasColumnName("unit_name")
                 .UseCollation("utf8mb3_general_ci")
                 .HasCharSet("utf8mb3");
-            entity.Property(e => e.UseLot).HasColumnName("use_lot");
         });
 
         modelBuilder.Entity<ProcessingLotInput>(entity =>
@@ -2098,11 +2123,16 @@ public partial class MyDbContext : DbContext
 
             entity.ToTable("users");
 
+            entity.HasIndex(e => e.Group, "fk_users_group_idx");
+
             entity.HasIndex(e => e.Username, "username_UNIQUE").IsUnique();
 
             entity.Property(e => e.Id)
                 .ValueGeneratedNever()
                 .HasColumnName("id");
+            entity.Property(e => e.Group)
+                .HasDefaultValueSql("'1'")
+                .HasColumnName("group");
             entity.Property(e => e.IsAdmin).HasColumnName("is_admin");
             entity.Property(e => e.Name)
                 .IsRequired()
@@ -2120,6 +2150,25 @@ public partial class MyDbContext : DbContext
                 .IsRequired()
                 .HasMaxLength(20)
                 .HasColumnName("username");
+
+            entity.HasOne(d => d.GroupNavigation).WithMany(p => p.Users)
+                .HasForeignKey(d => d.Group)
+                .HasConstraintName("fk_users_group");
+        });
+
+        modelBuilder.Entity<UserGroup>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+
+            entity.ToTable("user_group");
+
+            entity.Property(e => e.Id)
+                .ValueGeneratedNever()
+                .HasColumnName("id");
+            entity.Property(e => e.Name)
+                .IsRequired()
+                .HasMaxLength(45)
+                .HasColumnName("name");
         });
 
         OnModelCreatingPartial(modelBuilder);

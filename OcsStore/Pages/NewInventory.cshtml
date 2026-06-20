@@ -41,9 +41,9 @@ Html.DevExtreme().DataGrid<InventoryDetailView>()
     }
 
     $(function () {
-        addDateTimeBoxes("top-section", "", "12rem", "8rem", "2rem", dateValueChanged);
+        appendDateTimeFields({ containerId: "top-section", onDateChanged: dateValueChanged });
         
-        addBottomSaveButtonToGrid("#main-grid", "save-button", save);
+        appendSaveButtonToGrid();
 
         $("#main-grid").first().prepend($("#top-section"));
     });

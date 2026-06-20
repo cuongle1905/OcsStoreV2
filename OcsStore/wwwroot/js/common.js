@@ -21,6 +21,11 @@ function defaultOnGridContentReady(e) {
     }
 }
 
+function onGridContentReadyExpandFirstGroup(e) {
+    defaultOnGridContentReady(e);
+    expandFirstTableGroup();
+}
+
 function defaultOnCellPrepared(e) {
     if (e.rowType === 'group' && e.column.command === 'expand') {
         e.cellElement.css('display', 'none');
@@ -199,8 +204,27 @@ function appendUndoSaveButtonsToGrid(gridId) {
     appendButtonToGrid({ gridId: gridId, level: 2, action: "save", fill: true, onClick: save });
 }
 
-function appendSaveButtonToGrid(gridId) {
-    appendButtonToGrid({ gridId: gridId, level: 2, action: "save", width: "50%", onClick: save });
+function appendSaveButtonToGrid(e) {
+    if (e.action == undefined)
+        e.action = "save";
+
+    if (e.level == undefined)
+        e.level = 2;
+
+    if (e.width == undefined)
+        e.width = "50%";
+
+    appendButtonToGrid(e);
+}
+
+function appendTopAddButtonToGrid(e) {
+    if (e.action == undefined)
+        e.action = "add";
+
+    if (e.position == undefined)
+        e.position = "top";
+
+    appendButtonToGrid(e);
 }
 
 function addBottomButtonToGrid(e) {
@@ -208,13 +232,6 @@ function addBottomButtonToGrid(e) {
     $(gridId).first().append(buttonsDiv);
     buttonsDiv.append($(`<div id="${buttonId}">`));
     return createButton(e);
-}
-
-function addBottomSaveButtonToGrid(gridId, buttonId, onClickFunc) {
-    let buttonsDiv = createBottomButtonsDiv();
-    $(gridId).first().append(buttonsDiv);
-    buttonsDiv.append($(`<div id="${buttonId}">`));
-    return createButton("#" + buttonId, "Lưu", "50%", "contained", "bi bi-download", onClickFunc);
 }
 
 function gridBottomButtonsDiv(gridId) {
@@ -270,8 +287,8 @@ function gridButtonContainer(e) {
 
     let container = $(`#${e.containerId}`);
     if (container.length === 0) {
-        const paddingTop = e.level + 1;
-        container = $(`<div id="${e.containerId}" class="pt-${paddingTop} text-${e.align} d-flex justify-content-${e.align} gap-3">`);
+        const padding = (e.position == "bottom" ? "pt" : "pb") + "-" + (e.level + 1);
+        container = $(`<div id="${e.containerId}" class="${padding} text-${e.align} d-flex justify-content-${e.align} gap-3">`);
         if (e.position == "bottom")
             $(`#${e.gridId}`).first().append(container);
         else
@@ -347,17 +364,6 @@ function appendButtonToGrid(e) {
     const cssClass = (e.fill ? "flex-fill" : "")
     container.append($(`<div id="${e.id}" class="${cssClass}">`));
     return createButton(e);
-}
-
-function appendTopAddButtonToGrid(gridId, onClickFunc) {
-    if (gridId == undefined)
-        gridId = "#main-grid";
-
-    let buttonsDiv = createGridTopButtonsDiv();
-    $(gridId).first().prepend(buttonsDiv);
-    let buttonId = "grid-top-add-button"
-    buttonsDiv.append($(`<div id="${buttonId}">`));
-    return createGridTopAddButton("#" + buttonId, gridId, onClickFunc);
 }
 
 var saveUrl = '@Url.Action("SaveItems", "Item")';
@@ -531,8 +537,8 @@ Date.prototype.addDays = function (days) {
     return date;
 }
 
-function addDateOverlay(dateBoxId, onDateChangedFunc) {
-    const dateDiv = $(`#${dateBoxId}`);
+function addDateOverlay(e) {
+    const dateDiv = $(`#${e.id}`);
     const div = $(`<div class="date-overlay-layer">`);
     dateDiv.append(div);
 
@@ -540,64 +546,131 @@ function addDateOverlay(dateBoxId, onDateChangedFunc) {
     const date = dateBox.option("value");
     div.html(`<div>${date.ddMMyyyy()}</div>`);
 
-    dateBox.option("onValueChanged", function (e) {
-        $(`#${dateBoxId} .date-overlay-layer`).html(`<div>${e.value.ddMMyyyy()}</div>`);
+    dateBox.option("onValueChanged", function (ee) {
+        $(`#${e.id} .date-overlay-layer`).html(`<div>${e.value.ddMMyyyy()}</div>`);
 
-        if (typeof onDateChangedFunc === "function") {
-            onDateChangedFunc(e);
+        if (typeof e.onValueChanged === "function") {
+            e.onValueChanged(ee);
         }
     });
 }
 
-function createDateBox(dateBoxId, width, height, onDateChangedFunc) {
-    $(`#${dateBoxId}`).dxDateBox({
-        width: width,
-        height: height,
+// containerId, idPrefix, dateWidth, timeWidth, height, onDateChanged
+function appendDateTimeFields(e) {
+    if (e.direction == undefined)
+        e.direction = "horizontal";
+
+    const flexDirection = (e.direction == "vertical" || e.direction == "column" ? " .flex-column" : "");
+
+    const div = $(`<div class="d-flex ${flexDirection} mb-3 gap-3">`);
+
+    normalizeContainerParam(e);
+    e.container.append(div);
+
+    appendDateField({ container: div, idPrefix: e.idPrefix, width: (e.dateWidth ?? e.width), height: e.height, onValueChanged: e.onDateChanged });
+
+    appendTimeField({ container: div, idPrefix: e.idPrefix, width: (e.timeWidth ?? e.width), height: e.height, onValueChanged: e.onTimeChanged });
+}
+
+function appendDateField(e) {
+    if (e.title == undefined)
+        e.title = "Ngày";
+
+    normalizeContainerParam(e);
+    const dataField = appendDataFieldContainer({ container: e.container });
+
+    appendFieldTitle({ container: dataField, title: e.title });
+
+    appendDateBox({ container: dataField, idPrefix: e.idPrefix, idPostfix: "date-box", width: e.width, height: e.height, onValueChanged: e.onValueChanged })
+}
+
+function appendTimeField(e) {
+    if (e.title == undefined)
+        e.title = "Giờ";
+
+    normalizeContainerParam(e);
+    const dataField = appendDataFieldContainer({ container: e.container });
+
+    appendFieldTitle({ container: dataField, title: e.title })
+
+    appendTimeBox({ container: dataField, idPrefix: e.idPrefix, idPostfix: "time-box", width: e.width, height: e.height, onValueChanged: e.onValueChanged })
+}
+
+function appendDataFieldContainer(e) {
+    normalizeContainerParam(e);
+    const div = $(`<div class="data-field">`);
+    e.container.append(div);
+    return div;
+}
+
+function appendFieldTitle(e) {
+    normalizeContainerParam(e);
+    e.container.append($(`<div class="field-title">${e.title}:</div>`));
+}
+
+function appendDateBox(e) {
+    normalizeIdParam(e);
+    const dateBox = $(`<div id="${e.id}">`);
+
+    normalizeContainerParam(e);
+    e.container.append(dateBox);
+
+    normalizeWidthHeightParam(e);
+    dateBox.dxDateBox({
+        width: e.width,
+        height: e.height,
         inputAttr: { "aria-label": "Date" },
         type: "date",
         value: new Date(),
         displayFormat: "dd/MM/yyyy",
         dropDownOptions: {
-            position: { of: `#${dateBoxId}`, at: "left bottom", my: "left top", offset: "0 2" }
+            position: { of: `#${e.id}`, at: "left bottom", my: "left top", offset: "0 2" }
         }
     });
 
-    addDateOverlay(dateBoxId, onDateChangedFunc);
+    addDateOverlay(e);
 }
 
-function createTimeBox(id, width, height) {
-    $("#" + id).dxDateBox({
-        width: width,
-        height: height,
+function appendTimeBox(e) {
+    normalizeIdParam(e);
+    const timeBox = $(`<div id="${e.id}">`);
+
+    normalizeContainerParam(e);
+    e.container.append(timeBox);
+
+    normalizeWidthHeightParam(e);
+    timeBox.dxDateBox({
+        width: e.width,
+        height: e.height,
         type: "time",
         value: new Date(),
         displayFormat: "HH:mm"
     });
 }
 
-function addDateTimeBoxes(containerId, idPrefix, dateWidth, timeWidth, height, onDateChangedFunc) {
-    const div = $(`<div class="d-flex mb-3">`);
-    $("#" + containerId).append(div);
+function normalizeIdParam(e) {
+    if (e.idPrefix == undefined)
+        e.idPrefix = "";
 
-    const dateField = $(`<div class="data-field">`);
-    div.append(dateField);
-    dateField.append($(`<div class="field-title">Ngày:</div>`));
+    if (e.idPostfix == undefined)
+        e.idPostfix = "dataField";
 
-    const dateBoxId = idPrefix + "dateBox";
-    const dateBoxContainer = $(`<div id="${dateBoxId}">`);
-    dateField.append(dateBoxContainer);
-    createDateBox(dateBoxId, dateWidth, height, onDateChangedFunc);
-
-
-    const timeField = $(`<div class="data-field ms-3">`);
-    div.append(timeField);
-    timeField.append($(`<div class="field-title">Giờ:</div>`));
-
-    const timeBoxId = (idPrefix ?? "") + "timeBox";
-    const timeBoxContainer = $(`<div id="${timeBoxId}">`);
-    timeField.append(timeBoxContainer);
-    createTimeBox(timeBoxId, timeWidth, height);
+    if (e.id == undefined)
+        e.id = (e.idPrefix != "" ? e.idPrefix + "-" : "") + e.idPostfix;
 }
+
+function normalizeContainerParam(e) {
+    if (e.container == undefined)
+        e.container = $(`#${e.containerId}`);
+}
+
+function normalizeWidthHeightParam(e) {
+    if (e.width == undefined)
+        e.width = "auto";
+
+    if (e.height == undefined)
+        e.height = "auto";
+} 
 
 function subLineHeaderCellTemplate(container, options) {
     const texts = options.column.caption.split("\n");
