@@ -51,18 +51,18 @@ Html.DevExtreme().DataGrid<StockCardView>()
     const itemId = @(Model.ItemId);
 
     $(function () {
-        addBottomButtonToGrid("#main-grid", "calculate-soh", "Tính toán lại tồn kho", "auto", "contained", "bi bi-calculator", function() {
-            calculateItemSoh();
-        });
+        appendButtonToGrid({ id: "calculate-soh", level: 2, text: "Tính toán lại tồn kho", width: "50%", icon: "bi bi-calculator", onClick: calculateSoh });
     });
 
-    function calculateItemSoh() {
+    function calculateSoh() {
         $.ajax({
             url: '@Url.Action("CalculateItemSoh", "Stock")',
             method: "POST",
             data: { itemId: itemId },
             success: function (result) {
-                location.reload();
+                DevExpress.ui.dialog.alert("Đã tính toán lại tồn kho.", "Thông báo").then(function(dialogResult) {
+                    reloadData();
+                });
             },
             error: function (xhr, status, error) {
                 console.log("xhr", xhr, "status", status, "error", error);

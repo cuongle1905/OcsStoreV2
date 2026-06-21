@@ -36,7 +36,7 @@ Html.DevExtreme().DataGrid<StockView>()
         
         columns.AddFor(m => m.Date).Caption("Ngày").Width(90).Alignment(HorizontalAlignment.Center).Format("dd/MM/yyyy").CellTemplate(new JS("stockCellTemplate"));
         columns.AddFor(m => m.Time).Caption("Giờ").Width(50).Alignment(HorizontalAlignment.Center).CellTemplate(new JS("stockCellTemplate"));
-        columns.Add().Name("Action").Width(36).Alignment(HorizontalAlignment.Center).Fixed(true).FixedPosition(HorizontalEdge.Right).CellTemplate(new JS("addDataCellTemplate"));
+        @* columns.Add().Name("Action").Width(36).Alignment(HorizontalAlignment.Center).Fixed(true).FixedPosition(HorizontalEdge.Right).CellTemplate(new JS("addDataCellTemplate")); *@
     })
     .Editing(e => e.AllowUpdating(false))
     .Paging(p => p.Enabled(true).PageSize(100))
@@ -73,6 +73,8 @@ Html.DevExtreme().DataGrid<StockView>()
     $(function () {
         $("#main-grid").first().prepend($("#top-section"));
         addTabList("top-section", "groups-tab", ["Nhân xanh", "Hạt rang", "Cafe"], itemGroupId - 1, tabClicked);
+
+        appendButtonToGrid({ id: "calculate-soh", level: 2, text: "Tính toán lại tồn kho", width: "50%", icon: "bi bi-calculator", onClick: calculateSoh });
     });
 
     function expandCollapseData() {
@@ -174,5 +176,22 @@ Html.DevExtreme().DataGrid<StockView>()
                 //
             }
         }
+    }
+
+    function calculateSoh() {
+        $.ajax({
+            url: '@Url.Action("CalculateItemGroupSoh", "Stock")',
+            method: "POST",
+            data: { itemGroupId: itemGroupId },
+            success: function (result) {
+                DevExpress.ui.dialog.alert("Đã tính toán lại tồn kho.", "Thông báo").then(function(dialogResult) {
+                    reloadData();
+                });
+            },
+            error: function (xhr, status, error) {
+                console.log("xhr", xhr, "status", status, "error", error);
+                DevExpress.ui.dialog.alert("Có lỗi xảy ra. Vui lòng thử lại sau.", "Cảnh báo");
+            }
+        });
     }
 </script>

@@ -45,8 +45,24 @@ namespace OcsStore.Controllers
         [HttpPost]
         public IActionResult CalculateItemSoh(int itemId)
         {
-            _context.Database.ExecuteSqlRaw("call calculate_strans_item(" + itemId + ");");
+            CalculateStoreTransactionItem(itemId);
             return Ok();
+        }
+
+        [HttpPost]
+        public IActionResult CalculateItemGroupSoh(int itemGroupId)
+        {
+            var itemIds = _context.Items.Where(i => i.Group == itemGroupId).Select(i => i.Id).ToArray();
+            foreach (var itemId in itemIds)
+            {
+                CalculateStoreTransactionItem(itemId);
+            }
+            return Ok();
+        }
+
+        private void CalculateStoreTransactionItem(int itemId)
+        {
+            _context.Database.ExecuteSqlRaw("call calculate_strans_item(" + itemId + ");");
         }
 
 

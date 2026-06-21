@@ -188,6 +188,14 @@
     border: 2px solid var(--common-color-main) !important; /* Change to your preferred color */
 }
 
+.dx-datagrid-pager {
+    border-top: none;
+}
+
+.dx-pager {
+    padding-bottom: 2px;
+}
+
 .dx-lookup-arrow::before {
     content: "\f016";
     margin-top: -6px;
@@ -275,7 +283,6 @@
     background-color: transparent;
     border: none !important;
 }
-
 .dx-tab {
     padding: 0;
     background-color: transparent;
@@ -284,12 +291,14 @@
     border-radius: 8px;
     margin: 0 4px;
 }
-
 .dx-tab.dx-state-hover {
     background-color: transparent;
 }
 .dx-tab.dx-state-focused {
     background-color: transparent;
+    border: none !important;
+}
+.dx-tab.dx-state-focused::after {
     border: none !important;
 }
 .dx-tab-content {
@@ -298,17 +307,12 @@
     border-radius: 12px;
     padding: 4px 8px;
 }
-
-.dx-tab.dx-state-focused::after {
-    border: none !important;
-}
 .dx-tab.dx-state-hover .dx-tab-content {
     background-color: #fefefe;
 }
 .dx-tab.dx-tab-selected .dx-tab-content {
     background-color: var(--common-color-main);
 }
-
 .dx-tab.dx-tab-selected {
     background-color: transparent;
     color: white;
@@ -317,11 +321,9 @@
 .dx-tab-selected::after {
     border: none !important;
 }
-
 .dx-tabs-nav-button {
     background-color: white;
 }
-
 .dx-tabs-nav-buttons .dx-tabs-scrollable .dx-tabs-wrapper {
     border: none !important;
 }

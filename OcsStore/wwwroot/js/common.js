@@ -151,7 +151,8 @@ function appendButton(e) {
 
 function appendControlDiv(e) {
     normalizeIdParam(e);
-    const div = $(`<div id="${e.id}">`);
+
+    const div = $(`<div id="${e.id}" ${e.fill ? "class='flex-fill'" : ""}>`);
 
     normalizeContainerParam(e);
     e.container.append(div);
@@ -247,8 +248,8 @@ function appendTopAddButtonToGrid(e) {
     appendButtonToGrid(e);
 }
 
-function addBottomButtonToGrid(e) {
-    let buttonsDiv = createBottomButtonsDiv();
+function appendBottomButtonToGrid(e) {
+    let buttonsDiv = gridBottomButtonsDiv();
     $(gridId).first().append(buttonsDiv);
     buttonsDiv.append($(`<div id="${buttonId}">`));
     return appendButton(e);
@@ -397,8 +398,9 @@ function setupGridButtonParam(e) {
 
 function appendButtonToGrid(e) {
     const container = gridButtonContainer(e);
-    const cssClass = (e.fill ? "flex-fill" : "")
-    container.append($(`<div id="${e.id}" class="${cssClass}">`));
+    // const cssClass = (e.fill ? "flex-fill" : "")
+    // container.append($(`<div id="${e.id}" class="${cssClass}">`));
+    e.container = container;
     return appendButton(e);
 }
 
