@@ -23,9 +23,21 @@ namespace OcsStore.Controllers
         }
 
         [HttpPost]
-        public IActionResult GetStocks(sbyte itemGroupId, DataSourceLoadOptions loadOptions)
+        public IActionResult GetStocks(sbyte itemGroupId, string materialIds, DataSourceLoadOptions loadOptions)
         {
-            var result = DataSourceLoader.Load(_context.StockViews.Where(i => i.ItemGroup == itemGroupId), loadOptions);
+            IQueryable<StockView> data;
+            if (itemGroupId == 3 && !string.IsNullOrEmpty(materialIds))
+            {
+                var materialIdArray = materialIds.Split(",").Select(int.Parse);
+                var itemIds = _context.ItemMaterials.Where(i => materialIdArray.Contains(i.Material)).Select(i => i.Item).Distinct().ToList();
+                data = _context.StockViews.Where(i => i.ItemGroup == itemGroupId && itemIds.Contains(i.Item) && (i.Lot == null || i.Soh > 0));
+            }
+            else
+            {
+                data = _context.StockViews.Where(i => i.ItemGroup == itemGroupId && (i.Lot == null || i.Soh > 0));
+            }
+
+            var result = DataSourceLoader.Load(data, loadOptions);
             return Ok(result);
         }
 
@@ -57,6 +69,26 @@ namespace OcsStore.Controllers
             {
                 CalculateStoreTransactionItem(itemId);
             }
+
+            if (itemGroupId == 1)
+            {
+                var detailIdQuery = _context.StoreTransactions.Where(i => i.Type == 1).Select(i => i.DetailId);
+                var missingReceivingIds = _context.ReceivingDetails.Where(i => !detailIdQuery.Contains(i.Id)).Select(i => i.Receiving).Distinct().ToArray();
+                foreach(var receivingId in missingReceivingIds)
+                {
+                    _context.Database.ExecuteSqlRaw("call calculate_strans_receiving(" + receivingId + ");");
+                }
+            }
+            else
+            {
+                var detailIdQuery = _context.StoreTransactions.Where(i => i.Type == 2).Select(i => i.DetailId);
+                var missingProcessingIds = _context.ProcessingInputs.Where(i => !detailIdQuery.Contains(i.Id)).Select(i => i.Processing).Distinct().ToArray();
+                foreach (var processingId in missingProcessingIds)
+                {
+                    _context.Database.ExecuteSqlRaw("call calculate_strans_processing(" + processingId + ");");
+                }
+            }
+
             return Ok();
         }
 
@@ -127,6 +159,14 @@ namespace OcsStore.Controllers
             _context.Database.ExecuteSqlRaw("call calculate_strans_inventory(" + inventoryId + ");");
 
             return Ok();
+        }
+
+        [HttpPost]
+        public IActionResult GetMaterialSoh(int itemId)
+        {
+            var materialId = _context.ItemMaterials.FirstOrDefault(i => i.Item == itemId).Material;
+            var soh = _context.StockViews.FirstOrDefault(i => i.Item == materialId).Soh ?? 0;
+            return Ok(soh);
         }
     }
 }

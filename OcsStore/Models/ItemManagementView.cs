@@ -38,4 +38,6 @@ public partial class ItemManagementView
     public short? UserCreated { get; set; }
 
     public bool? Used { get; set; }
+
+    public bool? AllowDelete { get; set; }
 }

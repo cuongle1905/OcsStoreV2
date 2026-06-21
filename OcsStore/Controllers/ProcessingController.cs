@@ -25,9 +25,30 @@ namespace OcsStore.Controllers
         }
 
         [HttpPost]
-        public IActionResult GetProcessings(sbyte itemGroup, DataSourceLoadOptions loadOptions)
+        public IActionResult GetProcessingInputViews(sbyte itemGroup, DataSourceLoadOptions loadOptions)
         {
-            var result = DataSourceLoader.Load(_context.ProcessingViews.Where(i => i.ItemGroup == itemGroup), loadOptions);
+            var data = _context.ProcessingInputViews.Where(i => i.ItemGroup == itemGroup).ToArray();
+            var isAdmin = Session.IsAdmin(Request);
+            var userId = Session.UserId(Request);
+            foreach (var record in data)
+            {
+                record.AllowDelete = isAdmin || (record.User == userId && record.DateCreated == DateTime.Today); 
+            }
+            var result = DataSourceLoader.Load(data, loadOptions);
+            return Ok(result);
+        }
+
+        [HttpPost]
+        public IActionResult GetProcessingViews(sbyte itemGroup, DataSourceLoadOptions loadOptions)
+        {
+            var data = _context.ProcessingViews.Where(i => i.ItemGroup == itemGroup).ToArray();
+            var isAdmin = Session.IsAdmin(Request);
+            var userId = Session.UserId(Request);
+            foreach (var record in data)
+            {
+                record.AllowDelete = isAdmin || (record.User == userId && record.DateCreated == DateTime.Today);
+            }
+            var result = DataSourceLoader.Load(data, loadOptions);
             return Ok(result);
         }
 
@@ -94,14 +115,7 @@ namespace OcsStore.Controllers
         [HttpPost]
         public IActionResult SaveRawProcessing(Processing processing, decimal materialQuantity)
         {
-            processing.Date = Common.GetLocalDateWithoutTime(processing.Date); // Remove hour, minute...
-            int processingId = GetNewProcessingId();
-
-            var item = _context.ItemViews.FirstOrDefault(i => i.Id == processing.Item);
-            var yy = (sbyte)(processing.Date.Year % 100);
-            var newProcessing = new Processing() { Id = processingId, Year = yy, Item = processing.Item, Quantity = processing.Quantity, Date = processing.Date, Time = processing.Time, User = Session.UserId(Request) };
-
-            _context.Processings.Add(newProcessing);
+            var processingId = SaveNewProcessing(processing);
 
             var materialId = _context.ItemMaterials.FirstOrDefault(i => i.Item == processing.Item).Material;
 
@@ -111,7 +125,7 @@ namespace OcsStore.Controllers
             _context.ProcessingInputs.Add(processingInput);
 
             int lotInputId = GetNewProcessingLotInputId();
-            var processingLotInput = new ProcessingLotInput() { Id = lotInputId++, Input = inputId, Lot = null, Year = yy, Quantity = materialQuantity };
+            var processingLotInput = new ProcessingLotInput() { Id = lotInputId++, Input = inputId, Lot = null, Year = processing.Year, Quantity = materialQuantity };
             _context.ProcessingLotInputs.Add(processingLotInput);
 
             _context.SaveChanges();
@@ -121,47 +135,30 @@ namespace OcsStore.Controllers
             return Ok();
         }
 
-        [HttpPost]
-        public IActionResult Save(Processing processing, ProcessingLotInputView[] details, bool createBill, decimal salePrice, Customer customer, bool debit)
+        private int SaveNewProcessing(Processing processing)
         {
             processing.Date = Common.GetLocalDateWithoutTime(processing.Date); // Remove hour, minute...
-            int processingId;
-            try
-            {
-                processingId = _context.Processings.Max(i => i.Id) + 1;
-            }
-            catch
-            {
-                processingId = 1;
-            }
+            DateTime dateCreated = DateTime.Today;
+            string timeCreated = DateTime.Now.ToString("HH:mm");
+
+            int processingId = GetNewProcessingId();
 
             var item = _context.ItemViews.FirstOrDefault(i => i.Id == processing.Item);
-            var newProcessing = new Processing() { Id = processingId, Year = (sbyte)(processing.Date.Year % 100), Item = processing.Item, Quantity = processing.Quantity, Date = processing.Date, Time = processing.Time, User = Session.UserId(Request) };
-
-            if (item.UseLot)
-                newProcessing.Lot = processing.Date.ToString("ddMM");
+            var yy = (sbyte)(processing.Date.Year % 100);
+            var newProcessing = new Processing() { Id = processingId, Year = yy, Item = processing.Item, Quantity = processing.Quantity, Date = processing.Date, Time = processing.Time, User = Session.UserId(Request), DateCreated = dateCreated, TimeCreated = timeCreated };
 
             _context.Processings.Add(newProcessing);
+            return processingId;
+        }
 
-            int inputId;
-            try
-            {
-                inputId = _context.ProcessingInputs.Max(i => i.Id);
-            }
-            catch
-            {
-                inputId = 0;
-            }
+        [HttpPost]
+        public IActionResult Save(Processing processing, ProcessingLotInputView[] details)
+        {
+            var processingId = SaveNewProcessing(processing);
 
-            int lotInputId;
-            try
-            {
-                lotInputId = _context.ProcessingLotInputs.Max(i => i.Id) + 1;
-            }
-            catch
-            {
-                lotInputId = 1;
-            }
+            int inputId = GetNewProcessingInputId();
+
+            int lotInputId = GetNewProcessingLotInputId();
 
             foreach (var detail in details)
             {
@@ -187,13 +184,6 @@ namespace OcsStore.Controllers
             _context.SaveChanges();
 
             _context.Database.ExecuteSqlRaw("call calculate_strans_processing(" + processingId + ");");
-
-            if (createBill)
-            {
-                var billDetail = new BillDetail() { Item = processing.Item, Unit = processing.Unit, Quantity = processing.Quantity, Price = salePrice };
-                BillDetail[] billDetails = { billDetail };
-                CreateBill(processing.Date, processing.Time, billDetails.ToArray(), customer, debit);
-            }
 
             return Ok();
         }
@@ -280,6 +270,18 @@ namespace OcsStore.Controllers
             _context.SaveChanges();
 
             _context.Database.ExecuteSqlRaw("call calculate_strans_bill(" + billId + ");");
+        }
+
+        private void DeleteProcessing(int processingId)
+        {
+            _context.Database.ExecuteSqlRaw("call delete_processing(" + processingId + ");");
+        }
+
+        [HttpPost]
+        public IActionResult Delete(int processingId)
+        {
+            DeleteProcessing(processingId);
+            return Ok();
         }
     }
 }

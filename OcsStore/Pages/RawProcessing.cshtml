@@ -1,0 +1,51 @@
+﻿@page
+@using OcsStore.Models
+@model OcsStore.Pages.RawProcessingModel
+@{
+}
+
+@(
+Html.DevExtreme().DataGrid<ProcessingInputView>()
+    .ID("main-grid")
+    .DataSource(d => d.Mvc().Controller("Processing").LoadAction("GetProcessingInputViews").LoadMethod("POST").Key("Id").LoadParams(new { ItemGroup = 2 }))
+    .RemoteOperations(false)
+    .ShowBorders(true)
+    .ShowRowLines(true)
+    .WordWrapEnabled(true)
+    .Sorting(s => s.Mode(GridSortingMode.None))
+    .Paging(p => p.PageSize(100))
+    .Pager(p => p.Visible(false))
+    .OnContentReady("onGridContentReadyExpandFirstGroup")
+    .Columns(columns =>
+    {
+        columns.AddFor(m => m.Date).Caption("Ngày").Width(90).Alignment(HorizontalAlignment.Center).Format("dd/MM/yyyy")
+            .GroupIndex(0).SortOrder(SortOrder.Desc).AutoExpandGroup(false).GroupCellTemplate(new JS("groupCellTemplateTextOnly"));
+        columns.AddFor(m => m.Time).Caption("Giờ").Width(50).Alignment(HorizontalAlignment.Center);
+        columns.AddFor(m => m.ItemLotName).Caption("Thành phẩm").Width(130).CellTemplate(new JS("itemCellTemplate"));
+        columns.AddFor(m => m.MaterialQuantity).Caption("Số lượng nguyên liệu (kg)").Width(60).Format("#,##0.0");
+        columns.AddFor(m => m.Quantity).Caption("Số lượng thành phẩm (kg)").Width(60).Format("#,##0.0");
+        columns.AddFor(m => m.UserName).Caption("Người tạo").Width(50);
+        columns.Add().Name("Action").Width(36).Alignment(HorizontalAlignment.Center).Fixed(true).FixedPosition(HorizontalEdge.Right).CellTemplate(new JS("deleteActionCellTemplate"));
+    })
+    .OnCellPrepared("onCellPreparedGroupFixedRightColumn")
+    .Editing(e => e.AllowUpdating(false))
+    .Paging(p => p.Enabled(true).PageSize(100))
+)
+
+<script>
+    pageTitle = "Rang";
+    deleteUrl = '@Url.Action("Delete", "Processing")';
+    var itemGroupId = 2;
+
+    $(function () {
+        appendTopAddButtonToGrid({ onClick: function() {
+            location.href = "/rawprocessing/new";
+        }});
+    });
+
+    function itemCellTemplate(container, options) {
+        const cssColor = cssColorForItemType(options.data.ItemGroup);
+        container.html(dotSymbolHtml(cssColor) + options.text);
+    }
+
+</script>

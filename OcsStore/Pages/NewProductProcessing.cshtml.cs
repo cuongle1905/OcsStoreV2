@@ -7,20 +7,20 @@ using Microsoft.VisualBasic;
 
 namespace OcsStore.Pages
 {
-    public class NewRawProcessingModel : PageModel
+    public class NewProductProcessingModel : PageModel
     {
         private readonly ItemController _itemController;
 
         public Item[] Items;
 
-        public NewRawProcessingModel(ItemController controller)
+        public NewProductProcessingModel(ItemController controller)
         {
             _itemController = controller;
         }
 
         public void OnGet()
         {
-            Items = _itemController.GetItems(2);
+            Items = _itemController.GetItems(3);
         }
     }
 }

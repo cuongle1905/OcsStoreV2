@@ -1,50 +1,82 @@
-﻿@page "/processingraw/new"
+﻿@page "/rawprocessing/new"
 @using OcsStore.Models
 @model OcsStore.Pages.NewRawProcessingModel
 @{
 }
 <style>
+    #material-soh {
+        font-size: 1rem;
+        margin-left: 0.3rem;
+        margin-right: 0.2rem;
+    }
 </style>
 
-<div id="top-section" class="ms-auto me-auto pt-3" style="width: 24rem;">
-</div>
+<div id="top-section" class="ms-auto me-auto pt-3" style="width: 24rem;"></div>
 
 <div id="bottom-buttons" class="ms-auto me-auto pt-3 text-center" style="width: 24rem;"></div>
 
 <script>
     pageTitle = "Rang mới";
-    goBackUrl = "/processingraw";
+    goBackUrl = "/rawprocessing";
     var items = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Items));
     let itemId;
     let materialQuantity = 0.0;
     let itemQuantity = 0.0;
-    let marterialQtyBox;
+    let materialQtyBox;
     let itemQtyBox;
+    let saveButton;
+    let materialSoh = 0.0;
 
     $(function () {
-        $("#main-grid").first().prepend($("#top-section"));
-
         const topSection = $("#top-section");
+        $("#main-grid").first().prepend(topSection);
 
         appendDateTimeFields({ container: topSection });
 
-        appendSelectField({ container: topSection, title: "Chọn hạt", dataSource: items })
+        appendSelectField({ id: "item-select-box", container: topSection, title: "Chọn hạt", dataSource: items, onValueChanged: itemChanged })
 
         const quantityContainer = appendFlexContainer({ container: topSection });
 
-        marterialQtyBox = appendNumberField({ container: quantityContainer, title: "Số lượng nguyên liệu", suffix: "Kg" });
+        materialQtyBox = appendNumberField({ id: "material-quantity-box", container: quantityContainer, title: "Số lượng nguyên liệu", suffix: "Kg", decimals: 1 });
+
+        $(`<div class="field-title text-center mt-1">Tồn kho:<span id="material-soh">0</span>Kg</div>`).insertAfter($("#material-quantity-box"));
 
         appendIconField({ container: quantityContainer, icon: "bi bi-arrow-right" });
 
-        itemQtyBox = appendNumberField({ container: quantityContainer, title: "Số lượng thành phẩm", suffix: "Kg" });
+        itemQtyBox = appendNumberField({ id: "item-quantity-box", container: quantityContainer, title: "Số lượng thành phẩm", suffix: "Kg", decimals: 1 });
 
-        appendSaveButton({ containerId: "bottom-buttons", width: "50%" });
+        appendSaveButton({ id: "save-button", containerId: "bottom-buttons", width: "50%", onClick: save });
+
+        $("#save-button").css("visibility", "hidden");
     });
+
+    function itemChanged(e) {
+        itemId = e.value;
+        $("#save-button").css("visibility", "visible");
+        $.ajax({
+            url: '@Url.Action("GetMaterialSoh", "Stock")',
+            method: "POST",
+            data: { itemId: itemId },
+            success: function (result) {
+                materialSoh = result;
+                $("#material-soh").html(materialSoh);
+            },
+            error: function (xhr, status, error) {
+                console.log("xhr", xhr, "status", status, "error", error);
+                DevExpress.ui.dialog.alert("Có lỗi xảy ra. Vui lòng thử lại sau.", "Cảnh báo");
+            }
+        });
+    }
 
     function save() {
         let materialQuantity = materialQtyBox.option("value");
         if (materialQuantity == undefined || materialQuantity <= 0) {
             DevExpress.ui.dialog.alert("Hãy nhập vào Số lượng nguyên liệu.", "Cảnh báo");
+            return;
+        }
+
+        if (materialQuantity > materialSoh) {
+            DevExpress.ui.dialog.alert("Số lượng nguyên liệu vượt quá số lượng tồn kho.", "Cảnh báo");
             return;
         }
 
@@ -57,10 +89,10 @@
         DevExpress.ui.dialog.confirm("<i>Bạn có chắc chắn lưu dữ liệu?</i>", "Xác nhận").then(function(dialogResult) {
             if (dialogResult) {
                 let processing = {};
-                processing.Date = $("#dateBox").dxDateBox("instance").option("value").toISOString();
-                processing.Time = $("#timeBox").dxDateBox("instance").option("text");
+                processing.Date = $("#date-box").dxDateBox("instance").option("value").toISOString();
+                processing.Time = $("#time-box").dxDateBox("instance").option("text");
                 processing.Item = itemId;
-                processing.Quantity = quantity;
+                processing.Quantity = itemQuantity;
 
                 $.ajax({
                     url: '@Url.Action("SaveRawProcessing", "Processing")',

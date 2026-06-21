@@ -27,6 +27,10 @@ public partial class Processing
 
     public short User { get; set; }
 
+    public DateTime? DateCreated { get; set; }
+
+    public string TimeCreated { get; set; }
+
     public virtual ICollection<BillDetail> BillDetails { get; set; } = new List<BillDetail>();
 
     public virtual Item ItemNavigation { get; set; }

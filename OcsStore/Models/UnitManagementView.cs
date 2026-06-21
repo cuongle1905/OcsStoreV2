@@ -20,4 +20,6 @@ public partial class UnitManagementView
     public string Note { get; set; }
 
     public bool? Used { get; set; }
+
+    public bool? AllowDelete { get; set; }
 }

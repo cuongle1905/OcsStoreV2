@@ -100,6 +100,8 @@ public partial class MyDbContext : DbContext
 
     public virtual DbSet<UserGroup> UserGroups { get; set; }
 
+    public virtual DbSet<UserManagementView> UserManagementViews { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder.UseMySql("name=MySqlConnection", Microsoft.EntityFrameworkCore.ServerVersion.Parse("9.3.0-mysql"));
 
@@ -452,6 +454,7 @@ public partial class MyDbContext : DbContext
                 .HasColumnName("email")
                 .UseCollation("utf8mb3_general_ci")
                 .HasCharSet("utf8mb3");
+            entity.Property(e => e.Inactive).HasColumnName("inactive");
             entity.Property(e => e.Name)
                 .IsRequired()
                 .HasMaxLength(100)
@@ -493,12 +496,14 @@ public partial class MyDbContext : DbContext
                 .HasColumnName("address")
                 .UseCollation("utf8mb3_general_ci")
                 .HasCharSet("utf8mb3");
+            entity.Property(e => e.AllowDelete).HasColumnName("allow_delete");
             entity.Property(e => e.Email)
                 .HasMaxLength(50)
                 .HasColumnName("email")
                 .UseCollation("utf8mb3_general_ci")
                 .HasCharSet("utf8mb3");
             entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Inactive).HasColumnName("inactive");
             entity.Property(e => e.Name)
                 .IsRequired()
                 .HasMaxLength(100)
@@ -803,6 +808,7 @@ public partial class MyDbContext : DbContext
                 .HasNoKey()
                 .ToView("item_management_view");
 
+            entity.Property(e => e.AllowDelete).HasColumnName("allow_delete");
             entity.Property(e => e.AllowSale).HasColumnName("allow_sale");
             entity.Property(e => e.Code)
                 .HasMaxLength(50)
@@ -1260,6 +1266,9 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.Date)
                 .HasColumnType("datetime")
                 .HasColumnName("date");
+            entity.Property(e => e.DateCreated)
+                .HasColumnType("datetime")
+                .HasColumnName("date_created");
             entity.Property(e => e.Item).HasColumnName("item");
             entity.Property(e => e.Lot)
                 .HasMaxLength(10)
@@ -1279,6 +1288,10 @@ public partial class MyDbContext : DbContext
                 .HasMaxLength(5)
                 .IsFixedLength()
                 .HasColumnName("time");
+            entity.Property(e => e.TimeCreated)
+                .HasMaxLength(5)
+                .IsFixedLength()
+                .HasColumnName("time_created");
             entity.Property(e => e.Unit)
                 .HasDefaultValueSql("'1'")
                 .HasColumnName("unit");
@@ -1370,15 +1383,21 @@ public partial class MyDbContext : DbContext
                 .HasNoKey()
                 .ToView("processing_input_view");
 
+            entity.Property(e => e.AllowDelete).HasColumnName("allow_delete");
             entity.Property(e => e.Date)
                 .HasColumnType("datetime")
                 .HasColumnName("date");
+            entity.Property(e => e.DateCreated)
+                .HasColumnType("datetime")
+                .HasColumnName("date_created");
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.Item).HasColumnName("item");
             entity.Property(e => e.ItemGroup)
                 .HasDefaultValueSql("'1'")
                 .HasColumnName("item_group");
-            entity.Property(e => e.ItemLotName).HasColumnName("item_lot_name");
+            entity.Property(e => e.ItemLotName)
+                .HasMaxLength(111)
+                .HasColumnName("item_lot_name");
             entity.Property(e => e.ItemName)
                 .IsRequired()
                 .HasMaxLength(100)
@@ -1409,6 +1428,10 @@ public partial class MyDbContext : DbContext
                 .HasMaxLength(5)
                 .IsFixedLength()
                 .HasColumnName("time");
+            entity.Property(e => e.TimeCreated)
+                .HasMaxLength(5)
+                .IsFixedLength()
+                .HasColumnName("time_created");
             entity.Property(e => e.Unit)
                 .HasDefaultValueSql("'1'")
                 .HasColumnName("unit");
@@ -1418,6 +1441,14 @@ public partial class MyDbContext : DbContext
                 .HasColumnName("unit_name")
                 .UseCollation("utf8mb3_general_ci")
                 .HasCharSet("utf8mb3");
+            entity.Property(e => e.User)
+                .HasDefaultValueSql("'1'")
+                .HasColumnName("user");
+            entity.Property(e => e.UserName)
+                .IsRequired()
+                .HasMaxLength(100)
+                .HasDefaultValueSql("''")
+                .HasColumnName("user_name");
         });
 
         modelBuilder.Entity<ProcessingLotInput>(entity =>
@@ -1531,48 +1562,35 @@ public partial class MyDbContext : DbContext
                 .HasNoKey()
                 .ToView("processing_view");
 
+            entity.Property(e => e.AllowDelete).HasColumnName("allow_delete");
             entity.Property(e => e.Date)
                 .HasColumnType("datetime")
                 .HasColumnName("date");
+            entity.Property(e => e.DateCreated)
+                .HasColumnType("datetime")
+                .HasColumnName("date_created");
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.Item).HasColumnName("item");
             entity.Property(e => e.ItemGroup)
                 .HasDefaultValueSql("'1'")
                 .HasColumnName("item_group");
-            entity.Property(e => e.ItemGroupName)
-                .IsRequired()
-                .HasMaxLength(45)
-                .HasColumnName("item_group_name")
-                .UseCollation("utf8mb3_general_ci")
-                .HasCharSet("utf8mb3");
             entity.Property(e => e.ItemName)
                 .IsRequired()
                 .HasMaxLength(100)
                 .HasColumnName("item_name")
                 .UseCollation("utf8mb3_general_ci")
                 .HasCharSet("utf8mb3");
-            entity.Property(e => e.ItemType)
-                .HasDefaultValueSql("'1'")
-                .HasColumnName("item_type");
             entity.Property(e => e.Lot)
                 .HasMaxLength(10)
                 .HasColumnName("lot");
             entity.Property(e => e.Note)
                 .HasMaxLength(100)
                 .HasColumnName("note");
-            entity.Property(e => e.Price)
-                .HasPrecision(10, 2)
-                .HasDefaultValueSql("'0.00'")
-                .HasColumnName("price");
-            entity.Property(e => e.ProcessingName)
-                .IsRequired()
-                .HasMaxLength(45)
-                .HasDefaultValueSql("''")
-                .HasColumnName("processing_name");
             entity.Property(e => e.Quantity)
                 .HasPrecision(10, 2)
                 .HasDefaultValueSql("'1.00'")
                 .HasColumnName("quantity");
+            entity.Property(e => e.Selected).HasColumnName("selected");
             entity.Property(e => e.Store)
                 .HasDefaultValueSql("'1'")
                 .HasColumnName("store");
@@ -1581,6 +1599,10 @@ public partial class MyDbContext : DbContext
                 .HasMaxLength(5)
                 .IsFixedLength()
                 .HasColumnName("time");
+            entity.Property(e => e.TimeCreated)
+                .HasMaxLength(5)
+                .IsFixedLength()
+                .HasColumnName("time_created");
             entity.Property(e => e.Unit)
                 .HasDefaultValueSql("'1'")
                 .HasColumnName("unit");
@@ -1591,9 +1613,14 @@ public partial class MyDbContext : DbContext
                 .UseCollation("utf8mb3_general_ci")
                 .HasCharSet("utf8mb3");
             entity.Property(e => e.UseLot).HasColumnName("use_lot");
-            entity.Property(e => e.Value)
-                .HasPrecision(20, 4)
-                .HasColumnName("value");
+            entity.Property(e => e.User)
+                .HasDefaultValueSql("'1'")
+                .HasColumnName("user");
+            entity.Property(e => e.UserName)
+                .IsRequired()
+                .HasMaxLength(100)
+                .HasDefaultValueSql("''")
+                .HasColumnName("user_name");
             entity.Property(e => e.Year)
                 .HasDefaultValueSql("'26'")
                 .HasColumnName("year");
@@ -1632,6 +1659,9 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.Date)
                 .HasColumnType("datetime")
                 .HasColumnName("date");
+            entity.Property(e => e.DateCreated)
+                .HasColumnType("datetime")
+                .HasColumnName("date_created");
             entity.Property(e => e.Store)
                 .HasDefaultValueSql("'1'")
                 .HasColumnName("store");
@@ -1640,6 +1670,10 @@ public partial class MyDbContext : DbContext
                 .HasMaxLength(5)
                 .IsFixedLength()
                 .HasColumnName("time");
+            entity.Property(e => e.TimeCreated)
+                .HasMaxLength(5)
+                .IsFixedLength()
+                .HasColumnName("time_created");
             entity.Property(e => e.User).HasColumnName("user");
 
             entity.HasOne(d => d.StoreNavigation).WithMany(p => p.Receivings)
@@ -1709,9 +1743,13 @@ public partial class MyDbContext : DbContext
                 .HasNoKey()
                 .ToView("receiving_detail_view");
 
+            entity.Property(e => e.AllowDelete).HasColumnName("allow_delete");
             entity.Property(e => e.Date)
                 .HasColumnType("datetime")
                 .HasColumnName("date");
+            entity.Property(e => e.DateCreated)
+                .HasColumnType("datetime")
+                .HasColumnName("date_created");
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.Item).HasColumnName("item");
             entity.Property(e => e.ItemName)
@@ -1735,15 +1773,15 @@ public partial class MyDbContext : DbContext
                 .HasPrecision(8, 2)
                 .HasColumnName("quantity");
             entity.Property(e => e.Receiving).HasColumnName("receiving");
-            entity.Property(e => e.Soh)
-                .HasPrecision(10, 2)
-                .HasColumnName("soh");
-            entity.Property(e => e.SohWarning).HasColumnName("soh_warning");
             entity.Property(e => e.Time)
                 .IsRequired()
                 .HasMaxLength(5)
                 .IsFixedLength()
                 .HasColumnName("time");
+            entity.Property(e => e.TimeCreated)
+                .HasMaxLength(5)
+                .IsFixedLength()
+                .HasColumnName("time_created");
             entity.Property(e => e.Unit)
                 .HasDefaultValueSql("'1'")
                 .HasColumnName("unit");
@@ -1753,6 +1791,12 @@ public partial class MyDbContext : DbContext
                 .HasColumnName("unit_name")
                 .UseCollation("utf8mb3_general_ci")
                 .HasCharSet("utf8mb3");
+            entity.Property(e => e.User).HasColumnName("user");
+            entity.Property(e => e.UserName)
+                .IsRequired()
+                .HasMaxLength(100)
+                .HasDefaultValueSql("''")
+                .HasColumnName("user_name");
             entity.Property(e => e.Value)
                 .HasPrecision(22, 6)
                 .HasColumnName("value");
@@ -2093,6 +2137,7 @@ public partial class MyDbContext : DbContext
                 .HasNoKey()
                 .ToView("unit_management_view");
 
+            entity.Property(e => e.AllowDelete).HasColumnName("allow_delete");
             entity.Property(e => e.BaseUnit).HasColumnName("base_unit");
             entity.Property(e => e.BuExchange)
                 .HasDefaultValueSql("'1'")
@@ -2133,6 +2178,7 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.Group)
                 .HasDefaultValueSql("'1'")
                 .HasColumnName("group");
+            entity.Property(e => e.Inactive).HasColumnName("inactive");
             entity.Property(e => e.IsAdmin).HasColumnName("is_admin");
             entity.Property(e => e.Name)
                 .IsRequired()
@@ -2169,6 +2215,36 @@ public partial class MyDbContext : DbContext
                 .IsRequired()
                 .HasMaxLength(45)
                 .HasColumnName("name");
+        });
+
+        modelBuilder.Entity<UserManagementView>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToView("user_management_view");
+
+            entity.Property(e => e.Group)
+                .HasDefaultValueSql("'1'")
+                .HasColumnName("group");
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Inactive).HasColumnName("inactive");
+            entity.Property(e => e.IsAdmin).HasColumnName("is_admin");
+            entity.Property(e => e.Name)
+                .IsRequired()
+                .HasMaxLength(100)
+                .HasDefaultValueSql("''")
+                .HasColumnName("name");
+            entity.Property(e => e.Password)
+                .IsRequired()
+                .HasMaxLength(20)
+                .HasColumnName("password");
+            entity.Property(e => e.Token)
+                .HasMaxLength(1000)
+                .HasColumnName("token");
+            entity.Property(e => e.Username)
+                .IsRequired()
+                .HasMaxLength(20)
+                .HasColumnName("username");
         });
 
         OnModelCreatingPartial(modelBuilder);

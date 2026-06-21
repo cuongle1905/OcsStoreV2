@@ -25,7 +25,14 @@ namespace OcsStore.Controllers
         [HttpPost]
         public IActionResult GetReceivings(DataSourceLoadOptions loadOptions)
         {
-            var result = DataSourceLoader.Load(_context.ReceivingDetailViews, loadOptions);
+            var data = _context.ReceivingDetailViews.ToArray();
+            var isAdmin = Session.IsAdmin(Request);
+            var userId = Session.UserId(Request);
+            foreach (var record in data)
+            {
+                record.AllowDelete = isAdmin || (record.User == userId && record.DateCreated == DateTime.Today);
+            }
+            var result = DataSourceLoader.Load(data, loadOptions);
             return Ok(result);
         }
 
@@ -46,7 +53,7 @@ namespace OcsStore.Controllers
             List<ReceivingDetailView> details = new List<ReceivingDetailView>();
             foreach (var d in data)
             {
-                var detail = new ReceivingDetailView() { Item = d.Item, ItemName = d.ItemName, Unit = d.Unit, UnitName = d.UnitName, Soh = d.Soh, SohWarning = d.SohWarning };
+                var detail = new ReceivingDetailView() { Item = d.Item, ItemName = d.ItemName, Unit = d.Unit, UnitName = d.UnitName };
                 details.Add(detail);
             }
 
@@ -57,6 +64,9 @@ namespace OcsStore.Controllers
         public IActionResult Save(DateTime date, string time, ReceivingDetail[] details)
         {
             date = Common.GetLocalDateWithoutTime(date); // Remove hour, minute...
+            DateTime dateCreated = DateTime.Today;
+            string timeCreated = DateTime.Now.ToString("HH:mm");
+
             int receivingId;
             try
             {
@@ -67,7 +77,7 @@ namespace OcsStore.Controllers
                 receivingId = 1;
             }
 
-            var receiving = new Receiving() { Id = receivingId, Date = date, Time = time, User = Session.UserId(Request) };
+            var receiving = new Receiving() { Id = receivingId, Date = date, Time = time, User = Session.UserId(Request), DateCreated = dateCreated, TimeCreated = timeCreated };
             _context.Receivings.Add(receiving);
             
             int detailId;

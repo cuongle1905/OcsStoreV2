@@ -1,0 +1,68 @@
+﻿@page
+@using OcsStore.Models
+@model OcsStore.Pages.UsersModel
+@{
+}
+
+@(Html.DevExtreme().DataGrid<UserManagementView>()
+    .ID("main-grid")
+    .DataSource(d => d.Mvc().Controller("Data").LoadAction("GetUserManagementViews").LoadMethod("POST").OnLoaded("gridDataLoadedForUsedData"))
+    .RemoteOperations(false)
+    .ShowBorders(true)
+    .ShowRowLines(true)
+    .WordWrapEnabled(true)
+    .Sorting(s => s.Mode(GridSortingMode.None))
+    .Paging(p => p.PageSize(100))
+    .Pager(p => p.Visible(false))
+    .OnContentReady("defaultOnGridContentReady")
+    .OnRowPrepared("onRowPreparedInactive")
+    .OnInitNewRow("onInitNewRow")
+    .Columns(columns =>
+    {
+        columns.AddFor(m => m.Username).Caption("Username").Width(70).Fixed(true).FixedPosition(HorizontalEdge.Left);
+        columns.AddFor(m => m.Password).Caption("Mật khẩu").Width(70).CustomizeText("customizePasswordCellText");
+        columns.AddFor(m => m.Name).Caption("Tên").Width(80).Alignment(HorizontalAlignment.Left);
+        columns.AddFor(m => m.Inactive).Caption("Không hiệu lực").Fixed(true).FixedPosition(HorizontalEdge.Right).Width(60);
+    })
+    .Editing(e => e.AllowUpdating(true).Mode(GridEditMode.Batch).SelectTextOnEditStart(true).NewRowPosition(GridNewRowPosition.PageBottom))
+    .OnEditorPreparing("defaultOnEditorPreparing")
+    .RepaintChangesOnly(true)
+)
+<script>
+    pageTitle = "Quản lý người dùng";
+    goBackUrl = "/datamanagement";
+    saveUrl = '@Url.Action("SaveUsers", "Data")';
+
+    $(function () {
+        appendBottomAddButtonToGrid();
+        appendUndoSaveButtonsToGrid();
+    });
+
+    function onInitNewRow(e) {
+        e.data.Id = 0;
+        e.data.Inactive = false;
+        e.data.Group = 1;
+        e.data.IsAdmin = 0;
+    }
+
+    function customizePasswordCellText(cellInfo)
+    {
+        return "••••••";
+    }
+
+    function checkRowDataBeforeSaving(data) {
+        if (!checkMinLength(data.Username, 2)) {
+            DevExpress.ui.dialog.alert("User name phải có ít nhất 2 ký tự.", "Cảnh báo");
+            return false;
+        }
+        if (!checkMinLength(data.Password, 1)) {
+            DevExpress.ui.dialog.alert("Mật khẩu phải có ít nhất 1 ký tự.", "Cảnh báo");
+            return false;
+        }
+        if (!checkMinLength(data.Name, 2)) {
+            DevExpress.ui.dialog.alert("Tên phải có ít nhất 2 ký tự.", "Cảnh báo");
+            return false;
+        }
+        return true;
+    }
+</script>

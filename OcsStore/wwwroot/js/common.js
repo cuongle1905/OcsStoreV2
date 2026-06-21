@@ -95,7 +95,7 @@ function gridDataLoadedForUsedData(records) {
 }
 
 function deleteActionCellTemplate(container, options) {
-    if (!options.data.Used)
+    if (options.data.AllowDelete)
         container.html(`<a href="#" class="icon-link" onclick="deleteRowData(${options.rowIndex})"><i class="bi bi-trash"></i></a>`)
 }
 
@@ -248,6 +248,19 @@ function appendTopAddButtonToGrid(e) {
     appendButtonToGrid(e);
 }
 
+function appendBottomAddButtonToGrid(e) {
+    if (e == undefined)
+        e = {};
+
+    if (e.action == undefined)
+        e.action = "add";
+
+    if (e.position == undefined)
+        e.position = "bottom";
+
+    appendButtonToGrid(e);
+}
+
 function appendBottomButtonToGrid(e) {
     let buttonsDiv = gridBottomButtonsDiv();
     $(gridId).first().append(buttonsDiv);
@@ -263,44 +276,6 @@ function gridBottomButtonsDiv(gridId) {
         $(`#${gridId}`).first().append(div);
     }
     return div;
-}
-
-function createGridAddButton(buttonId, text, gridId, onClickFunc) {
-    if (text == undefined)
-        text = "Thêm";
-
-    if (onClickFunc == undefined) {
-        onClickFunc = function () {
-            $(`#${gridId}`).dxDataGrid("addRow");
-        };
-    }
-    return appendButton(`#${buttonId}`, text, "auto", "text", "bi bi-plus-circle-fill", onClickFunc);
-}
-
-function appendAddButtonToGrid(gridId, buttonId, text, onClickFunc) {
-    if (gridId == undefined)
-        gridId = "main-grid";
-
-    console.log("appendAddButtonToGrid", gridId);
-    let buttonsDiv = gridBottomButtonsDiv(gridId);
-    if (buttonId == undefined)
-        buttonId = `${gridId}-add-button`;
-
-    buttonsDiv.append($(`<div id="${buttonId}">`));
-    return createGridAddButton(buttonId, text, gridId, onClickFunc);
-}
-
-function appendBottomRightButtonToGrid(e) {
-    if (e.gridId == undefined)
-        e.gridId = "main-grid";
-
-    let buttonsDiv = gridBottomButtonsDiv(e.gridId);
-    if (e.buttonId == undefined)
-        e.buttonId = `${e.gridId}-add-button`;
-
-    buttonsDiv.append($(`<div id="${buttonId}">`));
-
-    return appendButton(`#${buttonId}`, text, "auto", "text", "bi bi-plus-circle-fill", onClickFunc);
 }
 
 function gridButtonContainer(e) {
@@ -331,6 +306,8 @@ function normalizeButtonParam(e) {
     if (e.style == undefined) {
         if (e.action == "undo")
             e.style = "outlined";
+        else if (e.level == 1 && e.position == "bottom")
+            e.style = "text";
         else
             e.style = "contained";
     }
@@ -585,7 +562,7 @@ function addDateOverlay(e) {
     div.html(`<div>${date.ddMMyyyy()}</div>`);
 
     dateBox.option("onValueChanged", function (ee) {
-        $(`#${e.id} .date-overlay-layer`).html(`<div>${e.value.ddMMyyyy()}</div>`);
+        $(`#${e.id} .date-overlay-layer`).html(`<div>${ee.value.ddMMyyyy()}</div>`);
 
         if (typeof e.onValueChanged === "function") {
             e.onValueChanged(ee);
@@ -690,6 +667,7 @@ function appendSelectField(e) {
 }
 
 function appendSelectBox(e) {
+    normalizeContainerParam(e);
     normalizeDataParam(e);
     const div = appendControlDiv(e);
     div.dxSelectBox({
@@ -712,6 +690,53 @@ function appendSelectBox(e) {
     });
     const selectBox = div.dxSelectBox("instance");
     return selectBox;
+}
+
+function appendTabs(e) {
+    normalizeContainerParam(e);
+    normalizeDataParam(e);
+
+    if (e.itemTemplate == undefined) {
+        e.itemTemplate = function (data, index, element) {
+            element.append(data.Name);
+        }
+    }
+
+    if (e.selectionMode == undefined)
+        e.selectionMode = "multiple";
+
+    if (e.width == undefined)
+        e.width = "100%"
+
+    if (e.height == undefined)
+        e.height = "auto";
+
+    console.log("appendTabs", e);
+    const div = appendControlDiv(e);
+    div.dxTabs({
+        dataSource: e.dataSource,
+        width: e.width,
+        height: e.height,
+        displayExpr: e.nameField,
+        valueExpr: e.idField,
+        showNavButtons: false,
+        itemTemplate: e.itemTemplate,
+        selectionMode: e.selectionMode,
+        onSelectionChanged: e.onSelectionChanged
+    });
+}
+
+function appendMaterialTagTabs(e) {
+    e.dataSource = DevExpress.data.AspNet.createStore({
+        key: "Id",
+        loadUrl: "/api/Item/GetItemViews",
+        loadMethod: "POST",
+        loadParams: { GroupId: 2 },
+        onBeforeSend(method, ajaxOptions) {
+            ajaxOptions.xhrFields = { withCredentials: true };
+        }
+    })
+    appendTabs(e);
 }
 
 function appendNumberField(e) {
@@ -838,4 +863,8 @@ function setSelectedTabIndex(tabId, index) {
 
 function isEmpty(text) {
     return text == undefined || text == null || text == "";
+}
+
+function checkMinLength(text, minLength) {
+    return text != undefined && text != null && text.length >= minLength;
 }

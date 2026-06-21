@@ -23,6 +23,7 @@
         columns.AddFor(m => m.Phone).Caption("Điện thoại").Width(100);
         columns.AddFor(m => m.Address).Caption("Địa chỉ").Width(170);
         columns.AddFor(m => m.Email).Caption("Email").Width(130);
+        columns.AddFor(m => m.Inactive).Caption("Không hiệu lực").Fixed(true).FixedPosition(HorizontalEdge.Right).Width(60);
         columns.Add().Name("Action").Width(36).Alignment(HorizontalAlignment.Center).Fixed(true).FixedPosition(HorizontalEdge.Right).CellTemplate(new JS("deleteActionCellTemplate"));
     })
     .Editing(e => e.AllowUpdating(true).Mode(GridEditMode.Batch).SelectTextOnEditStart(true).NewRowPosition(GridNewRowPosition.PageBottom))
@@ -31,11 +32,12 @@
 )
 <script>
     pageTitle = "Khách hàng";
+    goBackUrl = "/datamanagement";
     deleteUrl = '@Url.Action("DeleteCustomer", "Sales")';
     saveUrl = '@Url.Action("SaveCustomers", "Sales")';
 
     $(function () {
-        appendAddButtonToGrid();
+        appendBottomAddButtonToGrid();
         appendUndoSaveButtonsToGrid();
     });
 

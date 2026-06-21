@@ -31,7 +31,13 @@ public partial class ReceivingDetailView
 
     public decimal? Value { get; set; }
 
-    public decimal? Soh { get; set; }
+    public short User { get; set; }
 
-    public bool? SohWarning { get; set; }
+    public string UserName { get; set; }
+
+    public DateTime? DateCreated { get; set; }
+
+    public string TimeCreated { get; set; }
+
+    public bool? AllowDelete { get; set; }
 }

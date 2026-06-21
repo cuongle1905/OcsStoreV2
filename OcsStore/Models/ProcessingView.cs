@@ -5,6 +5,8 @@ namespace OcsStore.Models;
 
 public partial class ProcessingView
 {
+    public bool? Selected { get; set; }
+
     public int Id { get; set; }
 
     public string Lot { get; set; }
@@ -21,15 +23,9 @@ public partial class ProcessingView
 
     public string ItemName { get; set; }
 
-    public bool UseLot { get; set; }
-
     public sbyte ItemGroup { get; set; }
 
-    public sbyte ItemType { get; set; }
-
-    public string ItemGroupName { get; set; }
-
-    public string ProcessingName { get; set; }
+    public bool UseLot { get; set; }
 
     public string UnitName { get; set; }
 
@@ -39,7 +35,13 @@ public partial class ProcessingView
 
     public string Time { get; set; }
 
-    public decimal? Price { get; set; }
+    public short User { get; set; }
 
-    public decimal? Value { get; set; }
+    public string UserName { get; set; }
+
+    public DateTime? DateCreated { get; set; }
+
+    public string TimeCreated { get; set; }
+
+    public bool? AllowDelete { get; set; }
 }

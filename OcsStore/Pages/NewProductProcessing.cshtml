@@ -1,0 +1,261 @@
+﻿@page "/productprocessing/new"
+@using OcsStore.Models
+@model OcsStore.Pages.NewProductProcessingModel
+@{
+}
+<style>
+</style>
+
+<div id="top-section" class="ms-auto me-auto pt-3" style="width: 24rem;">
+</div>
+
+@(
+Html.DevExtreme().DataGrid<ProcessingLotInputView>()
+    .ID("main-grid")
+    .DataSource(d => d.Mvc().Controller("Processing").LoadAction("GetNewDetails").LoadMethod("POST").LoadParams(new { ItemId = new JS("function () { return itemId; }") }).OnLoaded("gridDataLoaded"))
+    .RemoteOperations(false)
+    .ShowBorders(true)
+    .ShowRowLines(true)
+    .WordWrapEnabled(true)
+    .Sorting(s => s.Mode(GridSortingMode.None))
+    .Paging(p => p.PageSize(100))
+    .Pager(p => p.Visible(false))
+    .OnContentReady("defaultOnGridContentReady")
+    .Columns(columns =>
+    {
+        columns.AddFor(m => m.ItemName).Caption("Nguyên liệu").Width(125).Alignment(HorizontalAlignment.Left).AllowEditing(false).CellTemplate(new JS("lotTableCellTemplate"));
+        columns.AddFor(m => m.Quantity).Caption("Số lượng").Width(60).Alignment(HorizontalAlignment.Right).CustomizeText("emptyZeroNumberCellText")
+            .DataType(GridColumnDataType.Number)
+            .Format("#,##0.0")
+            .EditorOptions(new { format = "#,##0.0", min = 0, max = 10000, step = 1, showSpinButtons = false })
+            .CellTemplate(new JS("lotTableCellTemplate"));
+
+        columns.AddFor(m => m.UnitName).Caption("").Width(40).Alignment(HorizontalAlignment.Left).AllowEditing(false).CellTemplate(new JS("lotTableCellTemplate"));
+        columns.AddFor(m => m.Soh).Caption("Tồn kho").Width(60).Alignment(HorizontalAlignment.Right).CellTemplate(new JS("sohCellTemplate")).Format("#,##0.00").AllowEditing(false);
+        columns.AddFor(m => m.Note).Caption("Ghi chú").Width(140).Alignment(HorizontalAlignment.Left).CellTemplate(new JS("lotTableCellTemplate"));
+    })
+    .Editing(e => e.AllowUpdating(true).Mode(GridEditMode.Batch).SelectTextOnEditStart(true))
+    .OnEditorPreparing("onEditorPreparing")
+    .RepaintChangesOnly(true)
+)
+
+<script>
+    pageTitle = "Trộn mới";
+    goBackUrl = "/productprocessing";
+    var items = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Items));
+    let itemId;
+    let itemQuantity = 0.0;
+    let materialUseLot = false;
+
+    $(function () {
+        const topSection = $("#top-section");
+        $("#main-grid").first().prepend(topSection);
+
+        appendDateTimeFields({ container: topSection, dateWidth: "12rem" });
+
+        const itemQuantityContainer = appendFlexContainer({ container: topSection });
+
+        appendSelectField({ id: "item-select-box", container: itemQuantityContainer, width: "12rem", title: "Chọn sản phẩm", dataSource: items, onValueChanged: itemChanged });
+
+        appendNumberField({ id: "item-quantity", container: itemQuantityContainer, title: "Số lượng", suffix: "Kg", decimals: 1, onValueChanged: itemQuantityChanged });
+        $("#item-quantity").parent().css("visibility", "hidden");
+
+        appendSaveButtonToGrid();
+        $("#save-button").css("visibility", "hidden");
+    });
+
+    function gridDataLoaded() {
+        setTimeout(() => {
+            updateDetailLots();
+        }, 100)
+    }
+
+    function onEditorPreparing(e) {
+        if (e.parentType === "dataRow") {
+            e.editorOptions.valueChangeEvent = "keyup";
+
+            if (e.dataField === "Quantity") {
+                // Save the original onValueChanged handler (prevents breaking DataGrid save logic)
+                let originalOnValueChanged = e.editorOptions.onValueChanged;
+
+                // 3. Override the event
+                e.editorOptions.onValueChanged = function(args) {
+                    let newValue = args.value;
+                    let previousValue = args.previousValue;
+
+                    // Trigger custom logic (e.g., calculating another column)
+                    // console.log("New value: ", newValue);
+
+                    // Update the DataGrid data using setValue
+                    e.setValue(newValue); 
+
+                    // Call the original handler to complete the standard grid operation
+                    if (originalOnValueChanged) {
+                        originalOnValueChanged(args);
+                    }
+
+                    console.log("onEditorPreparing", e);
+
+                    let materialId = e.row.data.Item;
+                    let lot = e.row.data.Lot;
+
+                    console.log("materialId", materialId, "lot", lot);
+
+                    let grid = $("#main-grid").dxDataGrid("instance");
+                    let rows = grid.getVisibleRows();
+                    let materialQuantity = 0;
+                    for (var i = 0; i < rows.length; i++) {
+                        const row = rows[i];
+                        if (row.rowType == "data" && row.data.Item == materialId) {
+                            const isCurrentRow = (i == e.row.rowIndex);
+                            const isAboveRow = (i < e.row.rowIndex);
+
+                            if (row.data.Lot == null || row.data.Lot == "") {
+                                if (isCurrentRow) {
+                                    materialQuantity = newValue;
+                                } else {
+                                    materialQuantity = grid.cellValue(i, "Quantity");
+                                }
+                            } else {
+                                let lotQuantity = (isCurrentRow ? newValue : (isAboveRow ? grid.cellValue(i, "Quantity") : Math.min(row.data.Soh, materialQuantity)));
+                                if (!isCurrentRow) {
+                                    grid.cellValue(i, "Quantity", lotQuantity);
+                                    console.log("quantity cell changed, set value", i, lotQuantity);
+                                }
+                                materialQuantity -= lotQuantity;
+                            }
+                            console.log("quantity cell changed", i, materialQuantity);
+                        }
+                    }
+                };
+            }
+        }
+    }
+
+    function itemChanged(e) {
+        itemId = e.value;
+        $("#item-quantity").parent().css("visibility", "visible");
+        $("#save-button").css("visibility", "visible");
+        reloadData();
+    }
+
+    function itemQuantityChanged(e) {
+        itemQuantity = $("#item-quantity").dxNumberBox("instance").option("value");
+        let grid = $("#main-grid").dxDataGrid("instance");
+        let rows = grid.getVisibleRows();
+        let materialQuantity = 0;
+        for (var i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            console.log(row.data); // The raw data object for this row
+            if (row.rowType == "data") {
+                if (row.data.Lot == null || row.data.Lot == "") {
+                    materialQuantity = Math.round(itemQuantity * row.data.MaterialQuantity * 100) / 100;
+                    grid.cellValue(i, "Quantity", materialQuantity);
+                } else {
+                    let lotQuantity = Math.min(row.data.Soh, materialQuantity);
+                    grid.cellValue(i, "Quantity", lotQuantity);
+                    materialQuantity -= lotQuantity;
+                }
+            }
+        }
+    }
+
+    function updateDetailLots() {
+        if (itemId == undefined)
+            return;
+
+        let grid = $("#main-grid").dxDataGrid("instance");
+        let rows = grid.getVisibleRows();
+        materialUseLot = rows.find(i => i.rowType == "data" && i.data.UseLot) != undefined;
+        grid.columnOption("Lot", "visible", materialUseLot);
+    }
+
+    function sohCellTemplate(container, options) {
+        lotTableCellTemplate(container, options);
+        container.html(`<a class='text-link' href='#' onclick='sohClicked(${options.rowIndex});'><span>${options.text}</span></a>`);
+    }
+
+    function itemCellTemplate(container, options) {
+        let cssColor = cssColorForItemType(options.data.ItemGroup);
+        displayCell(container, options, "●", cssColor);
+    }
+
+    function sohClicked(rowIndex) {
+        let grid = $("#main-grid").dxDataGrid("instance");
+        let soh = grid.cellValue(rowIndex, "Soh");
+        grid.cellValue(rowIndex, "Quantity", soh);
+    }
+
+    function save() {
+        let quantity = $("#item-quantity").dxNumberBox("instance").option("value");
+        if (quantity == null || quantity <= 0) {
+            DevExpress.ui.dialog.alert("Hãy nhập vào Số lượng.", "Cảnh báo");
+            return;
+        }
+
+        let grid = $("#main-grid").dxDataGrid("instance");
+        // grid.saveEditData();
+
+        var details = []
+        let rows = grid.getVisibleRows();
+        let itemName = "";
+        let materialQuantity = 0;
+        for (var i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            if (row.rowType == "data" && row.data.Quantity > 0) {
+                if (row.data.Quantity > row.data.Soh) {
+                    DevExpress.ui.dialog.alert(`[${row.data.ItemName + (row.data.Lot.length > 0 ? ' ' + row.data.Lot : '')}] Số lượng ${row.data.Quantity} vượt quá tồn kho ${row.data.Soh}.`, "Cảnh báo");
+                    return;
+                }
+
+                if (row.data.Lot == null || row.data.Lot == "") {
+                    if (i > 0 && materialQuantity > 0) {
+                        DevExpress.ui.dialog.alert(`[${itemName}] Tổng số lượng các Lô không khớp với Số lượng nguyên liệu.`, "Cảnh báo");
+                        return;
+                    }
+                    materialQuantity = row.data.Quantity;
+                    itemName = row.data.ItemName;
+                } else {
+                    materialQuantity -= row.data.Quantity;
+                }
+
+                if (i == rows.length - 1 && row.data.Lot != null && row.data.Lot != "" && materialQuantity > 0) {
+                    DevExpress.ui.dialog.alert(`[${itemName}] Tổng số lượng các Lô không khớp với Số lượng nguyên liệu.`, "Cảnh báo");
+                    return;
+                }
+                details.push(row.data);
+            }
+        }
+        console.log(details);
+
+        if (details.length == 0) {
+            DevExpress.ui.dialog.alert("Hãy nhập vào số lượng nguyên liệu.", "Cảnh báo");
+            return;
+        }
+
+        DevExpress.ui.dialog.confirm("<i>Bạn có chắc chắn lưu dữ liệu?</i>", "Xác nhận").then(function(dialogResult) {
+            if (dialogResult) {
+                let processing = {};
+                processing.Date = $("#date-box").dxDateBox("instance").option("value").toISOString();
+                processing.Time = $("#time-box").dxDateBox("instance").option("text");
+                processing.Item = itemId;
+                processing.Quantity = quantity;
+
+                $.ajax({
+                    url: '@Url.Action("Save", "Processing")',
+                    method: "POST",
+                    data: { processing: processing, details: details },
+                    success: function (result) {
+                        DevExpress.ui.dialog.alert("Đã lưu dữ liệu.", "Thông báo").then(function(dialogResult) {
+                            location.href = goBackUrl;
+                        });
+                    },
+                    error: function (xhr, status, error) {
+                        console.log("xhr", xhr, "status", status, "error", error);
+                        DevExpress.ui.dialog.alert("Có lỗi xảy ra. Vui lòng thử lại sau.", "Cảnh báo");
+                    }
+                });
+            }
+        });
+    }
+</script>

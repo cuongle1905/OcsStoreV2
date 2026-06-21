@@ -8,16 +8,6 @@
 </div>
 
 <div id="tab-container" class="pb-3">
-    @(Html.DevExtreme().Tabs()
-        .ID("material-tabs")
-        .Width("100%")
-        .DataSource(d => d.Mvc().Controller("Item").LoadAction("GetItemViews").LoadMethod("POST").LoadParams(new { GroupId = new JS("function() { return itemGroupId - 1; }") }).Key("Id"))
-        .KeyExpr("Id")
-        .ShowNavButtons(false)
-        .ItemTemplate(new JS("materialTabTemplate"))
-        .SelectionMode(NavSelectionMode.Multiple)
-        .OnSelectionChanged("materialTabSelectionChanged")
-    )
 </div>
 
 @(Html.DevExtreme().DataGrid<ItemManagementView>()
@@ -67,8 +57,9 @@
         addButton = appendButtonToGrid({style: "text", onClick: addData});
         appendUndoSaveButtonsToGrid();
 
-        addTabList("top-section", "groups-tab", ["Hạt rang", "Cafe"], itemGroupId - 2, tabClicked);
+        appendMaterialTagTabs({ id: "material-tabs", containerId: "tab-container", onSelectionChanged: materialTabSelectionChanged });
 
+        addTabList("top-section", "groups-tab", ["Hạt rang", "Cafe"], itemGroupId - 2, tabClicked);
     });
 
     function tabClicked(tabIndex) {
@@ -78,19 +69,14 @@
         addButton.option("text", isProduct() ? "Tạo từ công thức" : "Thêm");
 
         $("#material-tabs").dxTabs("getDataSource").reload();
-
         $("#tab-container").css("display", itemGroupId == 3 ? "block" : "none");
 
         reloadData();
     }
 
-    function materialTabTemplate(data, index, element) {
-        element.append(data.Name);
-    }
-
     function materialTabSelectionChanged(e) {
         // console.log("selectedMaterialIds", $("#material-tabs").dxTabs("instance").option("selectedItemKeys"));
-        selectedMaterialIds = $("#material-tabs").dxTabs("instance").option("selectedItemKeys");
+        selectedMaterialIds = $("#material-tabs").dxTabs("instance").option("selectedItemKeys").join(',');
         console.log("selectedMaterialIds", selectedMaterialIds);
         reloadData();
     }

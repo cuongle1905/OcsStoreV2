@@ -1,13 +1,13 @@
 ﻿@page
 @using OcsStore.Models
-@model OcsStore.Pages.ProcessingRawModel
+@model OcsStore.Pages.ProductProcessingModel
 @{
 }
 
 @(
-Html.DevExtreme().DataGrid<ProcessingInputView>()
+Html.DevExtreme().DataGrid<ProcessingView>()
     .ID("main-grid")
-    .DataSource(d => d.Mvc().Controller("Processing").LoadAction("GetProcessings").LoadMethod("POST").Key("Id").LoadParams(new { ItemGroup = new JS("function() { return itemGroupId; }") }))
+    .DataSource(d => d.Mvc().Controller("Processing").LoadAction("GetProcessingViews").LoadMethod("POST").Key("Id").LoadParams(new { ItemGroup = 3 }))
     .RemoteOperations(false)
     .ShowBorders(true)
     .ShowRowLines(true)
@@ -21,10 +21,10 @@ Html.DevExtreme().DataGrid<ProcessingInputView>()
         columns.AddFor(m => m.Date).Caption("Ngày").Width(90).Alignment(HorizontalAlignment.Center).Format("dd/MM/yyyy")
             .GroupIndex(0).SortOrder(SortOrder.Desc).AutoExpandGroup(false).GroupCellTemplate(new JS("groupCellTemplateTextOnly"));
         columns.AddFor(m => m.Time).Caption("Giờ").Width(50).Alignment(HorizontalAlignment.Center);
-        columns.AddFor(m => m.ItemLotName).Caption("Thành phẩm").Width(130).Alignment(HorizontalAlignment.Left).CellTemplate(new JS("itemCellTemplate"));
-        columns.AddFor(m => m.Quantity).Caption("Số lượng nguyên liệu").Width(60).Alignment(HorizontalAlignment.Right).Format("#,##0.0");
-        columns.AddFor(m => m.Quantity).Caption("Số lượng thành phẩm").Width(60).Alignment(HorizontalAlignment.Right).Format("#,##0.0");
-        columns.AddFor(m => m.UnitName).Caption("").Width(40).Alignment(HorizontalAlignment.Left);
+        columns.AddFor(m => m.ItemName).Caption("Thành phẩm").Width(130).CellTemplate(new JS("itemCellTemplate"));
+        columns.AddFor(m => m.Quantity).Caption("Số lượng thành phẩm (kg)").Width(60).Format("#,##0.0");
+        columns.AddFor(m => m.UserName).Caption("Người tạo").Width(50);
+        columns.Add().Name("Action").Width(36).Alignment(HorizontalAlignment.Center).Fixed(true).FixedPosition(HorizontalEdge.Right).CellTemplate(new JS("deleteActionCellTemplate"));
     })
     .OnCellPrepared("onCellPreparedGroupFixedRightColumn")
     .Editing(e => e.AllowUpdating(false))
@@ -32,12 +32,13 @@ Html.DevExtreme().DataGrid<ProcessingInputView>()
 )
 
 <script>
-    pageTitle = "Rang";
+    pageTitle = "Trộn";
+    deleteUrl = '@Url.Action("Delete", "Processing")';
     var itemGroupId = 2;
 
     $(function () {
         appendTopAddButtonToGrid({ onClick: function() {
-            location.href = "processingraw/new";
+            location.href = "productprocessing/new";
         }});
     });
 

@@ -26,10 +26,7 @@ Html.DevExtreme().DataGrid<ReceivingDetailView>()
         columns.AddFor(m => m.Quantity).Caption("Số lượng").Width(50).Alignment(HorizontalAlignment.Right).Format("#,##0");
         columns.AddFor(m => m.Price).Caption("Giá\n(đồng)").Width(65).HeaderCellTemplate(new JS("subLineHeaderCellTemplate")).Format("#,##0");
         columns.AddFor(m => m.Value).Caption("Thành tiền\n(x 1000đ)").Width(70).HeaderCellTemplate(new JS("subLineHeaderCellTemplate")).Fixed(true).FixedPosition(HorizontalEdge.Right).Format("#,##0");
-        if (isAdmin)
-        {
-            columns.Add().Name("Action").Width(30).Alignment(HorizontalAlignment.Center).Fixed(true).FixedPosition(HorizontalEdge.Right).CellTemplate(new JS("deleteActionCellTemplate"));
-        }
+        columns.Add().Name("Action").Width(30).Alignment(HorizontalAlignment.Center).Fixed(true).FixedPosition(HorizontalEdge.Right).CellTemplate(new JS("deleteActionCellTemplate"));
     })
     .OnCellPrepared("onCellPreparedGroupFixedRightColumn")
     .Editing(e => e.AllowUpdating(false))

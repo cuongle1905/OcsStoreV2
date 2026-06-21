@@ -5,11 +5,11 @@ using OcsStore.Models;
 
 namespace OcsStore.Pages
 {
-    public class ProcessingRawModel : PageModel
+    public class RawProcessingModel : PageModel
     {
         private readonly ProcessingController _processingController;
 
-        public ProcessingRawModel(ProcessingController controller)
+        public RawProcessingModel(ProcessingController controller)
         {
             _processingController = controller;
         }

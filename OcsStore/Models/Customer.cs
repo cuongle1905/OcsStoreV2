@@ -17,5 +17,7 @@ public partial class Customer
 
     public string Note { get; set; }
 
+    public bool Inactive { get; set; }
+
     public virtual ICollection<Bill> Bills { get; set; } = new List<Bill>();
 }

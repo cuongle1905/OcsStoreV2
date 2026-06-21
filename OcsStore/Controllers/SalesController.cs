@@ -158,7 +158,6 @@ namespace OcsStore.Controllers
             return Ok(result);
         }
 
-
         [HttpPost]
         public IActionResult DeleteCustomer(int id)
         {

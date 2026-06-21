@@ -254,8 +254,8 @@ a.icon-link, a.icon-link:active, a.icon-link:hover, a.icon-link:hover {
 
 @media (max-width: 430px) {
     #main-content {
-        margin-left: 0;
-        margin-right: 0;
+        margin-left: 12px;
+        margin-right: 12px;
         width: auto;
     }
 }
@@ -292,6 +292,7 @@ a.back-arrow .dx-icon-arrowleft::before {
 #main-grid {
     margin-left: auto;
     margin-right: auto;
+    margin-top: 12px;
 }
 
 #menu-icon {

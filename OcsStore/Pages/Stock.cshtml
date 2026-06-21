@@ -15,24 +15,26 @@
 
 <div id="top-section" class="pb-3"></div>
 
+<div id="tab-container" class="pb-3"></div>
+
 @(
 Html.DevExtreme().DataGrid<StockView>()
     .ID("main-grid")
-    .DataSource(d => d.Mvc().Controller("Stock").LoadAction("GetStocks").LoadMethod("POST").LoadParams(new { ItemGroupId = new JS("function() { return itemGroupId; }") }))
+    .DataSource(d => d.Mvc().Controller("Stock").LoadAction("GetStocks").LoadMethod("POST").LoadParams(new { ItemGroupId = new JS("function() { return itemGroupId; }"), materialIds = new JS("function() { return selectedMaterialIds; }") }))
     .RemoteOperations(false)
     .ShowBorders(true)
     .ShowRowLines(true)
     .WordWrapEnabled(true)
     .Sorting(s => s.Mode(GridSortingMode.None))
-    .Paging(p => p.PageSize(100))
-    .Pager(p => p.Visible(false))
+    .Paging(p => p.PageSize(12).Enabled(true))
+    @* .Pager(p => p.Visible(false)) *@
     .OnContentReady("defaultOnGridContentReady")
     .Columns(columns =>
     {
-        columns.AddFor(m => m.ItemName).Caption("Hàng hóa").Width(120).Alignment(HorizontalAlignment.Left).Fixed(true).FixedPosition(HorizontalEdge.Left).CellTemplate(new JS("stockCellTemplate"));
-        columns.AddFor(m => m.Soh).Caption("Số lượng").Width(70).Alignment(HorizontalAlignment.Right).Format("#,##0.0").CellTemplate(new JS("stockCellTemplate"));
-        columns.AddFor(m => m.Ave).Caption("Giá TB\n(đồng)").Width(60).HeaderCellTemplate(new JS("subLineHeaderCellTemplate")).Format("#,##0").CellTemplate(new JS("stockCellTemplate"));
-        columns.AddFor(m => m.Value).Caption("Giá trị\n(x 1000đ)").Width(70).HeaderCellTemplate(new JS("subLineHeaderCellTemplate")).Format("#,##0").CellTemplate(new JS("stockCellTemplate"));
+        columns.AddFor(m => m.ItemName).Caption("Hàng hóa").Width(130).Alignment(HorizontalAlignment.Left).Fixed(true).FixedPosition(HorizontalEdge.Left).CellTemplate(new JS("stockCellTemplate"));
+        columns.AddFor(m => m.Soh).Caption("Số lượng\n(Kg)").Width(80).HeaderCellTemplate(new JS("subLineHeaderCellTemplate")).Alignment(HorizontalAlignment.Right).Format("#,##0.0").CellTemplate(new JS("stockCellTemplate"));
+        columns.AddFor(m => m.Ave).Caption("Giá TB\n(đồng)").Width(70).HeaderCellTemplate(new JS("subLineHeaderCellTemplate")).Format("#,##0").CellTemplate(new JS("stockCellTemplate"));
+        columns.AddFor(m => m.Value).Caption("Giá trị\n(x 1000đ)").Width(80).HeaderCellTemplate(new JS("subLineHeaderCellTemplate")).Format("#,##0").CellTemplate(new JS("stockCellTemplate"));
         
         columns.AddFor(m => m.Date).Caption("Ngày").Width(90).Alignment(HorizontalAlignment.Center).Format("dd/MM/yyyy").CellTemplate(new JS("stockCellTemplate"));
         columns.AddFor(m => m.Time).Caption("Giờ").Width(50).Alignment(HorizontalAlignment.Center).CellTemplate(new JS("stockCellTemplate"));
@@ -69,9 +71,14 @@ Html.DevExtreme().DataGrid<StockView>()
 
 <script>
     pageTitle = "Tồn kho";
+    var selectedMaterialIds = [];
 
     $(function () {
+        $("#main-grid").first().prepend($("#tab-container"));
         $("#main-grid").first().prepend($("#top-section"));
+
+        appendMaterialTagTabs({ id: "material-tabs", containerId: "tab-container", onSelectionChanged: materialTabSelectionChanged });
+
         addTabList("top-section", "groups-tab", ["Nhân xanh", "Hạt rang", "Cafe"], itemGroupId - 1, tabClicked);
 
         appendButtonToGrid({ id: "calculate-soh", level: 2, text: "Tính toán lại tồn kho", width: "50%", icon: "bi bi-calculator", onClick: calculateSoh });
@@ -86,7 +93,18 @@ Html.DevExtreme().DataGrid<StockView>()
     function tabClicked(tabIndex) {
         console.log("tabClicked", tabIndex);
         itemGroupId = tabIndex + 1;
+        
+        $("#material-tabs").dxTabs("getDataSource").reload();
+        $("#tab-container").css("display", itemGroupId == 3 ? "block" : "none");
+
         $("#main-grid").dxDataGrid("instance").refresh();
+    }
+
+    function materialTabSelectionChanged(e) {
+        console.log("selectedMaterialIds", $("#material-tabs").dxTabs("instance").option("selectedItemKeys"));
+        selectedMaterialIds = $("#material-tabs").dxTabs("instance").option("selectedItemKeys");
+        console.log("selectedMaterialIds", selectedMaterialIds);
+        reloadData();
     }
 
     function stockCellTemplate(container, options) {
@@ -99,10 +117,10 @@ Html.DevExtreme().DataGrid<StockView>()
             }
         }
 
-        if (options.data.Lot == null || options.data.Lot == "") {
-            container.css("padding-top", "0.8rem");
-            container.css("padding-bottom", "0.8rem");
-        }
+        // if (options.data.Lot == null || options.data.Lot == "") {
+        //     container.css("padding-top", "0.8rem");
+        //     container.css("padding-bottom", "0.8rem");
+        // }
     }
 
     function addDataCellTemplate(container, options) {

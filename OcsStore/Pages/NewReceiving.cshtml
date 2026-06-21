@@ -26,10 +26,9 @@ Html.DevExtreme().DataGrid<ReceivingDetailView>()
         GridUI.FormatNumberColumn(col);
 
         columns.AddFor(m => m.UnitName).Caption("").Width(40).Alignment(HorizontalAlignment.Left).AllowEditing(false);
-        col = columns.AddFor(m => m.Price).Width(80).Caption("Giá\n(ngàn đồng)").HeaderCellTemplate(new JS("subLineHeaderCellTemplate"));
-        GridUI.FormatNumberColumn(col, true, "K");
+        col = columns.AddFor(m => m.Price).Width(80).Caption("Giá\n(đồng)").HeaderCellTemplate(new JS("subLineHeaderCellTemplate"));
+        GridUI.FormatNumberColumn(col);
 
-        columns.AddFor(m => m.Soh).Caption("Tồn kho").Width(60).Alignment(HorizontalAlignment.Right).Format("#,##0").AllowEditing(false).CellTemplate(new JS("sohCellTemplate"));
         columns.AddFor(m => m.Note).Caption("Ghi chú").Width(140).Alignment(HorizontalAlignment.Left);
     })
     .Editing(e => e.AllowUpdating(true).Mode(GridEditMode.Batch).SelectTextOnEditStart(true))
@@ -78,7 +77,6 @@ Html.DevExtreme().DataGrid<ReceivingDetailView>()
                     DevExpress.ui.dialog.alert(`Hãy nhập vào Giá cho sản phẩm '${row.data.ItemName}'.`, "Cảnh báo");
                     return;
                 }
-                row.data.Price *= 1000;
                 details.push(row.data);
             }
         }
@@ -91,8 +89,8 @@ Html.DevExtreme().DataGrid<ReceivingDetailView>()
 
         DevExpress.ui.dialog.confirm("<i>Bạn có chắc chắn lưu thông tin nhập kho?</i>", "Xác nhận").then(function(dialogResult) {
             if (dialogResult) {
-                let date = $("#dateBox").dxDateBox("instance").option("value").toISOString();
-                let time = $("#timeBox").dxDateBox("instance").option("text");
+                let date = $("#date-box").dxDateBox("instance").option("value").toISOString();
+                let time = $("#time-box").dxDateBox("instance").option("text");
 
                 $.ajax({
                     url: '@Url.Action("Save", "Receiving")',

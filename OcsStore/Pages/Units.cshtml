@@ -33,11 +33,12 @@
 )
 <script>
     pageTitle = "Đơn vị";
+    goBackUrl = "/datamanagement";
     deleteUrl = '@Url.Action("DeleteUnit", "Item")';
     saveUrl = '@Url.Action("SaveUnits", "Item")';
 
     $(function () {
-        appendAddButtonToGrid();
+        appendBottomAddButtonToGrid();
         appendUndoSaveButtonsToGrid();
     });
 

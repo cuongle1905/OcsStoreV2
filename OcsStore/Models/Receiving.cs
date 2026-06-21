@@ -15,6 +15,10 @@ public partial class Receiving
 
     public short User { get; set; }
 
+    public DateTime? DateCreated { get; set; }
+
+    public string TimeCreated { get; set; }
+
     public virtual ICollection<ReceivingDetail> ReceivingDetails { get; set; } = new List<ReceivingDetail>();
 
     public virtual Store StoreNavigation { get; set; }

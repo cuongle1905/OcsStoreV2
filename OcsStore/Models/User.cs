@@ -19,6 +19,8 @@ public partial class User
 
     public sbyte? Group { get; set; }
 
+    public bool Inactive { get; set; }
+
     public virtual ICollection<Bill> BillUserCreatedNavigations { get; set; } = new List<Bill>();
 
     public virtual ICollection<Bill> BillUserModifiedNavigations { get; set; } = new List<Bill>();

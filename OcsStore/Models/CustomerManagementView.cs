@@ -17,5 +17,9 @@ public partial class CustomerManagementView
 
     public string Note { get; set; }
 
+    public bool Inactive { get; set; }
+
     public bool? Used { get; set; }
+
+    public bool? AllowDelete { get; set; }
 }
