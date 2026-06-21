@@ -9,24 +9,47 @@
 <div id="top-section" class="ms-auto me-auto pt-3" style="width: 24rem;">
 </div>
 
+<div id="bottom-buttons" class="ms-auto me-auto pt-3 text-center" style="width: 24rem;"></div>
+
 <script>
     pageTitle = "Rang mới";
+    var items = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Items));
     let itemId;
     let materialQuantity = 0.0;
     let itemQuantity = 0.0;
+    let marterialQtyBox;
+    let itemQtyBox;
 
     $(function () {
         $("#main-grid").first().prepend($("#top-section"));
 
-        appendDateTimeFields({ containerId: "top-section" });
+        const topSection = $("#top-section");
 
-        appendSaveButtonToGrid();
+        appendDateTimeFields({ container: topSection });
+
+        appendSelectField({ container: topSection, title: "Chọn hạt", dataSource: items })
+
+        const quantityContainer = appendFlexContainer({ container: topSection });
+
+        marterialQtyBox = appendNumberField({ container: quantityContainer, title: "Số lượng nguyên liệu", suffix: "Kg" });
+
+        appendIconField({ container: quantityContainer, icon: "bi bi-arrow-right" });
+
+        itemQtyBox = appendNumberField({ container: quantityContainer, title: "Số lượng thành phẩm", suffix: "Kg" });
+
+        appendSaveButton({ containerId: "bottom-buttons", width: "50%" });
     });
 
     function save() {
-        let quantity = $("#item-quantity").dxNumberBox("instance").option("value");
-        if (quantity == null || quantity <= 0) {
-            DevExpress.ui.dialog.alert("Hãy nhập vào Số lượng.", "Cảnh báo");
+        let materialQuantity = materialQtyBox.option("value");
+        if (materialQuantity == undefined || materialQuantity <= 0) {
+            DevExpress.ui.dialog.alert("Hãy nhập vào Số lượng nguyên liệu.", "Cảnh báo");
+            return;
+        }
+
+        let itemQuantity = itemQtyBox.option("value");
+        if (itemQuantity == undefined || itemQuantity <= 0) {
+            DevExpress.ui.dialog.alert("Hãy nhập vào Số lượng thành phẩm.", "Cảnh báo");
             return;
         }
 
@@ -39,7 +62,7 @@
                 processing.Quantity = quantity;
 
                 $.ajax({
-                    url: '@Url.Action("Save", "Processing")',
+                    url: '@Url.Action("SaveRawProcessing", "Processing")',
                     method: "POST",
                     data: { processing: processing, details: details, createBill: createBill, salePrice: salePrice, customer: customer, debit: debit },
                     success: function (result) {

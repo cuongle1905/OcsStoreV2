@@ -330,13 +330,17 @@ a.back-arrow .dx-icon-arrowleft::before {
     display: inline-block; /* Or block, depending on your layout */
 }
 
-.custom-textbox-wrapper .textbox-suffix {
+.custom-textbox-wrapper .textbox-suffix, .dx-texteditor-container .textbox-suffix {
     position: absolute;
     right: 10px; /* Space from the right edge */
-    top: 50%;
+    top: 55%;
     transform: translateY(-50%);
     color: #888; /* Muted color for the suffix */
     pointer-events: none; /* Prevents text selection/blocking clicks */
+}
+
+.data-field .bi {
+    font-size: 14px;
 }
 
 .has-suffix {

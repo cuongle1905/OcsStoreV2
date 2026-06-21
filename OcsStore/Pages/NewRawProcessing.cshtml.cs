@@ -14,7 +14,7 @@ namespace OcsStore.Pages
         [FromQuery(Name = "item")]
         short ItemId { get; set; }
 
-        Item[] Items;
+        public Item[] Items;
 
         public NewRawProcessingModel(ItemController controller)
         {

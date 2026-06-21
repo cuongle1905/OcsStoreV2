@@ -135,10 +135,10 @@ function deleteRowData(rowIndex) {
     });
 }
 
-function createButton(e) {
-    console.log("createButton", e);
-
-    $(`#${e.id}`).dxButton({
+function appendButton(e) {
+    console.log("appendButton", e);
+    const div = appendControlDiv(e);
+    div.dxButton({
         text: e.text,
         width: e.width,
         type: "default",
@@ -146,21 +146,35 @@ function createButton(e) {
         icon: e.icon,
         onClick: e.onClick
     });
-    return $(`#${e.id}`).dxButton("instance");
+    return div.dxButton("instance");
 }
 
-function createSaveButton(width, style) {
-    if (style == undefined)
-        style = "contained";
+function appendControlDiv(e) {
+    normalizeIdParam(e);
+    const div = $(`<div id="${e.id}">`);
 
-    return createButton({ id: "save-button", text: "Lưu", width: width, style: style, icon: "bi bi-download", onClick: save });
+    normalizeContainerParam(e);
+    e.container.append(div);
+
+    normalizeWidthHeightParam(e);
+
+    return div;
+}
+
+function appendSaveButton(e) {
+    if (e.action == undefined)
+        e.action = "save";
+        
+    normalizeButtonParam(e);
+
+    return appendButton(e);
 }
 
 function createUndoButton(width, style) {
     if (style == undefined)
         style = "outlined";
 
-    return createButton({ id: "#undo-button", text: "Bỏ qua", width: width, style: style, icon: "undo", onClick: undo });
+    return appendButton({ id: "#undo-button", text: "Bỏ qua", width: width, style: style, icon: "undo", onClick: undo });
 }
 
 function createGridTopAddButton(buttonId, gridId, onClickFunc) {
@@ -176,7 +190,7 @@ function createGridTopAddButton(buttonId, gridId, onClickFunc) {
         };
     }
 
-    return createButton(buttonId, "Thêm", "auto", "contained", "bi bi-plus", onClickFunc);
+    return appendButton(buttonId, "Thêm", "auto", "contained", "bi bi-plus", onClickFunc);
 }
 
 function createBottomButtonsDiv() {
@@ -205,6 +219,9 @@ function appendUndoSaveButtonsToGrid(gridId) {
 }
 
 function appendSaveButtonToGrid(e) {
+    if (e == undefined)
+        e = {};
+
     if (e.action == undefined)
         e.action = "save";
 
@@ -218,6 +235,9 @@ function appendSaveButtonToGrid(e) {
 }
 
 function appendTopAddButtonToGrid(e) {
+    if (e == undefined)
+        e = {};
+
     if (e.action == undefined)
         e.action = "add";
 
@@ -231,7 +251,7 @@ function addBottomButtonToGrid(e) {
     let buttonsDiv = createBottomButtonsDiv();
     $(gridId).first().append(buttonsDiv);
     buttonsDiv.append($(`<div id="${buttonId}">`));
-    return createButton(e);
+    return appendButton(e);
 }
 
 function gridBottomButtonsDiv(gridId) {
@@ -253,7 +273,7 @@ function createGridAddButton(buttonId, text, gridId, onClickFunc) {
             $(`#${gridId}`).dxDataGrid("addRow");
         };
     }
-    return createButton(`#${buttonId}`, text, "auto", "text", "bi bi-plus-circle-fill", onClickFunc);
+    return appendButton(`#${buttonId}`, text, "auto", "text", "bi bi-plus-circle-fill", onClickFunc);
 }
 
 function appendAddButtonToGrid(gridId, buttonId, text, onClickFunc) {
@@ -279,7 +299,7 @@ function appendBottomRightButtonToGrid(e) {
 
     buttonsDiv.append($(`<div id="${buttonId}">`));
 
-    return createButton(`#${buttonId}`, text, "auto", "text", "bi bi-plus-circle-fill", onClickFunc);
+    return appendButton(`#${buttonId}`, text, "auto", "text", "bi bi-plus-circle-fill", onClickFunc);
 }
 
 function gridButtonContainer(e) {
@@ -297,21 +317,15 @@ function gridButtonContainer(e) {
     return container;
 }
 
-function setupGridButtonParam(e) {
-    if (e.gridId == undefined)
-        e.gridId = "main-grid";
-
-    if (e.level == undefined)
-        e.level = 1;
-
-    if (e.position == undefined)
-        e.position = "bottom";
-
-    if (e.containerId == undefined)
-        e.containerId = `${e.gridId}-${e.position}-buttons${e.level}`;
-
+function normalizeButtonParam(e) {
     if (e.action == undefined)
         e.action = "add";
+
+    if (e.idPrefix == undefined)
+        e.idPrefix = e.action;
+
+    if (e.idPostfix == undefined)
+        e.idPostfix = "button";
 
     if (e.style == undefined) {
         if (e.action == "undo")
@@ -340,6 +354,28 @@ function setupGridButtonParam(e) {
         }
     }
 
+    if (e.onClick == null) {
+        if (e.action == "save") {
+            e.onClick = save;
+        }
+    }
+} 
+
+function setupGridButtonParam(e) {
+    if (e.gridId == undefined)
+        e.gridId = "main-grid";
+
+    if (e.level == undefined)
+        e.level = 1;
+
+    if (e.position == undefined)
+        e.position = "bottom";
+
+    if (e.containerId == undefined)
+        e.containerId = `${e.gridId}-${e.position}-buttons${e.level}`;
+
+    normalizeButtonParam(e);
+
     if (e.id == undefined)
         e.id = `${e.containerId}-${e.action}`;
 
@@ -363,7 +399,7 @@ function appendButtonToGrid(e) {
     const container = gridButtonContainer(e);
     const cssClass = (e.fill ? "flex-fill" : "")
     container.append($(`<div id="${e.id}" class="${cssClass}">`));
-    return createButton(e);
+    return appendButton(e);
 }
 
 var saveUrl = '@Url.Action("SaveItems", "Item")';
@@ -557,19 +593,21 @@ function addDateOverlay(e) {
 
 // containerId, idPrefix, dateWidth, timeWidth, height, onDateChanged
 function appendDateTimeFields(e) {
+    const div = appendFlexContainer(e);
+    appendDateField({ container: div, idPrefix: e.idPrefix, width: (e.dateWidth ?? e.width), height: e.height, onValueChanged: e.onDateChanged });
+    appendTimeField({ container: div, idPrefix: e.idPrefix, width: (e.timeWidth ?? e.width), height: e.height, onValueChanged: e.onTimeChanged });
+}
+
+function appendFlexContainer(e) {
     if (e.direction == undefined)
         e.direction = "horizontal";
 
     const flexDirection = (e.direction == "vertical" || e.direction == "column" ? " .flex-column" : "");
-
-    const div = $(`<div class="d-flex ${flexDirection} mb-3 gap-3">`);
+    const div = $(`<div class="d-flex ${flexDirection} gap-3">`);
 
     normalizeContainerParam(e);
     e.container.append(div);
-
-    appendDateField({ container: div, idPrefix: e.idPrefix, width: (e.dateWidth ?? e.width), height: e.height, onValueChanged: e.onDateChanged });
-
-    appendTimeField({ container: div, idPrefix: e.idPrefix, width: (e.timeWidth ?? e.width), height: e.height, onValueChanged: e.onTimeChanged });
+    return div;
 }
 
 function appendDateField(e) {
@@ -581,7 +619,7 @@ function appendDateField(e) {
 
     appendFieldTitle({ container: dataField, title: e.title });
 
-    appendDateBox({ container: dataField, idPrefix: e.idPrefix, idPostfix: "date-box", width: e.width, height: e.height, onValueChanged: e.onValueChanged })
+    return appendDateBox({ container: dataField, idPrefix: e.idPrefix, idPostfix: "date-box", width: e.width, height: e.height, onValueChanged: e.onValueChanged })
 }
 
 function appendTimeField(e) {
@@ -593,7 +631,7 @@ function appendTimeField(e) {
 
     appendFieldTitle({ container: dataField, title: e.title })
 
-    appendTimeBox({ container: dataField, idPrefix: e.idPrefix, idPostfix: "time-box", width: e.width, height: e.height, onValueChanged: e.onValueChanged })
+    return appendTimeBox({ container: dataField, idPrefix: e.idPrefix, idPostfix: "time-box", width: e.width, height: e.height, onValueChanged: e.onValueChanged })
 }
 
 function appendDataFieldContainer(e) {
@@ -605,18 +643,13 @@ function appendDataFieldContainer(e) {
 
 function appendFieldTitle(e) {
     normalizeContainerParam(e);
-    e.container.append($(`<div class="field-title">${e.title}:</div>`));
+    const text = (e.title != undefined && e.title != "" ? e.title + ":" : "&nbsp;");
+    e.container.append($(`<div class="field-title">${text}</div>`));
 }
 
 function appendDateBox(e) {
-    normalizeIdParam(e);
-    const dateBox = $(`<div id="${e.id}">`);
-
-    normalizeContainerParam(e);
-    e.container.append(dateBox);
-
-    normalizeWidthHeightParam(e);
-    dateBox.dxDateBox({
+    const div = appendControlDiv(e);
+    div.dxDateBox({
         width: e.width,
         height: e.height,
         inputAttr: { "aria-label": "Date" },
@@ -629,23 +662,110 @@ function appendDateBox(e) {
     });
 
     addDateOverlay(e);
+    return div.dxDateBox("instance");
 }
 
 function appendTimeBox(e) {
-    normalizeIdParam(e);
-    const timeBox = $(`<div id="${e.id}">`);
-
-    normalizeContainerParam(e);
-    e.container.append(timeBox);
-
-    normalizeWidthHeightParam(e);
-    timeBox.dxDateBox({
+    const div = appendControlDiv(e);
+    div.dxDateBox({
         width: e.width,
         height: e.height,
         type: "time",
         value: new Date(),
         displayFormat: "HH:mm"
     });
+    return div.dxDateBox("instance");
+}
+
+function appendSelectField(e) {
+    normalizeContainerParam(e);
+    const dataField = appendDataFieldContainer({ container: e.container });
+
+    appendFieldTitle({ container: dataField, title: e.title });
+
+    e.container = dataField;
+    return appendSelectBox(e);
+}
+
+function appendSelectBox(e) {
+    normalizeDataParam(e);
+    const div = appendControlDiv(e);
+    div.dxSelectBox({
+        dataSource: e.dataSource,
+        width: e.width,
+        height: e.height,
+        displayExpr: e.nameField,
+        valueExpr: e.idField,
+        value: e.value,
+        onValueChanged: e.onValueChanged,
+        placeholder: "Chọn...",
+        dropDownOptions: {
+            position: {
+                of: `#${e.id}`,
+                at: "left bottom",
+                my: "left top",
+                offset: "0 2"
+            }
+        }
+    });
+    const selectBox = div.dxSelectBox("instance");
+    return selectBox;
+}
+
+function appendNumberField(e) {
+    normalizeContainerParam(e);
+    const dataField = appendDataFieldContainer({ container: e.container });
+
+    appendFieldTitle({ container: dataField, title: e.title });
+
+    e.container = dataField;
+    return appendNumberBox(e);
+}
+
+function appendNumberBox(e) {
+    normalizeNumberFormatParam(e);
+    const div = appendControlDiv(e);
+    div.dxNumberBox({
+        width: e.width,
+        height: e.height,
+        format: e.format,
+        min: e.min,
+        max: e.max,
+        showSpinButtons: false,
+        elementAttr: { "class": "align-right-numberbox" },
+        inputAttr: { "class": e.suffix != undefined ? "has-suffix" : "" },
+        onFocusIn: onNumberBoxFocusIn,
+        onValueChanged: e.onValueChanged
+    });
+    if (e.suffix != undefined) {
+        div.children(".dx-texteditor-container").append($(`<span class="textbox-suffix">${e.suffix}</span>`));
+    }
+    return div.dxNumberBox("instance");
+}
+
+function appendIconField(e) {
+    normalizeContainerParam(e);
+    const dataField = appendDataFieldContainer({ container: e.container });
+
+    appendFieldTitle({ container: dataField, title: e.title });
+
+    dataField.append($(`<i class="${e.icon}">`));
+}
+
+function normalizeNumberFormatParam(e) {
+    if (e.decimals == undefined)
+        e.decimals = 0;
+
+    if (e.format == undefined)
+        e.format = (e.decimals == 0 ? "#,##0" : (e.decimals == 1 ? "#,##0.0" : "#,##0.00"));
+}
+
+function normalizeDataParam(e) {
+    if (e.idField == undefined)
+        e.idField = "Id";
+
+    if (e.nameField == undefined)
+        e.nameField = "Name";
 }
 
 function normalizeIdParam(e) {
@@ -670,7 +790,7 @@ function normalizeWidthHeightParam(e) {
 
     if (e.height == undefined)
         e.height = "auto";
-} 
+}
 
 function subLineHeaderCellTemplate(container, options) {
     const texts = options.column.caption.split("\n");
