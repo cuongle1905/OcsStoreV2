@@ -13,6 +13,7 @@
 
 <script>
     pageTitle = "Rang mới";
+    goBackUrl = "/processingraw";
     var items = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Items));
     let itemId;
     let materialQuantity = 0.0;
@@ -64,7 +65,7 @@
                 $.ajax({
                     url: '@Url.Action("SaveRawProcessing", "Processing")',
                     method: "POST",
-                    data: { processing: processing, details: details, createBill: createBill, salePrice: salePrice, customer: customer, debit: debit },
+                    data: { processing: processing, materialQuantity: materialQuantity },
                     success: function (result) {
                         DevExpress.ui.dialog.alert("Đã lưu dữ liệu.", "Thông báo").then(function(dialogResult) {
                             location.href = goBackUrl;

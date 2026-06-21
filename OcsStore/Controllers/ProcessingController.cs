@@ -49,6 +49,78 @@ namespace OcsStore.Controllers
             return Ok(details);
         }
 
+        private int GetNewProcessingId()
+        {
+            int processingId;
+            try
+            {
+                processingId = _context.Processings.Max(i => i.Id) + 1;
+            }
+            catch
+            {
+                processingId = 1;
+            }
+            return processingId;
+        }
+
+        private int GetNewProcessingInputId()
+        {
+            int inputId;
+            try
+            {
+                inputId = _context.ProcessingInputs.Max(i => i.Id) + 1;
+            }
+            catch
+            {
+                inputId = 1;
+            }
+            return inputId;
+        }
+
+        private int GetNewProcessingLotInputId()
+        {
+            int lotInputId;
+            try
+            {
+                lotInputId = _context.ProcessingLotInputs.Max(i => i.Id) + 1;
+            }
+            catch
+            {
+                lotInputId = 1;
+            }
+            return lotInputId;
+        }
+
+        [HttpPost]
+        public IActionResult SaveRawProcessing(Processing processing, decimal materialQuantity)
+        {
+            processing.Date = Common.GetLocalDateWithoutTime(processing.Date); // Remove hour, minute...
+            int processingId = GetNewProcessingId();
+
+            var item = _context.ItemViews.FirstOrDefault(i => i.Id == processing.Item);
+            var yy = (sbyte)(processing.Date.Year % 100);
+            var newProcessing = new Processing() { Id = processingId, Year = yy, Item = processing.Item, Quantity = processing.Quantity, Date = processing.Date, Time = processing.Time, User = Session.UserId(Request) };
+
+            _context.Processings.Add(newProcessing);
+
+            var materialId = _context.ItemMaterials.FirstOrDefault(i => i.Item == processing.Item).Material;
+
+            int inputId = GetNewProcessingInputId();
+
+            var processingInput = new ProcessingInput() { Id = inputId, Processing = processingId, Item = materialId, Quantity = materialQuantity };
+            _context.ProcessingInputs.Add(processingInput);
+
+            int lotInputId = GetNewProcessingLotInputId();
+            var processingLotInput = new ProcessingLotInput() { Id = lotInputId++, Input = inputId, Lot = null, Year = yy, Quantity = materialQuantity };
+            _context.ProcessingLotInputs.Add(processingLotInput);
+
+            _context.SaveChanges();
+
+            _context.Database.ExecuteSqlRaw("call calculate_strans_processing(" + processingId + ");");
+
+            return Ok();
+        }
+
         [HttpPost]
         public IActionResult Save(Processing processing, ProcessingLotInputView[] details, bool createBill, decimal salePrice, Customer customer, bool debit)
         {
