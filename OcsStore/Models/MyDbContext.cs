@@ -28,6 +28,10 @@ public partial class MyDbContext : DbContext
 
     public virtual DbSet<CustomerView> CustomerViews { get; set; }
 
+    public virtual DbSet<Expense> Expenses { get; set; }
+
+    public virtual DbSet<ExpenseType> ExpenseTypes { get; set; }
+
     public virtual DbSet<Inventory> Inventories { get; set; }
 
     public virtual DbSet<InventoryDetail> InventoryDetails { get; set; }
@@ -555,6 +559,61 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.Phone)
                 .HasMaxLength(15)
                 .HasColumnName("phone");
+        });
+
+        modelBuilder.Entity<Expense>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+
+            entity.ToTable("expense");
+
+            entity.HasIndex(e => e.Type, "fk_expense_idx");
+
+            entity.Property(e => e.Id)
+                .ValueGeneratedNever()
+                .HasColumnName("id");
+            entity.Property(e => e.Actor)
+                .HasMaxLength(50)
+                .HasColumnName("actor");
+            entity.Property(e => e.Amount)
+                .HasPrecision(14, 2)
+                .HasColumnName("amount");
+            entity.Property(e => e.Content)
+                .IsRequired()
+                .HasMaxLength(100)
+                .HasColumnName("content");
+            entity.Property(e => e.Date)
+                .HasColumnType("datetime")
+                .HasColumnName("date");
+            entity.Property(e => e.Note)
+                .HasMaxLength(100)
+                .HasColumnName("note");
+            entity.Property(e => e.Type)
+                .HasDefaultValueSql("'99'")
+                .HasColumnName("type");
+
+            entity.HasOne(d => d.TypeNavigation).WithMany(p => p.Expenses)
+                .HasForeignKey(d => d.Type)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_expense");
+        });
+
+        modelBuilder.Entity<ExpenseType>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+
+            entity.ToTable("expense_type");
+
+            entity.Property(e => e.Id)
+                .ValueGeneratedNever()
+                .HasColumnName("id");
+            entity.Property(e => e.Name)
+                .IsRequired()
+                .HasMaxLength(45)
+                .HasColumnName("name");
+            entity.Property(e => e.Ordinal)
+                .HasDefaultValueSql("'1'")
+                .HasColumnName("ordinal");
         });
 
         modelBuilder.Entity<Inventory>(entity =>
@@ -1929,9 +1988,7 @@ public partial class MyDbContext : DbContext
                 .HasColumnType("datetime")
                 .HasColumnName("date");
             entity.Property(e => e.GroupName)
-                .IsRequired()
                 .HasMaxLength(51)
-                .HasDefaultValueSql("''")
                 .HasColumnName("group_name")
                 .UseCollation("utf8mb3_general_ci")
                 .HasCharSet("utf8mb3");
@@ -1953,9 +2010,7 @@ public partial class MyDbContext : DbContext
                 .HasMaxLength(10)
                 .HasColumnName("lot");
             entity.Property(e => e.LotOrdinal)
-                .IsRequired()
                 .HasMaxLength(8)
-                .HasDefaultValueSql("''")
                 .HasColumnName("lot_ordinal");
             entity.Property(e => e.Ordinal)
                 .HasDefaultValueSql("'1'")
@@ -1983,8 +2038,11 @@ public partial class MyDbContext : DbContext
                 .HasCharSet("utf8mb3");
             entity.Property(e => e.UseLot).HasColumnName("use_lot");
             entity.Property(e => e.Value)
-                .HasPrecision(19, 6)
+                .HasPrecision(15, 2)
                 .HasColumnName("value");
+            entity.Property(e => e.ValueK)
+                .HasPrecision(19, 6)
+                .HasColumnName("value_k");
             entity.Property(e => e.Year).HasColumnName("year");
         });
 

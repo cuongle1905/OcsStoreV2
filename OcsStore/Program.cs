@@ -100,6 +100,8 @@ app.Run();
  * mysql -u cuong -pcuong@food -h localhost ocsstore -e "source ocsstore_update_20260618.sql"
  * mysql -u cuong -pcuong@food -h localhost ocsstore -e "select * from item;"
  * 
+ * mysqldump --skip-lock-tables --routines --add-drop-table --disable-keys --extended-insert -u cuong -pcuong@food --host=localhost ocsstore > ocsstore_dump.sql
+ * 
  * ./canteen-stop
  * ./canteen-reload
  * 

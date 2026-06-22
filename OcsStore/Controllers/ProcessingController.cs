@@ -278,9 +278,9 @@ namespace OcsStore.Controllers
         }
 
         [HttpPost]
-        public IActionResult Delete(int processingId)
+        public IActionResult Delete(int processing)
         {
-            DeleteProcessing(processingId);
+            DeleteProcessing(processing);
             return Ok();
         }
     }

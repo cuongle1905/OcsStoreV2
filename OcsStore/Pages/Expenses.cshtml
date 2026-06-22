@@ -1,0 +1,98 @@
+﻿@page
+@using OcsStore.Models
+@model OcsStore.Pages.ExpensesModel
+@{
+}
+
+@(Html.DevExtreme().DataGrid<Expense>()
+    .ID("main-grid")
+    .DataSource(d => d.Mvc().Controller("Data").LoadAction("GetExpenses").LoadMethod("POST"))
+    .RemoteOperations(false)
+    .ShowBorders(true)
+    .ShowRowLines(true)
+    .WordWrapEnabled(true)
+    .Sorting(s => s.Mode(GridSortingMode.None))
+    .Paging(p => p.PageSize(12).Enabled(true))
+    .OnContentReady("defaultOnGridContentReady")
+@* .OnRowPrepared("onRowPreparedInactive") *@
+    .OnInitNewRow("onInitNewRow")
+    .Columns(columns =>
+    {
+        columns.AddFor(m => m.Date).DataType(GridColumnDataType.Date).Caption("Ngày").Width(76).Fixed(true).FixedPosition(HorizontalEdge.Left)
+            .Format("dd/MM/yyyy").EditorOptions(new { type = "date", format = "dd/MM/yyyy" });
+
+        columns.AddFor(m => m.Type).Caption("Phân loại").Width(60)
+            .EditorOptions(new { dropDownOptions = new { width = 150 } })
+            .Lookup(lookup => lookup.DataSource(d => d.Mvc().Controller("Data").LoadAction("GetExpenseTypes").LoadMethod("POST")).ValueExpr("Id").DisplayExpr("Name"));
+
+        columns.AddFor(m => m.Content).Caption("Nội dung").Width(100);
+        
+        var col = columns.AddFor(m => m.Amount).Caption("Số tiền").Width(100).Format("#,##0");
+        GridUI.FormatNumberColumn(col);
+
+        columns.AddFor(m => m.Actor).Caption("Người chi").Width(50);
+        columns.AddFor(m => m.Note).Caption("Ghi chú").Width(100);
+        columns.Add().Name("Action").Width(30).Alignment(HorizontalAlignment.Center).Fixed(true).FixedPosition(HorizontalEdge.Right).CellTemplate(new JS("deleteActionCellTemplate"));
+    })
+    .Editing(e => e.AllowUpdating(true).Mode(GridEditMode.Batch).SelectTextOnEditStart(true).NewRowPosition(GridNewRowPosition.PageBottom))
+    .OnEditorPreparing("onEditorPreparing")
+    .RepaintChangesOnly(true)
+    .Summary(s => s
+        .TotalItems(items =>
+        {
+            items.AddFor(m => m.Amount)
+                 .SummaryType(SummaryType.Sum)
+                 .DisplayFormat("{0}")
+                 .ValueFormat("#,##0");
+        })
+    )
+)
+<script>
+    pageTitle = "Chi";
+    deleteUrl = '@Url.Action("DeleteExpense", "Data")';
+    saveUrl = '@Url.Action("SaveExpenses", "Data")';
+    dataRowDateFields = ["Date"];
+
+    $(function () {
+        appendBottomAddButtonToGrid();
+        appendUndoSaveButtonsToGrid();
+    });
+
+    function onInitNewRow(e) {
+        e.data.Id = 0;
+        e.data.Date = today();
+        console.log(e.data.Date);
+        e.data.Type = 1;
+    }
+
+    function onEditorPreparing(e) {
+        if (e.parentType === "dataRow") {
+            e.editorOptions.valueChangeEvent = "keyup";
+
+            if (e.dataField === "Type") {
+                // Save the original onValueChanged handler (prevents breaking DataGrid save logic)
+                let originalOnValueChanged = e.editorOptions.onValueChanged;
+
+                // 3. Override the event
+                e.editorOptions.onValueChanged = function(args) {
+                    let newValue = args.value;
+                    let previousValue = args.previousValue;
+
+                    // Trigger custom logic (e.g., calculating another column)
+                    // console.log("New value: ", newValue);
+
+                    // Update the DataGrid data using setValue
+                    e.setValue(newValue); 
+
+                    // Call the original handler to complete the standard grid operation
+                    if (originalOnValueChanged) {
+                        originalOnValueChanged(args);
+                    }
+
+                    console.log("onEditorPreparing", e, args, args.component.option("text"));
+                    $("#main-grid").dxDataGrid("instance").cellValue(e.row.rowIndex, "Content", args.component.option("text"));
+                };
+            }
+        }
+    }
+</script>

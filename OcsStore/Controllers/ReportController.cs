@@ -33,19 +33,19 @@ namespace OcsStore.Controllers
             return _context.Bills.Where(i => i.Deleted == false && i.Paid == false).Sum(j => j.TotalValue);
         }
 
-        public decimal GetReceivingItemTotalValue()
+        public decimal GetStockValue(short itemGroupId)
         {
-            return _context.StockViews.Where(i => i.ItemType == Item.Receving).Sum(i => i.Value) ?? 0;
-        }
-
-        public decimal GetProcessingItemTotalValue()
-        {
-            return _context.StockViews.Where(i => i.ItemType == Item.Intermediate && i.Lot == "").Sum(i => i.Value) ?? 0;
+            return _context.StockViews.Where(i => i.ItemGroup == itemGroupId && string.IsNullOrEmpty(i.Lot) && i.Soh > 0).Sum(i => i.Value) ?? 0;
         }
 
         public decimal GetReceivingTotalValue()
         {
             return _context.ReceivingDetails.Sum(i => i.Price * i.Quantity);
+        }
+
+        public decimal GetTotalExpense()
+        {
+            return _context.Expenses.Sum(i => i.Amount);
         }
 
         public decimal GetTotalProfit()

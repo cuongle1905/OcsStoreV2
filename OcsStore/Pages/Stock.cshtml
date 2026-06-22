@@ -34,7 +34,7 @@ Html.DevExtreme().DataGrid<StockView>()
         columns.AddFor(m => m.ItemName).Caption("Hàng hóa").Width(130).Alignment(HorizontalAlignment.Left).Fixed(true).FixedPosition(HorizontalEdge.Left).CellTemplate(new JS("stockCellTemplate"));
         columns.AddFor(m => m.Soh).Caption("Số lượng\n(Kg)").Width(80).HeaderCellTemplate(new JS("subLineHeaderCellTemplate")).Alignment(HorizontalAlignment.Right).Format("#,##0.0").CellTemplate(new JS("stockCellTemplate"));
         columns.AddFor(m => m.Ave).Caption("Giá TB\n(đồng)").Width(70).HeaderCellTemplate(new JS("subLineHeaderCellTemplate")).Format("#,##0").CellTemplate(new JS("stockCellTemplate"));
-        columns.AddFor(m => m.Value).Caption("Giá trị\n(x 1000đ)").Width(80).HeaderCellTemplate(new JS("subLineHeaderCellTemplate")).Format("#,##0").CellTemplate(new JS("stockCellTemplate"));
+        columns.AddFor(m => m.ValueK).Caption("Giá trị\n(x 1000đ)").Width(80).HeaderCellTemplate(new JS("subLineHeaderCellTemplate")).Format("#,##0").CellTemplate(new JS("stockCellTemplate"));
         
         columns.AddFor(m => m.Date).Caption("Ngày").Width(90).Alignment(HorizontalAlignment.Center).Format("dd/MM/yyyy").CellTemplate(new JS("stockCellTemplate"));
         columns.AddFor(m => m.Time).Caption("Giờ").Width(50).Alignment(HorizontalAlignment.Center).CellTemplate(new JS("stockCellTemplate"));
@@ -46,7 +46,7 @@ Html.DevExtreme().DataGrid<StockView>()
         .CalculateCustomSummary("calculateCustomSummary")
         .TotalItems(items =>
         {
-            items.Add().ShowInColumn("Value")
+            items.Add().ShowInColumn("ValueK")
                 .Name("ValueSummary")
                 .SummaryType(SummaryType.Custom)
                 .DisplayFormat("{0}")
@@ -187,7 +187,7 @@ Html.DevExtreme().DataGrid<StockView>()
             }
             if (options.summaryProcess === "calculate") {
                 if (options.value.Lot == "") {
-                    options.totalValue += options.value.Value;
+                    options.totalValue += options.value.ValueK;
                 }
             }
             if (options.summaryProcess === "finalize") {

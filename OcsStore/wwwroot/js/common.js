@@ -95,7 +95,8 @@ function gridDataLoadedForUsedData(records) {
 }
 
 function deleteActionCellTemplate(container, options) {
-    if (options.data.AllowDelete)
+    console.log("deleteActionCellTemplate", options.data.AllowDelete);
+    if (options.data.AllowDelete == undefined || options.data.AllowDelete)
         container.html(`<a href="#" class="icon-link" onclick="deleteRowData(${options.rowIndex})"><i class="bi bi-trash"></i></a>`)
 }
 
@@ -383,6 +384,7 @@ function appendButtonToGrid(e) {
 
 var saveUrl = '@Url.Action("SaveItems", "Item")';
 var dataRowKeyFields = ["Id"];
+var dataRowDateFields = [];
 
 function checkSameRowDataKeys(rowData1, rowData2) {
     console.log("rowData1", rowData1, "rowData2", rowData2);
@@ -418,6 +420,15 @@ function save() {
 
             if (typeof allowToSaveRowData === "function" && !allowToSaveRowData(row.data))
                 continue;
+
+            for (const dateField of dataRowDateFields) {
+                console.log("save dateField", row.data[dateField]);
+                if (row.data[dateField] instanceof Date)
+                    row.data[dateField] = row.data[dateField].toISOString(); // To send to API param correctly
+            }
+
+            if (typeof prepareRowDataBeforeSaving === "function")
+                prepareRowDataBeforeSaving(row.data);
 
             details.push(row.data);
         }
@@ -867,4 +878,13 @@ function isEmpty(text) {
 
 function checkMinLength(text, minLength) {
     return text != undefined && text != null && text.length >= minLength;
+}
+
+Date.prototype.getDateWithoutTime = function () {
+    return new Date(this.getFullYear(), this.getMonth(), this.getDate());
+};
+
+function today() {
+    const now = new Date();
+    return now.getDateWithoutTime();
 }

@@ -23,6 +23,8 @@ public partial class StockView
 
     public decimal? Value { get; set; }
 
+    public decimal? ValueK { get; set; }
+
     public DateTime? Date { get; set; }
 
     public string Time { get; set; }

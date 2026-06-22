@@ -30,7 +30,7 @@ Html.DevExtreme().DataGrid<ReceivingDetailView>()
     })
     .OnCellPrepared("onCellPreparedGroupFixedRightColumn")
     .Editing(e => e.AllowUpdating(false))
-    .Paging(p => p.Enabled(true).PageSize(100))
+    .Paging(p => p.Enabled(true).PageSize(12))
     .Summary(s => s
         .GroupItems(items =>
         {

@@ -10,6 +10,7 @@ using System.Net.Mail;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace OcsStore.Controllers
 {
@@ -58,6 +59,65 @@ namespace OcsStore.Controllers
             foreach (User user in data)
             {
                 SaveUser(user);
+            }
+            return Ok();
+        }
+
+        [HttpPost]
+        public IActionResult GetExpenseTypes(DataSourceLoadOptions loadOptions)
+        {
+            var result = DataSourceLoader.Load(_context.ExpenseTypes.OrderBy(i => i.Ordinal), loadOptions);
+            return Ok(result);
+        }
+
+        [HttpPost]
+        public IActionResult GetExpenses(DataSourceLoadOptions loadOptions)
+        {
+            var result = DataSourceLoader.Load(_context.Expenses.OrderByDescending(i => i.Id).OrderByDescending(i => i.Date), loadOptions);
+            return Ok(result);
+        }
+
+        private void SaveExpense(Expense expense)
+        {
+            expense.Date = Common.GetLocalDateWithoutTime(expense.Date); // Remove hour, minute...
+            if (expense.Id == 0)
+            {
+                try
+                {
+                    expense.Id = (short)(_context.Expenses.Max(i => i.Id) + 1);
+                }
+                catch
+                {
+                    expense.Id = 1;
+                }
+
+                _context.Expenses.Add(expense);
+            }
+            else
+            {
+                _context.Expenses.Update(expense);
+            }
+            _context.SaveChanges();
+        }
+
+        [HttpPost]
+        public IActionResult SaveExpenses(Expense[] data)
+        {
+            foreach (Expense expense in data)
+            {
+                SaveExpense(expense);
+            }
+            return Ok();
+        }
+
+        [HttpPost]
+        public IActionResult DeleteExpense(int id)
+        {
+            var expense = _context.Expenses.FirstOrDefault(i => i.Id == id);
+            if (expense != null)
+            {
+                _context.Expenses.Remove(expense);
+                _context.SaveChanges();
             }
             return Ok();
         }

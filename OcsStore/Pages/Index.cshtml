@@ -112,38 +112,44 @@ else
     <div class="container">
         <div class="row">
             <div class="col-6">
-                <div class="widget" style="border-top: solid 4px #010125;">
-                    <div class="widget-title">TỔNG DOANH THU</div>
+                <div class="widget">
+                    <i class="bi bi-coin blue"></i>
+                    <div class="widget-title">Tổng doanh thu:</div>
                     <div class="widget-value">@(Model.BillTotal.ToString("N0") + " đ")</div>
                 </div>
             </div>
             <div class="col-6">
-                <div class="widget" style="border-top: solid 4px #006b2d;">
-                    <div class="widget-title">GIÁ TRỊ NHÂN XANH</div>
-                    <div class="widget-value">@(Model.RecevingItemTotalValue.ToString("N0") + " đ")</div>
+                <div class="widget">
+                    <i class="bi bi-leaf green"></i>
+                    <div class="widget-title">Giá trị nhân xanh:</div>
+                    <div class="widget-value">@(Model.Stock1Value.ToString("N0") + " đ")</div>
                 </div>
             </div>
             <div class="col-6">
-                <div class="widget" style="border-top: solid 4px #994c00;">
-                    <div class="widget-title">GIÁ TRỊ RANG</div>
-                    <div class="widget-value">@(Model.ProcessingItemTotalValue.ToString("N0") + " đ")</div>
+                <div class="widget">
+                    <i class="bi bi-brightness-high brown"></i>
+                    <div class="widget-title">Giá trị rang:</div>
+                    <div class="widget-value">@(Model.Stock2Value.ToString("N0") + " đ")</div>
                 </div>
             </div>
             <div class="col-6">
-                <div class="widget" style="border-top: solid 4px #a51030;">
-                    <div class="widget-title">CÔNG NỢ KHÁCH HÀNG</div>
+                <div class="widget">
+                    <i class="bi bi-book red"></i>
+                    <div class="widget-title">Công nợ khách hàng:</div>
                     <div class="widget-value">@(Model.CustomerDebtTotal.ToString("N0") + " đ")</div>
                 </div>
             </div>
             <div class="col-6">
-                <div class="widget" style="border-top: solid 4px #006b2d;">
-                    <div class="widget-title">TỔNG CHI</div>
-                    <div class="widget-value">@(Model.RecevingTotalValue.ToString("N0") + " đ")</div>
+                <div class="widget">
+                    <i class="bi bi-cash green"></i>
+                    <div class="widget-title">Tổng chi:</div>
+                    <div class="widget-value">@((Model.RecevingTotalValue + Model.TotalExpense).ToString("N0") + " đ")</div>
                 </div>
             </div>
             <div class="col-6">
-                <div class="widget" style="border-top: solid 4px #010125;">
-                    <div class="widget-title">LỢI NHUẬN RÒNG</div>
+                <div class="widget">
+                    <i class="bi bi-cash-coin blue"></i>
+                    <div class="widget-title">Lợi nhuận ròng</div>
                     <div class="widget-value">@(Model.TotalProfit.ToString("N0") + " đ")</div>
                 </div>
             </div>

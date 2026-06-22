@@ -254,8 +254,8 @@ a.icon-link, a.icon-link:active, a.icon-link:hover, a.icon-link:hover {
 
 @media (max-width: 430px) {
     #main-content {
-        margin-left: 12px;
-        margin-right: 12px;
+        margin-left: 8px;
+        margin-right: 8px;
         width: auto;
     }
 }
@@ -380,6 +380,7 @@ a.back-arrow .dx-icon-arrowleft::before {
     padding: 3px;
     border-radius: 10px;
     font-size: 1.1rem;
+    filter: drop-shadow(#ddd 0px 0px 1px);
 }
 
 a.nav-link, a.nav-link:hover, a.nav-link:visited {
@@ -399,24 +400,35 @@ i.bi.bi-trash {
 }
 
 .widget {
-    border-top: solid 4px #333;
-    border-left: solid 1px #ccc;
-    border-right: solid 1px #ccc;
-    border-bottom: solid 1px #ccc;
+    background: white; /*linear-gradient(45deg, var(--common-color-main) 40%, var(--common-color-main-dark) 80%);*/
+    border: solid #ddd 1px;
     border-radius: 10px;
-    margin: 0.5rem;
-    padding: 1rem;
+    margin: 0.8rem 0.2rem;
+    padding: 1rem 0.2rem 1.5rem 0.2rem;
     text-align: center;
+    filter: drop-shadow(#ddd 0px 0px 2px);
 }
 
 .widget-title {
+    color: var(--gray);
+    font-size: 1rem;
+    margin: 0.3rem;
+}
+.widget i {
+    font-size: 2rem;
+}
+.widget-value {
     font-size: 1.2rem;
     font-weight: 600;
 }
 
-.widget-value {
+.widget a {
+    /*color: #ddd;*/
+    position: absolute;
     font-size: 1.6rem;
-    font-weight: 600;
+    right: 4px;
+    bottom: 6px;
+    /*transform: translateY(-50%);*/
 }
 
 #eye-link i {

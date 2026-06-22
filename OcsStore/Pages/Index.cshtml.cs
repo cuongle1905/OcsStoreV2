@@ -13,9 +13,10 @@ namespace OcsStore.Pages
         private readonly ReportController _reportController;
         public decimal BillTotal { get; set; }
         public decimal CustomerDebtTotal { get; set; }
-        public decimal RecevingItemTotalValue { get; set; }
-        public decimal ProcessingItemTotalValue { get; set; }
+        public decimal Stock1Value { get; set; }
+        public decimal Stock2Value { get; set; }
         public decimal RecevingTotalValue { get; set; }
+        public decimal TotalExpense { get; set; }
         public decimal TotalProfit { get; set; }
 
         public IndexModel(ReportController controller)
@@ -29,9 +30,10 @@ namespace OcsStore.Pages
             {
                 BillTotal = _reportController.GetBillTotal();
                 CustomerDebtTotal = _reportController.GetCustomerDebtTotal();
-                RecevingItemTotalValue = _reportController.GetReceivingItemTotalValue();
-                ProcessingItemTotalValue = _reportController.GetProcessingItemTotalValue();
+                Stock1Value = _reportController.GetStockValue(1);
+                Stock2Value = _reportController.GetStockValue(2);
                 RecevingTotalValue = _reportController.GetReceivingTotalValue();
+                TotalExpense = _reportController.GetTotalExpense();
                 TotalProfit = _reportController.GetTotalProfit();
             }
         }

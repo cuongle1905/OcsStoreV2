@@ -7,6 +7,10 @@
     color: var(--common-color-main);
 }
 
+.dx-button-mode-contained.dx-button-default {
+    filter: drop-shadow(#ccc 0px 0px 2px);
+}
+
 .dx-button-mode-contained.dx-button-default.dx-state-hover {
     background-color: var(--common-color-main-light);
 }
@@ -133,10 +137,10 @@
     margin-right: 2px;
 }
 
-
 .dx-datagrid {
     border: none;
     background-color: transparent;
+    filter: drop-shadow(#ddd 0px 0px 1px);
 }
 
 .dx-datagrid .dx-datagrid-headers {
