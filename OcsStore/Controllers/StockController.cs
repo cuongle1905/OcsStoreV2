@@ -162,6 +162,13 @@ namespace OcsStore.Controllers
         }
 
         [HttpPost]
+        public IActionResult DeleteInventory(int inventory)
+        {
+            _context.Database.ExecuteSqlRaw("call delete_inventory(" + inventory + ");");
+            return Ok();
+        }
+
+        [HttpPost]
         public IActionResult GetMaterialSoh(int itemId)
         {
             var materialId = _context.ItemMaterials.FirstOrDefault(i => i.Item == itemId).Material;

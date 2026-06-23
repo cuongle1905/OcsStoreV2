@@ -105,6 +105,7 @@ String.prototype.lowercaseFirstLetter = function () {
 };
 
 var deleteUrl = '@Url.Action("Delete", "Item")';
+var deleteRowKeyFields = [];
 
 function deleteRowData(rowIndex) {
     let grid = $("#main-grid").dxDataGrid("instance");
@@ -113,8 +114,14 @@ function deleteRowData(rowIndex) {
     const rowData = visibleRows[rowIndex].data;
     const name = (hasNameColumn ? `'${rowData.Name}'` : "dữ liệu");
     let data = {};
-    for (keyField of dataRowKeyFields) {
-        data[keyField] = rowData[keyField];
+    if (deleteRowKeyFields.length > 0) {
+        for (keyField of deleteRowKeyFields) {
+            data[keyField] = rowData[keyField];
+        }
+    } else {
+        for (keyField of dataRowKeyFields) {
+            data[keyField] = rowData[keyField];
+        }
     }
     console.log("deleteRowData", data);
 

@@ -26,6 +26,7 @@ Html.DevExtreme().DataGrid<InventoryDetailView>()
         columns.AddFor(m => m.ItemName).Caption("Hàng hóa").Width(120).Alignment(HorizontalAlignment.Left).CellTemplate(new JS("itemCellTemplate"));
         columns.AddFor(m => m.Soh).Caption("Số lượng").Width(60).Alignment(HorizontalAlignment.Right).Format("#,##0.0");
         columns.AddFor(m => m.Ave).Caption("Giá TB").Width(60).Alignment(HorizontalAlignment.Right).Format("#,##0");
+        columns.Add().Name("Action").Width(30).Alignment(HorizontalAlignment.Center).Fixed(true).FixedPosition(HorizontalEdge.Right).CellTemplate(new JS("deleteActionCellTemplate"));
     })
     .OnCellPrepared("onCellPreparedGroupFixedRightColumn")
     .Editing(e => e.AllowUpdating(false))
@@ -33,8 +34,8 @@ Html.DevExtreme().DataGrid<InventoryDetailView>()
 )
 <script>
     pageTitle = "KIỂM KÊ";
-    deleteUrl = '@Url.Action("DeleteInventoryDetail", "Stock")';
-
+    deleteUrl = '@Url.Action("DeleteInventory", "Stock")';
+    deleteRowKeyFields = ["Inventory"];
     $(function () {
         appendTopAddButtonToGrid({onClick: function() {
             location.href = `inventory/new?sourceurl=inventory&&itemGroup=${itemGroupId}`;
