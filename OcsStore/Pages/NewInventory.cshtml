@@ -78,8 +78,8 @@ Html.DevExtreme().DataGrid<InventoryDetailView>()
 
         DevExpress.ui.dialog.confirm("<i>Bạn có chắc chắn lưu dữ liệu kiểm kê?</i>", "Xác nhận").then(function(dialogResult) {
             if (dialogResult) {
-                let date = $("#dateBox").dxDateBox("instance").option("value").toISOString();
-                let time = $("#timeBox").dxDateBox("instance").option("text");
+                let date = $("#date-box").dxDateBox("instance").option("value").toISOString();
+                let time = $("#time-box").dxDateBox("instance").option("text");
 
                 $.ajax({
                     url: '@Url.Action("SaveInventory", "Stock")',

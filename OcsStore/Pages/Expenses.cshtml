@@ -16,10 +16,11 @@
     .OnContentReady("defaultOnGridContentReady")
 @* .OnRowPrepared("onRowPreparedInactive") *@
     .OnInitNewRow("onInitNewRow")
+    .DateSerializationFormat("yyyy-MM-ddTHH:mm:ssZ")
     .Columns(columns =>
     {
         columns.AddFor(m => m.Date).DataType(GridColumnDataType.Date).Caption("Ngày").Width(76).Fixed(true).FixedPosition(HorizontalEdge.Left)
-            .Format("dd/MM/yyyy").EditorOptions(new { type = "date", format = "dd/MM/yyyy" });
+            .Format("dd/MM/yyyy").EditorOptions(new { type = "date", format = "dd/MM/yyyy", useMaskBehavior = true, pickerType = "calendar" });
 
         columns.AddFor(m => m.Type).Caption("Phân loại").Width(60)
             .EditorOptions(new { dropDownOptions = new { width = 150 } })

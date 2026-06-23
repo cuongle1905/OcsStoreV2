@@ -111,9 +111,16 @@ namespace OcsStore.Controllers
             var stocks = _context.StockViews.Where(i => i.ItemGroup == itemGroupId);
             List<InventoryDetailView> details = new List<InventoryDetailView>();
 
+            InventoryDetailView detail =  null;
             foreach (var s in stocks)
             {
-                var detail = new InventoryDetailView() { Selected = false, Item = s.Item, ItemGroup = s.ItemGroup, ItemName = s.ItemName, UseLot = s.UseLot ?? false, Lot = s.Lot, Year = (sbyte)(s.Year ?? DateTime.Today.Year % 100), Soh = s.Soh ?? 0 };
+                var newDetail = new InventoryDetailView() { Selected = false, Item = s.Item, ItemGroup = s.ItemGroup, ItemName = s.ItemName, UseLot = s.UseLot ?? false, Lot = s.Lot, Year = (sbyte)(s.Year ?? DateTime.Today.Year % 100), Soh = s.Soh ?? 0 };
+
+                if (detail != null && newDetail.Item == detail.Item && string.IsNullOrEmpty(detail.Lot))
+                {
+                    details.Remove(detail);
+                }
+                detail = newDetail;
                 details.Add(detail);
             }
 
