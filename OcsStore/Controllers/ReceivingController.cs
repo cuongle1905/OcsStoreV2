@@ -67,38 +67,27 @@ namespace OcsStore.Controllers
             DateTime dateCreated = DateTime.Today;
             string timeCreated = DateTime.Now.ToString("HH:mm");
 
-            int receivingId;
-            try
-            {
-                receivingId = _context.Receivings.Max(i => i.Id) + 1;
-            }
-            catch
-            {
-                receivingId = 1;
-            }
+            var dbTran = _context.Database.BeginTransaction();
 
-            var receiving = new Receiving() { Id = receivingId, Date = date, Time = time, User = Session.UserId(Request), DateCreated = dateCreated, TimeCreated = timeCreated };
+            int receivingId = DB.GetNewId(_context, "receiving");
+            var receiving = new Receiving() { Id = receivingId, Store = 1, Date = date, Time = time, User = Session.UserId(Request), DateCreated = dateCreated, TimeCreated = timeCreated };
             _context.Receivings.Add(receiving);
-            
-            int detailId;
-            try
-            {
-                detailId = _context.ReceivingDetails.Max(i => i.Id) + 1;
-            }
-            catch
-            {
-                detailId = 1;
-            }
 
+            int detailId = DB.GetNewId(_context, "receiving_detail");
+            List<ReceivingDetail> newDetails = new List<ReceivingDetail>();
             foreach (var detail in details)
             {
                 var receivingDetail = new ReceivingDetail() { Id = detailId++, Receiving = receivingId, Item = detail.Item, Unit = detail.Unit, Quantity = detail.Quantity, Price = detail.Price, Note = detail.Note, Ordinal = detail.Ordinal };
-                _context.ReceivingDetails.Add(receivingDetail);
+                newDetails.Add(receivingDetail);
             }
+            _context.ReceivingDetails.AddRange(newDetails);
 
             _context.SaveChanges();
 
-            _context.Database.ExecuteSqlRaw("call calculate_strans_receiving(" + receivingId + ");");
+            //_context.Database.ExecuteSqlRaw("call calculate_strans_receiving(" + receivingId + ");");
+            DB.UpdateStockForReceiving(_context, receiving, newDetails);
+
+            dbTran.Commit();
 
             return Ok();
         }

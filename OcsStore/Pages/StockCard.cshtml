@@ -24,7 +24,10 @@ Html.DevExtreme().DataGrid<StockCardView>()
         columns.AddFor(m => m.Date).Caption("Ngày").Width(80).Alignment(HorizontalAlignment.Center).Format("dd/MM/yyyy").CellTemplate(new JS("stockCellTemplate")).GroupIndex(0);
         columns.AddFor(m => m.Time).Caption("Giờ").Width(55).Alignment(HorizontalAlignment.Center).CellTemplate(new JS("stockCellTemplate"));
         columns.AddFor(m => m.Description).Caption("Mô tả").Width(80).Alignment(HorizontalAlignment.Left).CellTemplate(new JS("stockCellTemplate"));
-        columns.AddFor(m => m.Lot).Caption("Lô").Width(46).Alignment(HorizontalAlignment.Center).CellTemplate(new JS("stockCellTemplate"));
+        if (Model.Item.UseLot)
+        {
+            columns.AddFor(m => m.Lot).Caption("Lô").Width(46).Alignment(HorizontalAlignment.Center).CellTemplate(new JS("stockCellTemplate"));
+        }
         columns.AddFor(m => m.Quantity).Caption("Số lượng").Width(70).Alignment(HorizontalAlignment.Right).Format("#,##0.0").CellTemplate(new JS("stockCellTemplate"));
         columns.AddFor(m => m.Price).Caption("Giá").Width(64).Alignment(HorizontalAlignment.Right).Format("#,##0").CellTemplate(new JS("stockCellTemplate"));
 

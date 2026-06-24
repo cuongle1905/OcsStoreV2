@@ -30,11 +30,11 @@ namespace OcsStore.Controllers
             {
                 var materialIdArray = materialIds.Split(",").Select(int.Parse);
                 var itemIds = _context.ItemMaterials.Where(i => materialIdArray.Contains(i.Material)).Select(i => i.Item).Distinct().ToList();
-                data = _context.StockViews.Where(i => i.ItemGroup == itemGroupId && itemIds.Contains(i.Item) && (i.Lot == null || i.Soh > 0));
+                data = _context.StockViews.Where(i => i.ItemGroup == itemGroupId && itemIds.Contains(i.Item) && (string.IsNullOrEmpty(i.Lot) || i.Soh > 0));
             }
             else
             {
-                data = _context.StockViews.Where(i => i.ItemGroup == itemGroupId && (i.Lot == null || i.Soh > 0));
+                data = _context.StockViews.Where(i => i.ItemGroup == itemGroupId && (string.IsNullOrEmpty(i.Lot) || i.Soh > 0));
             }
 
             var result = DataSourceLoader.Load(data, loadOptions);
