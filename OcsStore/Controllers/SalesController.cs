@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using OcsStore.Models;
+using System.Collections;
+using System.Data.Entity;
 using System.Net;
 using System.Net.Http;
 using System.Net.Mail;
@@ -58,94 +60,121 @@ namespace OcsStore.Controllers
 
 
         [HttpPost]
-        public IActionResult Save(DateTime date, string time, BillDetail[] details, Customer customer, bool debit)
+        public IActionResult SaveBill(Bill bill, BillDetail[] details)
         {
-            date = Common.GetLocalDateWithoutTime(date); // Remove hour, minute...
+            bill.Date = Common.GetLocalDateWithoutTime(bill.Date); // Remove hour, minute...
             DateTime currentDate = DateTime.Today;
             string currentTime = DateTime.Now.ToString("HH:mm");
             short currentUser = Session.UserId(Request);
 
-            if (customer.Id <= 0 && !string.IsNullOrEmpty(customer.Name))
+            _context.Database.BeginTransaction();
+
+            bool isNewBill = (bill.Id == 0);
+            if (isNewBill)
             {
-                try
-                {
-                    customer.Id = (short)(_context.Customers.Max(i => i.Id) + 1);
-                }
-                catch
-                {
-                    customer.Id = 1;
-                }
-                _context.Customers.Add(customer);
-            }
-            else
-            {
-                var existingCustomer = _context.Customers.FirstOrDefault(i => i.Id == customer.Id);
-                if (existingCustomer != null)
-                {
-                    existingCustomer.Name = customer.Name;
-                    existingCustomer.Phone = customer.Phone;
-                    existingCustomer.Address = customer.Address;
-                    existingCustomer.Email = customer.Email;
-                }
-                else
-                {
-                    customer.Id = 0; // Unknown customer
-                }
-                _context.Customers.Update(existingCustomer);
+                bill.Id = DB.GetNewId(_context, "bill");
             }
 
-            int billId;
-            try
-            {
-                billId = _context.Bills.Max(i => i.Id) + 1;
-            }
-            catch
-            {
-                billId = 1;
-            }
+            bill.TotalValue = details.Sum(i => i.Quantity * (i.Price - i.Discount));
+            bill.DateCreated = currentDate;
+            bill.TimeCreated = currentTime;
+            bill.UserCreated = currentUser;
 
-            var billTotal = details.Sum(i => i.Quantity * (i.Price - i.Discount));
-
-            var bill = new Bill() { Id = billId, Date = date, Time = time, DateCreated = currentDate, TimeCreated = currentTime, UserCreated = currentUser, CustomerName = customer.Name, CustomerPhone = customer.Phone, CustomerAddress = customer.Address, CustomerEmail = customer.Email, Paid = !debit, TotalValue = billTotal };
-            if (customer.Id > 0)
-            {
-                bill.Customer = customer.Id;
-            }
-
-            if (!debit)
+            if (isNewBill && (bill.Paid ?? false))
             {
                 bill.DatePaid = currentDate;
                 bill.TimePaid = currentTime;
                 bill.UserPaid = currentUser;
             }
+
             _context.Bills.Add(bill);
-            
-            int detailId;
-            try
-            {
-                detailId = _context.BillDetails.Max(i => i.Id) + 1;
-            }
-            catch
-            {
-                detailId = 1;
-            }
+
+            int detailId = DB.GetNewId(_context, "bill_detail");
 
             for (int i = 0; i < details.Length; i++)
             {
                 var detail = details[i];
-                var billDetail = new BillDetail() { Id = detailId++, Bill = billId, Item = detail.Item, Unit = detail.Unit, Quantity = detail.Quantity, Price = detail.Price, Discount = detail.Discount, Note = detail.Note, Ordinal = i + 1 };
-                _context.BillDetails.AddRange(billDetail);
+                detail.Id = detailId++;
+                detail.Bill = bill.Id;
+                detail.Ordinal = i + 1;
+
+                _context.BillDetails.Add(detail);
+                _context.SaveChanges();
+
+                try
+                {
+                    CreateBillLotDetails(bill, detail);
+                }
+                catch (Exception ex)
+                {
+                    _context.Database.RollbackTransaction();
+                    return BadRequest(ex.Message);
+                }
             }
 
-            _context.SaveChanges();
-
-            _context.Database.ExecuteSqlRaw("call calculate_strans_bill(" + billId + ");");
+            _context.Database.CommitTransaction();
 
             return Ok();
         }
 
+        private void CreateBillLotDetails(Bill bill, BillDetail billDetail)
+        {
+            StockView[] stocks;
+            var item = _context.Items.FirstOrDefault(i => i.Id == billDetail.Item);
+            if (item.UseLot)
+                stocks = _context.StockViews.Where(i => i.Item == billDetail.Item && !string.IsNullOrEmpty(i.Lot)).OrderBy(i => i.LotOrdinal).ToArray();
+            else
+                stocks = _context.StockViews.Where(i => i.Item == billDetail.Item && string.IsNullOrEmpty(i.Lot)).ToArray();
+
+            var billLotDetailId = DB.GetNewId(_context, "bill_lot_detail");
+            var remainQuantity = billDetail.Quantity;
+            var tranId = DB.GetNewId(_context, "store_transaction");
+
+            for (int i = 0; i < stocks.Length; i++)
+            {
+                var stock = stocks[i];
+                
+                BillLotDetail detail = new BillLotDetail() { Id = billLotDetailId++, BillDetail = billDetail.Id };
+
+                if (stock.Lot != null)
+                   detail.Lot = stock.Lot;
+
+                detail.Year = (sbyte)stock.Year;
+
+                detail.Quantity = Math.Min((decimal)stock.Soh, remainQuantity);
+
+                _context.BillLotDetails.Add(detail);
+                _context.SaveChanges();
+
+                try
+                {
+                    DB.UpdateStockForBillLotDetail(_context, tranId, bill, billDetail, detail);
+                }
+                catch
+                {
+                    throw;
+                }
+
+                remainQuantity -= detail.Quantity;
+                if (remainQuantity == 0)
+                    break;
+            }
+            if (remainQuantity > 0)
+            {
+                throw new InvalidOperationException($"Không đủ số lượng tồn kho '{item.Name}'.");
+            }
+
+        }
+
         [HttpPost]
         public IActionResult GetCustomers(DataSourceLoadOptions loadOptions)
+        {
+            var data = _context.Customers.ToArray();
+            return Ok(data);
+        }
+
+        [HttpPost]
+        public IActionResult GetCustomerDataSource(DataSourceLoadOptions loadOptions)
         {
             var result = DataSourceLoader.Load(_context.Customers, loadOptions);
             return Ok(result);

@@ -11,6 +11,8 @@ public partial class BillDetail
 
     public int Item { get; set; }
 
+    public string ItemName { get; set; }
+
     public short Unit { get; set; }
 
     public decimal Quantity { get; set; }
@@ -28,6 +30,8 @@ public partial class BillDetail
     public string Type { get; set; }
 
     public string Name { get; set; }
+
+    public virtual ICollection<BillLotDetail> BillLotDetails { get; set; } = new List<BillLotDetail>();
 
     public virtual Bill BillNavigation { get; set; }
 

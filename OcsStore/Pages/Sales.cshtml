@@ -5,6 +5,8 @@
 }
 <style>
 </style>
+<div id="top-section" class="ms-auto me-auto pt-3" style="width: 100%;">
+</div>
 @(
 Html.DevExtreme().DataGrid<BillView>()
     .ID("main-grid")
@@ -45,8 +47,8 @@ Html.DevExtreme().DataGrid<BillView>()
     pageTitle = "Bán hàng"
 
     $(function () {
-        // appendTopAddButtonToGrid("#main-grid", function() {
-        //     location.href = "sales/new";
-        // });
+        appendTopAddButtonToGrid({ onClick: function() {
+            location.href = "sales/new";
+        }});
     });
 </script>

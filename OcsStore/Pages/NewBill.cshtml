@@ -4,48 +4,15 @@
 @{
 }
 <style>
-    #gridBill .dx-toolbar-items-container {
-        display: none;
-    }
-    #timeBox {
-        margin-left: 0.5rem;
-    }
-    .field-title {
-        width: 7rem;
-    }
-    #check-box-debit {
-        margin-left: auto;
-        margin-right: 1rem;
-    }
 </style>
-<div class="d-flex align-items-center mb-3">
-    <a class="back-arrow" href="/sales"><i class="dx-icon-arrowleft"></i></a>
-    <h4>TẠO BILL</h4>
+
+<div id="top-section" class="ms-auto me-auto pb-3" style="width: 24rem;">
 </div>
-<div class="d-flex align-items-center mb-3">
-    <span class="me-2">Ngày:</span>
-    @(Html.DevExtreme().DateBox()
-        .ID("dateBox")
-        .Width("9rem")
-        .Height("2rem")
-        .InputAttr("aria-label", "Date")
-        .Type(DateBoxType.Date)
-        .Value(DateTime.Today)
-        .DisplayFormat("dd/MM/yyyy")
-    )
-    @(Html.DevExtreme().DateBox()
-        .ID("timeBox")
-        .Width("7rem")
-        .Height("2rem")
-        .Type(DateBoxType.Time)
-        .Value(DateTime.Now)
-        .DisplayFormat("HH:mm")
-    )
-</div>
+
 @(
 Html.DevExtreme().DataGrid<BillDetailView>()
-    .ID("gridBill")
-    .DataSource(d => d.Mvc().Controller("Sales").LoadAction("GetNewBillDetails").LoadMethod("POST"))
+    .ID("main-grid")
+    @* .DataSource(d => d.Mvc().Controller("Sales").LoadAction("GetNewBillDetails").LoadMethod("POST")) *@
     .RemoteOperations(false)
     .ShowBorders(true)
     .ShowRowLines(true)
@@ -53,14 +20,12 @@ Html.DevExtreme().DataGrid<BillDetailView>()
     .Sorting(s => s.Mode(GridSortingMode.None))
     .Paging(p => p.PageSize(100))
     .Pager(p => p.Visible(false))
-    .OnContentReady("gridContentReady")
+    .OnContentReady("defaultOnGridContentReady")
     .Columns(columns =>
     {
-        columns.AddFor(m => m.ItemName).Caption("Hàng hóa").Width(90).Alignment(HorizontalAlignment.Left).FixedPosition(HorizontalEdge.Left).Fixed(true).AllowEditing(false);
-        columns.AddFor(m => m.Quantity).Caption("Số lượng").Width(55).Alignment(HorizontalAlignment.Right).SetCellValue("calculateRowTotal")
-            .DataType(GridColumnDataType.Number) // Tells the grid to use dxNumberBox
-            .Format("#,##0.00") // How the number displays outside of edit mode
-            .EditorOptions(new { format = "#,##0.00", min = 0, max = 10000, step = 1, showSpinButtons = false });
+        columns.AddFor(m => m.ItemName).Caption("Tên hàng").Width(130).Alignment(HorizontalAlignment.Left).FixedPosition(HorizontalEdge.Left).Fixed(true).AllowEditing(true);
+        var col = columns.AddFor(m => m.Quantity).Caption("Số lượng").Width(55).Alignment(HorizontalAlignment.Right).SetCellValue("calculateRowTotal");
+        GridUI.FormatNumberColumn(col, true);
 
         columns.AddFor(m => m.Unit).Caption("Đơn vị").Width(70).Alignment(HorizontalAlignment.Left)
             .Lookup(lookup => lookup
@@ -71,24 +36,11 @@ Html.DevExtreme().DataGrid<BillDetailView>()
             )
             .EditorOptions(new { acceptCustomValue = false, searchEnabled = false });
             
-        columns.AddFor(m => m.Price).Caption("Giá").Width(70).Alignment(HorizontalAlignment.Right).SetCellValue("calculateRowTotal")
-            .DataType(GridColumnDataType.Number) // Tells the grid to use dxNumberBox
-            .Format("#,##0") // How the number displays outside of edit mode
-            .EditorOptions(new { format = "#,##0", min = 0, max = 10000000, step = 1000, showSpinButtons = false });
-
-        columns.AddFor(m => m.Discount).Caption("G.Giá").Width(50).Alignment(HorizontalAlignment.Right).SetCellValue("calculateRowTotal")
-            .DataType(GridColumnDataType.Number) // Tells the grid to use dxNumberBox
-            .Format("#,##0") // How the number displays outside of edit mode
-            .EditorOptions(new { format = "#,##0", min = 0, max = 10000000, step = 1000, showSpinButtons = false });
+        col = columns.AddFor(m => m.Price).Caption("Giá").Width(70).Alignment(HorizontalAlignment.Right).SetCellValue("calculateRowTotal");
+        GridUI.FormatNumberColumn(col);
 
         columns.AddFor(m => m.Value).Caption("Thành tiền").Width(75).Alignment(HorizontalAlignment.Right).Format("#,##0").AllowEditing(false);
 
-        columns.Add().Caption("Tồn kho").CssClass("blue").Columns(cols =>
-        {
-            cols.AddFor(m => m.Soh).Caption("SL tồn").Width(60).Alignment(HorizontalAlignment.Right).Format("#,##0.00").AllowEditing(false).CssClass("blue");
-            cols.AddFor(m => m.StockUnitName).Caption("").Width(40).Alignment(HorizontalAlignment.Left).AllowEditing(false).CssClass("blue");
-            cols.AddFor(m => m.Ave).Caption("Giá TB").Width(64).Alignment(HorizontalAlignment.Right).Format("#,##0").AllowEditing(false).CssClass("blue");
-        });
         columns.AddFor(m => m.Note).Caption("Ghi chú").Width(140).Alignment(HorizontalAlignment.Left);
     })
     .Editing(e => e.AllowUpdating(true).Mode(GridEditMode.Batch))
@@ -104,92 +56,140 @@ Html.DevExtreme().DataGrid<BillDetailView>()
     )
 )
 
-<div id="divCustomer" class="pt-4">
-    <div class="d-flex align-items-baseline">
-        <div class="field-title bold">Khách hàng:</div>
-        @(Html.DevExtreme().SelectBox()
-            .Width(260).Height(28)
-            .ID("select-customer")
-            .InputAttr("aria-label", "Customer")
-            .DataSource(d => d
-                .Mvc().Controller("Sales")
-                .LoadAction("GetCustomers").LoadMethod("POST")
-                .LoadMode(DataSourceLoadMode.Raw)
-                .Key("Id")
-            )
-            .DisplayExpr("Name")
-            .ValueExpr("Id")
-            .Placeholder("Chọn khách hàng cũ")
-            .SearchEnabled(true)
-            .DropDownOptions(options => options.Width(300))
-            .OnValueChanged("customerSelectionChanged")
-            .ItemTemplate(@<text>
-                <div class="d-flex align-items-baseline">
-                    <div class="customer-name"><%- Name %></div>
-                    <div class="customer-phone ms-auto"><%- Phone %></div>
-                </div>
-            </text>)
-        )
-    </div>
-    <div class="d-flex align-items-baseline mt-3">
-        <div class="field-title">Tên KH:</div>
-        @(Html.DevExtreme().TextBox()
-            .Width(260).Height(28)
-            .ID("customer-name")
-            .ShowClearButton(true)
-        )
-    </div>
-    <div class="d-flex align-items-baseline mt-3">
-        <div class="field-title">Điện thoại:</div>
-        @(Html.DevExtreme().TextBox()
-            .Width(260).Height(28)
-            .ID("customer-phone")
-            .ShowClearButton(true)
-        )
-    </div>
-    <div class="d-flex align-items-baseline mt-3">
-        <div class="field-title">Địa chỉ:</div>
-        @(Html.DevExtreme().TextBox()
-            .Width(260).Height(28)
-            .ID("customer-address")
-            .ShowClearButton(true)
-        )
-    </div>
-    <div class="d-flex align-items-baseline mt-3">
-        <div class="field-title">Email:</div>
-        @(Html.DevExtreme().TextBox()
-            .Width(260).Height(28)
-            .ID("customer-email")
-            .ShowClearButton(true)
-        )
-    </div>
-</div>
+<div id="popup-container"></div>
 
+@(
+Html.DevExtreme().DataGrid<SaleItemView>()
+    .ID("sale-item-grid")
+    @* .DataSource(d => d.Mvc().Controller("Sales").LoadAction("GetNewBillDetails").LoadMethod("POST")) *@
+    .RemoteOperations(false)
+    .ShowBorders(true)
+    .ShowRowLines(true)
+    .WordWrapEnabled(true)
+    .Sorting(s => s.Mode(GridSortingMode.None))
+    .Paging(p => p.PageSize(100))
+    .Pager(p => p.Visible(false))
+    .OnContentReady("defaultOnGridContentReady")
+    .Columns(columns =>
+    {
+        columns.AddFor(m => m.Selected).Caption("Chọn").Width(50).Fixed(true).FixedPosition(HorizontalEdge.Left).AllowEditing(true);
 
-<div id="divButtons" class="pt-3 text-end d-flex align-items-center">
-    @(Html.DevExtreme().CheckBox()
-        .ID("check-box-debit")
-        .Text("Ghi nợ")
-    )
-    @(Html.DevExtreme().Button()
-        .Text("Lưu")
-        .Width(80)
-        .Type(ButtonType.Default)
-        .StylingMode(ButtonStylingMode.Contained)
-        .Icon("save")
-        .OnClick("save")
-    )
-</div>
+        columns.AddFor(m => m.ItemName).Caption("Hàng hóa").Width(130).Fixed(true).FixedPosition(HorizontalEdge.Left).AllowEditing(false);
+
+        var col = columns.AddFor(m => m.LastProcessingQuantity).Caption("Số lượng trộn cuối").Format("#,##0").Width(80).AllowEditing(false);
+        GridUI.FormatNumberColumn(col);
+
+        col = columns.AddFor(m => m.Soh).Caption("Tồn kho").Format("#,##0").Width(70).AllowEditing(false);
+        GridUI.FormatNumberColumn(col);
+    })
+    .Editing(e => e.AllowUpdating(true).Mode(GridEditMode.Batch))
+)
 
 <script>
+    pageTitle = "Tạo đơn hàng";
+    goBackUrl = "/sales";
+    var customerSelectBox;
+    var debitCheckBox;
+    var billDetails = [];
+    var saleItems = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.SaleItems));
+    var addDataPopup;
+    var customerId;
+
     $(function () {
-        $("#gridBill").first().append($("#divCustomer"));
-        $("#gridBill").first().append($("#divButtons"));
+        const topSection = $("#top-section");
+        $("#main-grid").first().prepend(topSection);
+
+        appendDateTimeFields({ container: topSection, dateWidth: "12rem" });
+
+        const customerContainer = appendFlexContainer({ container: topSection });
+        customerSelectBox = appendSelectField({ id: "customer-select-box", container: customerContainer, width: "12rem", title: "Chọn khách hàng", onValueChanged: customerChanged, acceptCustomValue: true });
+
+        debitCheckBox = appendCheckField( { id: "debit-check-box", container: customerContainer, text: "Ghi nợ" } );
+
+        addButton = appendButtonToGrid({style: "text", onClick: showAddItemPopup});
+        appendUndoSaveButtonsToGrid();
+
+        $("#sale-item-grid").css("visibility", "hidden");
+        addDataPopup = $("#popup-container").dxPopup({
+            width: "auto",
+            height: "auto",
+            visible: false,
+            dragEnabled: true,
+            hideOnOutsideClick: true,
+            showTitle: true,
+            title: "Chọn sản phẩm",
+            contentTemplate: function() {
+                return $("<div />").append($("#sale-item-grid"));
+            },
+            toolbarItems: [{
+                widget: "dxButton",
+                toolbar: "bottom",
+                location: "center",
+                options: {
+                    width: "auto",
+                    height: "auto",
+                    text: "Bỏ qua",
+                    stylingMode: "outlined",
+                    onClick: function() {
+                        addDataPopup.hide();
+                    }
+                }
+            }, {
+                widget: "dxButton",
+                toolbar: "bottom",
+                location: "center",
+                options: {
+                    width: "auto",
+                    height: "auto",
+                    text: "Thêm vào đơn hàng",
+                    stylingMode: "contained",
+                    onClick: addItems
+                }
+            }]
+        }).dxPopup("instance");
+        
+        reloadCustomers();
     });
 
-    function gridContentReady() {
-        let cells = $(".dx-header-row > td");
-        cells.css("text-align", "center");
+    function reloadCustomers() {
+        loadControlDataSource(customerSelectBox, '@Url.Action("GetCustomers", "Sales")');
+    }
+
+    function customerChanged(e) {
+        customerId = e.value;
+    }
+
+    function showAddItemPopup() {
+        $("#sale-item-grid").css("visibility", "visible");
+
+        const saleItemGrid = $("#sale-item-grid").dxDataGrid("instance");
+        const filteredItems = saleItems.filter(i => billDetails.find(j => j.Item == i.Item) == undefined);
+        for (const item of filteredItems) {
+            item.Selected = false;
+        }
+        saleItemGrid.option("dataSource", filteredItems);
+        
+        addDataPopup.show();
+    }
+
+    function addItems() {
+        let grid = $("#sale-item-grid").dxDataGrid("instance");
+        var items = getGridSelectedRowData(grid);
+        for (const item of items) {
+            var billDetail = {};
+            billDetail.Item = item.Item;
+            billDetail.ItemName = item.ItemName;
+            billDetail.Unit = item.Unit;
+            billDetail.Quantity = Math.min((item.LastProcessingQuantity != null ? item.LastProcessingQuantity : 0), item.Soh);
+            billDetail.Price = (item.SalePrice != null ? item.SalePrice : 0);
+            billDetail.Discount = 0;
+            billDetail.Value = billDetail.Quantity * billDetail.Price;
+            billDetails.push(billDetail);
+        }
+        console.log("new billDetails", billDetails);
+
+        $("#main-grid").dxDataGrid("instance").option("dataSource", billDetails);
+        addDataPopup.hide();
     }
 
     function calculateRowTotal(newData, value, currentRowData) {
@@ -199,24 +199,20 @@ Html.DevExtreme().DataGrid<BillDetailView>()
         // 2. Derive dependent values
         var quantity = newData.Quantity !== undefined ? newData.Quantity : currentRowData.Quantity;
         var price = newData.Price !== undefined ? newData.Price : currentRowData.Price;
-        var discount = newData.Discount !== undefined ? newData.Discount : currentRowData.Discount;
 
         // 3. Set the calculated field
-        newData.Value = quantity * (price - discount);
-    }
-    
-    function customerSelectionChanged(e) {
-        var customer = e.component.option("selectedItem");
-        $("#customer-name").dxTextBox("instance").option("value", customer != null ? customer.Name : "");
-        $("#customer-phone").dxTextBox("instance").option("value", customer != null ? customer.Phone : "");
-        $("#customer-address").dxTextBox("instance").option("value", customer != null ? customer.Address : "");
-        $("#customer-email").dxTextBox("instance").option("value", customer != null ? customer.Email : "");
+        newData.Value = quantity * price;
     }
 
     function save() {
-        let grid = $("#gridBill").dxDataGrid("instance");
+        if (customerId == undefined) {
+            DevExpress.ui.dialog.alert(`Hãy chọn Khách hàng.`, "Cảnh báo");
+            return;
+        }
 
-        var details = []
+        let grid = $("#main-grid").dxDataGrid("instance");
+
+        var details = [];
         let rows = grid.getVisibleRows();
         for (const row of rows) {
             if (row.rowType == "data" && row.data.Quantity > 0) {
@@ -234,30 +230,19 @@ Html.DevExtreme().DataGrid<BillDetailView>()
             return;
         }
 
-        let debit = $("#check-box-debit").dxCheckBox("instance").option("value");
-        let customer = {};
-        customer.Id = $("#select-customer").dxSelectBox("instance").option("value");
-        if (customer.Id == null)
-            customer.Id = 0;
-
-        customer.Name = $("#customer-name").dxTextBox("instance").option("value");
-        customer.Phone = $("#customer-phone").dxTextBox("instance").option("value");
-        customer.Address = $("#customer-address").dxTextBox("instance").option("value");
-        customer.Email = $("#customer-email").dxTextBox("instance").option("value");
-        if (debit && (customer.Name == null || customer.Name.length == 0)) { // || customer.Phone == null || customer.Phone.length == 0
-            DevExpress.ui.dialog.alert("Hãy nhập vào thông tin khách hàng cần Ghi nợ.", "Cảnh báo");
-            return;
-        }
-
         DevExpress.ui.dialog.confirm("<i>Bạn có chắc chắn lưu thông tin?</i>", "Xác nhận").then(function(dialogResult) {
             if (dialogResult) {
-                let date = $("#dateBox").dxDateBox("instance").option("value").toISOString();
-                let time = $("#timeBox").dxDateBox("instance").option("text");
+                const bill = {};
+                bill.Id = 0;
+                bill.Customer = customerId;
+                bill.Date = $("#date-box").dxDateBox("instance").option("value").toISOString();
+                bill.Time = $("#time-box").dxDateBox("instance").option("text");
+                bill.Paid = !debitCheckBox.option("value");
 
                 $.ajax({
-                    url: '@Url.Action("Save", "Sales")',
+                    url: '@Url.Action("SaveBill", "Sales")',
                     method: "POST",
-                    data: { date: date, time: time, details: details, customer: customer, debit: debit },
+                    data: { bill: bill, details: details },
                     success: function (result) {
                         DevExpress.ui.dialog.alert("Đã lưu dữ liệu.", "Thông báo").then(function(dialogResult) {
                             location.href = "/sales";
@@ -265,7 +250,8 @@ Html.DevExtreme().DataGrid<BillDetailView>()
                     },
                     error: function (xhr, status, error) {
                         console.log("xhr", xhr, "status", status, "error", error);
-                        DevExpress.ui.dialog.alert("Có lỗi xảy ra. Vui lòng thử lại sau.", "Cảnh báo");
+                        const errorMessage = (xhr.responseText ?? "Có lỗi xảy ra. Vui lòng thử lại sau.");
+                        DevExpress.ui.dialog.alert(errorMessage, "Cảnh báo");
                     }
                 });
             }

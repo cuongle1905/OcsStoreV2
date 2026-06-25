@@ -11,7 +11,7 @@ namespace OcsStore
     {
         public static int GetNewId(MyDbContext _context, string tableName)
         {
-            var result = _context.Database.SqlQueryRaw<int>("select max(`id`) + 1 from `" + tableName + "`").ToArray();
+            var result = _context.Database.SqlQueryRaw<int>("select ifnull(max(`id`) + 1, 1) from `" + tableName + "`").ToArray();
             if (result.Length > 0)
                 return result[0];
 
@@ -55,6 +55,20 @@ namespace OcsStore
             _context.SaveChanges();
 
             UpdateStockSoh(_context, r.Store, d.Item, d.Unit, null, yy, ordinal, true);
+        }
+
+        public static void UpdateStockForBillLotDetail(MyDbContext _context, int tranId, Bill b, BillDetail bd, BillLotDetail d)
+        {
+            /* insert into store_transaction (id, date, time, type, store, main_id, detail_id, item, unit, `year`, quantity, `user`, ordinal)
+                values (tranId, v_date, v_time, 3, storeId, billId, detailId, itemId, unitId, yy, -v_quantity, userId, v_ordinal); */
+
+            var ordinal = GetNewStoreTransactionOrdinal(_context, d.Year, b.Date, b.Time, tranId);
+            var tran = new StoreTransaction() { Id = tranId, Date = b.Date, Time = b.Time, Type = 3, Store = b.Store, MainId = b.Id, DetailId = d.Id, Item = bd.Item, Unit = bd.Unit, Lot = d.Lot, Year = d.Year, Quantity = -d.Quantity, User = b.UserCreated, Ordinal = ordinal };
+
+            _context.StoreTransactions.Add(tran);
+            _context.SaveChanges();
+
+            UpdateStockSoh(_context, b.Store, bd.Item, bd.Unit, d.Lot, d.Year, ordinal, true);
         }
 
         public static long GetNewStoreTransactionOrdinal(MyDbContext _context, sbyte yy, DateTime date, string time, int tranId)

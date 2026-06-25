@@ -269,29 +269,12 @@ function appendBottomAddButtonToGrid(e) {
     appendButtonToGrid(e);
 }
 
-function appendBottomButtonToGrid(e) {
-    let buttonsDiv = gridBottomButtonsDiv();
-    $(gridId).first().append(buttonsDiv);
-    buttonsDiv.append($(`<div id="${buttonId}">`));
-    return appendButton(e);
-}
-
-function gridBottomButtonsDiv(gridId) {
-    const divId = `${gridId}-bottom-buttons`;
-    let div = $(`#${divId}`);
-    if (div.length === 0) {
-        div = $(`<div id="${divId}" class="pt-2 text-end d-flex justify-content-end gap-3">`);
-        $(`#${gridId}`).first().append(div);
-    }
-    return div;
-}
-
 function gridButtonContainer(e) {
     setupGridButtonParam(e);
 
     let container = $(`#${e.containerId}`);
     if (container.length === 0) {
-        const padding = (e.position == "bottom" ? "pt" : "pb") + "-" + (e.level + 1);
+        const padding = (e.position == "bottom" ? "pt" : "pb") + "-" + (e.level * 2);
         container = $(`<div id="${e.containerId}" class="${padding} text-${e.align} d-flex justify-content-${e.align} gap-3">`);
         if (e.position == "bottom")
             $(`#${e.gridId}`).first().append(container);
@@ -687,6 +670,7 @@ function appendSelectField(e) {
 function appendSelectBox(e) {
     normalizeContainerParam(e);
     normalizeDataParam(e);
+    normalizeSelectBoxParam(e);
     const div = appendControlDiv(e);
     div.dxSelectBox({
         dataSource: e.dataSource,
@@ -695,7 +679,9 @@ function appendSelectBox(e) {
         displayExpr: e.nameField,
         valueExpr: e.idField,
         value: e.value,
-        onValueChanged: e.onValueChanged,
+        acceptCustomValue: e.acceptCustomValue,
+        onFocusIn: e.onFocusIn,
+        onValueChanged: (e.acceptCustomValue ? function (ee) { selectControlInputText(ee.element); if (typeof e.onValueChanged === "function") e.onValueChanged(ee); } : e.onValueChanged),
         placeholder: "Chọn...",
         dropDownOptions: {
             position: {
@@ -708,6 +694,28 @@ function appendSelectBox(e) {
     });
     const selectBox = div.dxSelectBox("instance");
     return selectBox;
+}
+
+function appendCheckField(e) {
+    normalizeContainerParam(e);
+    const dataField = appendDataFieldContainer({ container: e.container });
+
+    appendFieldTitle({ container: dataField, title: e.title ?? "" });
+
+    e.container = dataField;
+    return appendCheckBox(e);
+}
+
+function appendCheckBox(e) {
+    normalizeContainerParam(e);
+    const div = appendControlDiv(e);
+    div.dxCheckBox({
+        value: e.value ?? false,
+        text: e.text,
+        onValueChanged: e.onValueChanged
+    });
+    const checkBox = div.dxCheckBox("instance");
+    return checkBox;
 }
 
 function appendTabs(e) {
@@ -837,6 +845,20 @@ function normalizeWidthHeightParam(e) {
         e.height = "auto";
 }
 
+function normalizeSelectBoxParam(e) {
+    if (e.acceptCustomValue == undefined) {
+        e.acceptCustomValue = false;
+    } else if (e.acceptCustomValue && e.onFocusIn == undefined) {
+        e.onFocusIn = function (e) {
+            selectControlInputText(e.element);
+        }
+    }
+}
+
+function selectControlInputText(element) {
+    element.find("input.dx-texteditor-input").select();
+}
+
 function subLineHeaderCellTemplate(container, options) {
     const texts = options.column.caption.split("\n");
     console.log("subLineHeaderCellTemplate", texts);
@@ -894,4 +916,32 @@ Date.prototype.getDateWithoutTime = function () {
 function today() {
     const now = new Date();
     return now.getDateWithoutTime();
+}
+
+function loadControlDataSource(control, url, params) {
+    $.ajax({
+        url: url,
+        method: "POST",
+        data: params,
+        success: function (result) {
+            console.log("loadDataFromServer", result)
+            control.option("dataSource", result);
+        },
+        error: function (xhr, status, error) {
+            console.log("xhr", xhr, "status", status, "error", error);
+            // DevExpress.ui.dialog.alert("Có lỗi xảy ra. Vui lòng thử lại sau.", "Cảnh báo");
+        }
+    });
+}
+
+function getGridSelectedRowData(grid) {
+    var items = [];
+    let rows = grid.getVisibleRows();
+    for (const row of rows) {
+        if (row.rowType == "data" && row.data.Selected) {
+            items.push(row.data);
+        }
+    }
+    console.log("grid selected rows", items);
+    return items;
 }

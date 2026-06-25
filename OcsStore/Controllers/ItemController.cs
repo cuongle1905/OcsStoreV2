@@ -383,5 +383,10 @@ namespace OcsStore.Controllers
             }
             return Ok();
         }
+
+        public SaleItemView[] GetSaleItems()
+        {
+            return _context.SaleItemViews.ToArray();
+        }
     }
 }
