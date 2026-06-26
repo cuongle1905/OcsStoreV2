@@ -30,6 +30,13 @@ Html.DevExtreme().DataGrid<ProcessingInputView>()
     .OnCellPrepared("onCellPreparedGroupFixedRightColumn")
     .Editing(e => e.AllowUpdating(false))
     .Paging(p => p.Enabled(true).PageSize(100))
+    .Summary(s => s
+        .TotalItems(items =>
+        {
+            items.AddFor(m => m.MaterialQuantity).SummaryType(SummaryType.Sum).DisplayFormat("{0}").ValueFormat("#,##0.0");
+            items.AddFor(m => m.Quantity).SummaryType(SummaryType.Sum).DisplayFormat("{0}").ValueFormat("#,##0.0");
+        })
+    )
 )
 
 <script>
