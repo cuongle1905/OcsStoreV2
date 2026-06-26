@@ -145,7 +145,6 @@ function deleteRowData(rowIndex) {
 }
 
 var editDateTimeUrl = '@Url.Action("EditDateTime", "Item")';
-var editRowKeyFields = [];
 var editDateTimePopup;
 
 function editRowDateTime(rowIndex) {
@@ -155,10 +154,9 @@ function editRowDateTime(rowIndex) {
     const rowData = visibleRows[rowIndex].data;
     const name = (hasNameColumn ? `'${rowData.Name}'` : "dữ liệu");
     let data = {};
-    if (editRowKeyFields.length > 0) {
-        for (keyField of editRowKeyFields) {
-            data[keyField] = rowData[keyField];
-        }
+
+    if (typeof setEditDateTimeParams === "function") {
+        setEditDateTimeParams(data, rowData);
     } else {
         for (var i = 0; i < dataRowKeyFields.length; i++) {
             data[dataRowKeyParamNames[i]] = rowData[dataRowKeyFields[i]];
