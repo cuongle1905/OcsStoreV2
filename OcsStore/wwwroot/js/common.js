@@ -97,7 +97,11 @@ function gridDataLoadedForUsedData(records) {
 function deleteActionCellTemplate(container, options) {
     console.log("deleteActionCellTemplate", options.data.AllowDelete);
     if (options.data.AllowDelete == undefined || options.data.AllowDelete)
-        container.html(`<a href="#" class="icon-link" onclick="deleteRowData(${options.rowIndex})"><i class="bi bi-trash"></i></a>`)
+        container.html(`<a href="#" class="icon-link" onclick="deleteRowData(${options.rowIndex});"><i class="bi bi-trash"></i></a>`)
+}
+
+function editTimeCellTemplate(container, options) {
+    container.html(`<a href="#" class="text-link" onClick="editRowDateTime(${options.rowIndex});">${options.text}</a>`);
 }
 
 String.prototype.lowercaseFirstLetter = function () {
@@ -119,11 +123,11 @@ function deleteRowData(rowIndex) {
             data[keyField] = rowData[keyField];
         }
     } else {
-        for (keyField of dataRowKeyFields) {
-            data[keyField] = rowData[keyField];
+        for (var i = 0; i < dataRowKeyFields.length; i++) {
+            data[dataRowKeyParamNames[i]] = rowData[dataRowKeyFields[i]];
         }
     }
-    console.log("deleteRowData", data);
+    console.log("deleteRowData", rowIndex, data);
 
     DevExpress.ui.dialog.confirm(`<i>Bạn có chắc chắn muốn xóa ${name}?</i>`, "Xác nhận").then(function (dialogResult) {
         if (dialogResult) {
@@ -134,12 +138,102 @@ function deleteRowData(rowIndex) {
                 success: function (result) {
                     reloadData();
                 },
-                error: function (xhr, status, error) {
-                    console.log("xhr", xhr, "status", status, "error", error);
-                    DevExpress.ui.dialog.alert("Có lỗi xảy ra. Vui lòng thử lại sau.", "Cảnh báo");
-                }
+                error: handleAjaxError
             });
         }
+    });
+}
+
+var editDateTimeUrl = '@Url.Action("EditDateTime", "Item")';
+var editRowKeyFields = [];
+var editDateTimePopup;
+
+function editRowDateTime(rowIndex) {
+    let grid = $("#main-grid").dxDataGrid("instance");
+    const hasNameColumn = grid.columnOption("Name") !== undefined;
+    const visibleRows = grid.getVisibleRows();
+    const rowData = visibleRows[rowIndex].data;
+    const name = (hasNameColumn ? `'${rowData.Name}'` : "dữ liệu");
+    let data = {};
+    if (editRowKeyFields.length > 0) {
+        for (keyField of editRowKeyFields) {
+            data[keyField] = rowData[keyField];
+        }
+    } else {
+        for (var i = 0; i < dataRowKeyFields.length; i++) {
+            data[dataRowKeyParamNames[i]] = rowData[dataRowKeyFields[i]];
+        }
+    }
+    console.log("editRowDateTime", rowIndex, data);
+
+    let popupContainer = $("#edit-date-time-popup");
+    if (popupContainer.length == 0) {
+        popupContainer = $(`<div id="edit-date-time-popup" />`)
+        $("#main-content").append(popupContainer);
+    }
+
+    if (editDateTimePopup == undefined) {
+        editDateTimePopup = $("#edit-date-time-popup").dxPopup({
+            width: "auto",
+            height: "auto",
+            visible: false,
+            dragEnabled: true,
+            hideOnOutsideClick: true,
+            showTitle: true,
+            title: "Sửa ngày giờ",
+            position: {
+                my: "top",
+                at: "top",
+                of: "window",
+                offset: { x: 0, y: 100 }
+            },
+            contentTemplate: function () {
+                const container = $("<div />");
+                appendDateTimeFields({ container: container, width: "18rem", idPrefix: "edit-popup", direction: "vertical" });
+                return container;
+            },
+            toolbarItems: [{
+                widget: "dxButton",
+                toolbar: "bottom",
+                location: "center",
+                options: {
+                    width: "auto",
+                    height: "auto",
+                    text: "Bỏ qua",
+                    stylingMode: "outlined",
+                    onClick: function () {
+                        editDateTimePopup.hide();
+                    }
+                }
+            }, {
+                widget: "dxButton",
+                toolbar: "bottom",
+                location: "center",
+                options: {
+                    width: "auto",
+                    height: "auto",
+                    text: "Lưu",
+                    stylingMode: "contained",
+                    onClick: function () {
+                        editRowDateTimeData(data);
+                    }
+                }
+            }]
+        }).dxPopup("instance");
+    }
+    editDateTimePopup.show();
+}
+
+function editRowDateTimeData(data) {
+    data.date = $("#edit-popup-date-box").dxDateBox("instance").option("value").toISOString();
+    data.time = $("#edit-popup-time-box").dxDateBox("instance").option("text");
+    console.log("editRowDateTimeData", data);
+    $.ajax({ url: editDateTimeUrl, method: "POST", "data": data,
+        success: function (result) {
+            editDateTimePopup.hide();
+            reloadData();
+        },
+        error: handleAjaxError
     });
 }
 
@@ -374,6 +468,7 @@ function appendButtonToGrid(e) {
 
 var saveUrl = '@Url.Action("SaveItems", "Item")';
 var dataRowKeyFields = ["Id"];
+var dataRowKeyParamNames = ["Id"];
 var dataRowDateFields = [];
 
 function checkSameRowDataKeys(rowData1, rowData2) {
@@ -446,10 +541,7 @@ function save() {
                         reloadData();
                     // });
                 },
-                error: function (xhr, status, error) {
-                    console.log("xhr", xhr, "status", status, "error", error);
-                    DevExpress.ui.dialog.alert("Có lỗi xảy ra. Vui lòng thử lại sau.", "Cảnh báo");
-                }
+                error: handleAjaxError
             });
         }
     });
@@ -553,8 +645,7 @@ Date.prototype.addDays = function (days) {
     return date;
 }
 
-function addDateOverlay(e) {
-    const dateDiv = $(`#${e.id}`);
+function addDateOverlay(e, dateDiv) {
     const div = $(`<div class="date-overlay-layer">`);
     dateDiv.append(div);
 
@@ -582,8 +673,10 @@ function appendFlexContainer(e) {
     if (e.direction == undefined)
         e.direction = "horizontal";
 
-    const flexDirection = (e.direction == "vertical" || e.direction == "column" ? " .flex-column" : "");
-    const div = $(`<div class="d-flex ${flexDirection} gap-3">`);
+    const isVertical = (e.direction == "vertical" || e.direction == "column");
+    const flexDirection = (isVertical ? " flex-column" : "");
+    const gap = (isVertical ? " gap-1" : " gap-3");
+    const div = $(`<div class="d-flex${flexDirection}${gap}">`);
 
     normalizeContainerParam(e);
     e.container.append(div);
@@ -591,6 +684,7 @@ function appendFlexContainer(e) {
 }
 
 function appendDateField(e) {
+    console.log("appendDateField", e);
     if (e.title == undefined)
         e.title = "Ngày";
 
@@ -628,6 +722,7 @@ function appendFieldTitle(e) {
 }
 
 function appendDateBox(e) {
+    console.log("appendDateBox", e);
     const div = appendControlDiv(e);
     div.dxDateBox({
         width: e.width,
@@ -641,8 +736,9 @@ function appendDateBox(e) {
         }
     });
 
-    addDateOverlay(e);
-    return div.dxDateBox("instance");
+    const dateBox = div.dxDateBox("instance");
+    addDateOverlay(e, div);
+    return dateBox;
 }
 
 function appendTimeBox(e) {
@@ -944,4 +1040,10 @@ function getGridSelectedRowData(grid) {
     }
     console.log("grid selected rows", items);
     return items;
+}
+
+function handleAjaxError (xhr, status, error) {
+    console.log("xhr", xhr, "responseText", xhr.responseText, "status", status, "error", error);
+    const errorMessage = (xhr.responseText != undefined ? xhr.responseText : "Có lỗi xảy ra. Vui lòng thử lại sau.");
+    DevExpress.ui.dialog.alert(errorMessage, "Cảnh báo");
 }

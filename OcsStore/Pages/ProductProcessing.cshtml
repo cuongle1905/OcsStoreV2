@@ -20,7 +20,7 @@ Html.DevExtreme().DataGrid<ProcessingView>()
     {
         columns.AddFor(m => m.Date).Caption("Ngày").Width(90).Alignment(HorizontalAlignment.Center).Format("dd/MM/yyyy")
             .GroupIndex(0).SortOrder(SortOrder.Desc).AutoExpandGroup(false).GroupCellTemplate(new JS("groupCellTemplateTextOnly"));
-        columns.AddFor(m => m.Time).Caption("Giờ").Width(50).Alignment(HorizontalAlignment.Center);
+        columns.AddFor(m => m.Time).Caption("Giờ").Width(50).Alignment(HorizontalAlignment.Center).CellTemplate(new JS("editTimeCellTemplate"));
         columns.AddFor(m => m.ItemName).Caption("Thành phẩm").Width(130).CellTemplate(new JS("itemCellTemplate"));
         columns.AddFor(m => m.Quantity).Caption("Số lượng thành phẩm (kg)").Width(60).Format("#,##0.0");
         columns.AddFor(m => m.UserName).Caption("Người tạo").Width(50);
@@ -30,16 +30,17 @@ Html.DevExtreme().DataGrid<ProcessingView>()
     .Editing(e => e.AllowUpdating(false))
     .Paging(p => p.Enabled(true).PageSize(100))
     .Summary(s => s
-        .TotalItems(items =>
-        {
+        .TotalItems(items => {
             items.AddFor(m => m.Quantity).SummaryType(SummaryType.Sum).DisplayFormat("{0}").ValueFormat("#,##0.0");
         })
     )
+    .FocusedRowEnabled(true)
 )
 
 <script>
     pageTitle = "Trộn";
-    deleteUrl = '@Url.Action("Delete", "Processing")';
+    deleteUrl = '@Url.Action("DeleteProcessing", "Processing")';
+    editDateTimeUrl = '@Url.Action("EditDateTime", "Processing")';
     var itemGroupId = 2;
 
     $(function () {

@@ -248,11 +248,7 @@ Html.DevExtreme().DataGrid<SaleItemView>()
                             location.href = "/sales";
                         });
                     },
-                    error: function (xhr, status, error) {
-                        console.log("xhr", xhr, "status", status, "error", error);
-                        const errorMessage = (xhr.responseText ?? "Có lỗi xảy ra. Vui lòng thử lại sau.");
-                        DevExpress.ui.dialog.alert(errorMessage, "Cảnh báo");
-                    }
+                    error: handleAjaxError
                 });
             }
         });

@@ -2,7 +2,9 @@
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using OcsStore.Models;
 using System.Data.Entity;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
+using ZstdSharp.Unsafe;
 using static Org.BouncyCastle.Asn1.Cmp.Challenge;
 
 namespace OcsStore
@@ -54,7 +56,7 @@ namespace OcsStore
             _context.StoreTransactions.Add(tran);
             _context.SaveChanges();
 
-            UpdateStockSoh(_context, r.Store, d.Item, d.Unit, null, yy, ordinal, true);
+            UpdateStoreTransactions(_context, r.Store, d.Item, d.Unit, null, yy, ordinal, true);
         }
 
         public static void UpdateStockForBillLotDetail(MyDbContext _context, int tranId, Bill b, BillDetail bd, BillLotDetail d)
@@ -68,7 +70,7 @@ namespace OcsStore
             _context.StoreTransactions.Add(tran);
             _context.SaveChanges();
 
-            UpdateStockSoh(_context, b.Store, bd.Item, bd.Unit, d.Lot, d.Year, ordinal, true);
+            UpdateStoreTransactions(_context, b.Store, bd.Item, bd.Unit, d.Lot, d.Year, ordinal, true);
         }
 
         public static long GetNewStoreTransactionOrdinal(MyDbContext _context, sbyte yy, DateTime date, string time, int tranId)
@@ -79,13 +81,13 @@ namespace OcsStore
         }
 
         // `calculate_strans_soh`(storeId smallint, itemId int, unitId smallint, p_lot varchar(10), yy tinyint, p_ordinal bigint)
-        public static void UpdateStockSoh(MyDbContext _context, short storeId, int itemId, short unitId, string lot, sbyte yy, long ordinal, bool ignoreError = false)
+        public static void UpdateStoreTransactions(MyDbContext _context, short storeId, int itemId, short unitId, string lot, sbyte yy, long ordinal, bool ignoreError = false)
         {
             if (!string.IsNullOrEmpty(lot))
             {
                 try
                 {
-                    UpdateLotSoh(_context, storeId, itemId, unitId, lot, yy, ordinal, ignoreError);
+                    UpdateLotStoreTransactions(_context, storeId, itemId, unitId, lot, yy, ordinal, ignoreError);
                 }
                 catch
                 {
@@ -189,7 +191,7 @@ namespace OcsStore
             UpdateLastStoreTransaction(_context, storeId, itemId, unitId, "", yy, lastTranId);
         }
 
-        public static void UpdateLotSoh(MyDbContext _context, short storeId, int itemId, short unitId, string lot, sbyte yy, long ordinal, bool ignoreError = false)
+        public static void UpdateLotStoreTransactions(MyDbContext _context, short storeId, int itemId, short unitId, string lot, sbyte yy, long ordinal, bool ignoreError = false)
         {
             /*	SELECT id, lot_soh, lot_value, lot_ave, ordinal INTO tranId, v_soh, v_value, v_ave, v_ordinal
                 FROM store_transaction where store = storeId and item = itemId and unit = unitId and lot = p_lot and `year` = yy and ordinal < p_ordinal
@@ -324,7 +326,7 @@ namespace OcsStore
             _context.SaveChanges();
         }
 
-        public static void DeleteStock(MyDbContext _context, int tranId, sbyte type, short storeId, int itemId, short unitId, string lot, sbyte yy, long ordinal)
+        public static void DeleteStoreTransaction(MyDbContext _context, int tranId, short storeId, int itemId, short unitId, string lot, sbyte yy, long ordinal)
         {
             /*  IF p_lot IS NULL THEN
 		            SELECT ordinal into v_ordinal from store_transaction
@@ -355,12 +357,67 @@ namespace OcsStore
                 _context.StoreTransactions.Remove(tran);
             }
 
-            UpdateStockSoh(_context, storeId, itemId, unitId, lot, yy, fromOrdinal);
+            UpdateStoreTransactions(_context, storeId, itemId, unitId, lot, yy, fromOrdinal);
         }
 
-        public static void DeleteStockForReceiving(MyDbContext _context, int receivingId)
+        public static void DeleteStoreTransaction(MyDbContext _context, StoreTransaction fromStoreTransaction)
         {
+            DeleteStoreTransaction(_context, fromStoreTransaction.Id, fromStoreTransaction.Store, fromStoreTransaction.Item, fromStoreTransaction.Unit, fromStoreTransaction.Lot, fromStoreTransaction.Year, fromStoreTransaction.Ordinal);
+        }
 
+        public static void UpdateStoreTransactionDateTime(MyDbContext _context, StoreTransaction fromStoreTransaction, DateTime date, string time)
+        {
+            fromStoreTransaction.Date = date;
+            fromStoreTransaction.Time = time;
+
+            var oldOrdinal = fromStoreTransaction.Ordinal;
+            fromStoreTransaction.Ordinal = GetNewStoreTransactionOrdinal(_context, fromStoreTransaction.Year, date, time, fromStoreTransaction.Id);
+
+            _context.StoreTransactions.Update(fromStoreTransaction);
+            _context.SaveChanges();
+
+            UpdateStoreTransactions(_context, fromStoreTransaction.Store, fromStoreTransaction.Item, fromStoreTransaction.Unit, fromStoreTransaction.Lot, fromStoreTransaction.Year, Math.Min(oldOrdinal, fromStoreTransaction.Ordinal));
+        }
+
+        public static void DeleteStoreTransactionsForProcessing(MyDbContext _context, Processing processing)
+        {
+            var outputStoreTransaction = _context.StoreTransactions.FirstOrDefault(i => i.Type == 2 && i.MainId == processing.Id && i.DetailId == null);
+            if (outputStoreTransaction != null)
+                DeleteStoreTransaction(_context, outputStoreTransaction);
+
+            var processingLotDetails = _context.ProcessingLotInputViews.Where(i => i.Processing == processing.Id).ToArray();
+            foreach (var detail in processingLotDetails)
+            {
+                var inputStoreTransaction = _context.StoreTransactions.FirstOrDefault(i => i.Type == 2 && i.MainId == processing.Id && i.DetailId == detail.Id);
+                if (inputStoreTransaction != null)
+                    DeleteStoreTransaction(_context, inputStoreTransaction);
+            }
+        }
+
+        public static void UpdateStoreTransactionDateTimesForProcessing(MyDbContext _context, Processing processing)
+        {
+            var outputStoreTransaction = _context.StoreTransactions.FirstOrDefault(i => i.Type == 2 && i.MainId == processing.Id && i.DetailId == null);
+            if (outputStoreTransaction != null)
+                UpdateStoreTransactionDateTime(_context, outputStoreTransaction, processing.Date, processing.Time);
+
+            var details = _context.ProcessingLotInputViews.Where(i => i.Processing == processing.Id).ToArray();
+            foreach (var detail in details)
+            {
+                var inputStoreTransaction = _context.StoreTransactions.FirstOrDefault(i => i.Type == 2 && i.MainId == processing.Id && i.DetailId == detail.Id);
+                if (inputStoreTransaction != null)
+                    UpdateStoreTransactionDateTime(_context, inputStoreTransaction, processing.Date, processing.Time);
+            }
+        }
+
+        public static void UpdateStoreTransactionDateTimesForReceiving(MyDbContext _context, Receiving receiving)
+        {
+            var details = _context.ReceivingDetails.Where(i => i.Receiving == receiving.Id).ToArray();
+            foreach (var detail in details)
+            {
+                var storeTransaction = _context.StoreTransactions.FirstOrDefault(i => i.Type == 1 && i.MainId == receiving.Id && i.DetailId == detail.Id);
+                if (storeTransaction != null)
+                    UpdateStoreTransactionDateTime(_context, storeTransaction, receiving.Date, receiving.Time);
+            }
         }
     }
 }

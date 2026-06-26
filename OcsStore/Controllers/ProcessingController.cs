@@ -272,15 +272,51 @@ namespace OcsStore.Controllers
             _context.Database.ExecuteSqlRaw("call calculate_strans_bill(" + billId + ");");
         }
 
-        private void DeleteProcessing(int processingId)
+        [HttpPost]
+        public IActionResult DeleteProcessing(int id)
         {
-            _context.Database.ExecuteSqlRaw("call delete_processing(" + processingId + ");");
+            var processing = _context.Processings.FirstOrDefault(i => i.Id == id);
+            if (processing != null)
+            {
+                _context.Database.BeginTransaction();
+                try
+                {
+                    DB.DeleteStoreTransactionsForProcessing(_context, processing);
+                    _context.Processings.Remove(processing);
+                    _context.SaveChanges();
+                }
+                catch (Exception ex)
+                {
+                    _context.Database.RollbackTransaction();
+                    return BadRequest(ex.Message);
+                }
+                _context.Database.CommitTransaction();
+            }
+            return Ok();
         }
 
         [HttpPost]
-        public IActionResult Delete(int processing)
+        public IActionResult EditDateTime(int id, DateTime date, string time)
         {
-            DeleteProcessing(processing);
+            var processing = _context.Processings.FirstOrDefault(i => i.Id == id);
+            if (processing != null)
+            {
+                processing.Date = Common.GetLocalDateWithoutTime(date);
+                processing.Time = time;
+                _context.Database.BeginTransaction();
+                _context.Processings.Update(processing);
+                _context.SaveChanges();
+                try
+                {
+                    DB.UpdateStoreTransactionDateTimesForProcessing(_context, processing);
+                }
+                catch (Exception ex)
+                {
+                    _context.Database.RollbackTransaction();
+                    return BadRequest(ex.Message);
+                }
+                _context.Database.CommitTransaction();
+            }
             return Ok();
         }
     }

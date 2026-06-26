@@ -21,7 +21,7 @@ Html.DevExtreme().DataGrid<ReceivingDetailView>()
     {
         columns.AddFor(m => m.Date).Caption("Ngày").Width(80).Alignment(HorizontalAlignment.Center).Format("dd/MM/yyyy")
             .GroupIndex(0).SortOrder(SortOrder.Desc).AutoExpandGroup(false).GroupCellTemplate(new JS("groupCellTemplateTextOnly"));
-        columns.AddFor(m => m.Time).Caption("Giờ").Width(45).Alignment(HorizontalAlignment.Center);
+        columns.AddFor(m => m.Time).Caption("Giờ").Width(45).Alignment(HorizontalAlignment.Center).CellTemplate(new JS("editTimeCellTemplate"));
         columns.AddFor(m => m.ItemName).Caption("Hàng hóa").Width(110).Alignment(HorizontalAlignment.Left).CellTemplate(new JS("itemCellTemplate"));
         columns.AddFor(m => m.Quantity).Caption("Số lượng").Width(50).Alignment(HorizontalAlignment.Right).Format("#,##0");
         columns.AddFor(m => m.Price).Caption("Giá\n(đồng)").Width(65).HeaderCellTemplate(new JS("subLineHeaderCellTemplate")).Format("#,##0");
@@ -52,6 +52,7 @@ Html.DevExtreme().DataGrid<ReceivingDetailView>()
 <script>
     pageTitle = "NHẬP KHO";
     deleteUrl = '@Url.Action("DeleteDetail", "Receiving")';
+    editDateTimeUrl = '@Url.Action("EditDateTime", "Receiving")';
 
     $(function () {
         appendTopAddButtonToGrid({ onClick: function() {

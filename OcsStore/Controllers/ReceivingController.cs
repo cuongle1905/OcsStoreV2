@@ -9,6 +9,7 @@ using System.Net.Http;
 using System.Net.Mail;
 using System.Text;
 using System.Text.Json;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace OcsStore.Controllers
 {
@@ -96,6 +97,31 @@ namespace OcsStore.Controllers
         public IActionResult DeleteDetail(int id)
         {
             _context.Database.ExecuteSqlRaw("call delete_receiving_detail(" + id + ");");
+            return Ok();
+        }
+
+        [HttpPost]
+        public IActionResult EditDateTime(int id, DateTime date, string time)
+        {
+            var receiving = _context.Receivings.FirstOrDefault(i => i.Id == id);
+            if (receiving != null)
+            {
+                receiving.Date = Common.GetLocalDateWithoutTime(date);
+                receiving.Time = time;
+                _context.Database.BeginTransaction();
+                _context.Receivings.Update(receiving);
+                _context.SaveChanges();
+                try
+                {
+                    DB.UpdateStoreTransactionDateTimesForReceiving(_context, receiving);
+                }
+                catch (Exception ex)
+                {
+                    _context.Database.RollbackTransaction();
+                    return BadRequest(ex.Message);
+                }
+                _context.Database.CommitTransaction();
+            }
             return Ok();
         }
     }
