@@ -298,26 +298,11 @@ namespace OcsStore.Controllers
         [HttpPost]
         public IActionResult EditDateTime(int id, DateTime date, string time)
         {
-            var processing = _context.Processings.FirstOrDefault(i => i.Id == id);
-            if (processing != null)
-            {
-                processing.Date = Common.GetLocalDateWithoutTime(date);
-                processing.Time = time;
-                _context.Database.BeginTransaction();
-                _context.Processings.Update(processing);
-                _context.SaveChanges();
-                try
-                {
-                    DB.UpdateStoreTransactionDateTimesForProcessing(_context, processing);
-                }
-                catch (Exception ex)
-                {
-                    _context.Database.RollbackTransaction();
-                    return BadRequest(ex.Message);
-                }
-                _context.Database.CommitTransaction();
-            }
-            return Ok();
+            string errorMesssage;
+            if (DB.EditProcessingDateTime(_context, id, date, time, out errorMesssage))
+                return Ok();
+
+            return BadRequest(errorMesssage);
         }
     }
 }

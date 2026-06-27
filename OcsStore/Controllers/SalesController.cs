@@ -148,7 +148,7 @@ namespace OcsStore.Controllers
 
                 try
                 {
-                    DB.UpdateStockForBillLotDetail(_context, tranId, bill, billDetail, detail);
+                    DB.UpdateStoreTransactionForBillLotDetail(_context, tranId, bill, billDetail, detail);
                 }
                 catch
                 {

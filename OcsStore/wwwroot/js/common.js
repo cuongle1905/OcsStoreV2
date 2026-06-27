@@ -104,6 +104,10 @@ function editTimeCellTemplate(container, options) {
     container.html(`<a href="#" class="text-link" onClick="editRowDateTime(${options.rowIndex});">${options.text}</a>`);
 }
 
+function editTimeCellTemplateForContent(container, options, htmlContent) {
+    container.html(`<a href="#" class="text-link" onClick="editRowDateTime(${options.rowIndex});">${htmlContent}</a>`);
+}
+
 String.prototype.lowercaseFirstLetter = function () {
     return this.charAt(0).toLowerCase() + this.slice(1);
 };
@@ -144,8 +148,9 @@ function deleteRowData(rowIndex) {
     });
 }
 
-var editDateTimeUrl = '@Url.Action("EditDateTime", "Item")';
+var editDateTimeUrl = '@Url.Action("EditDateTime", "ControllerName")';
 var editDateTimePopup;
+var editDateTimeRowData;
 
 function editRowDateTime(rowIndex) {
     let grid = $("#main-grid").dxDataGrid("instance");
@@ -163,6 +168,7 @@ function editRowDateTime(rowIndex) {
         }
     }
     console.log("editRowDateTime", rowIndex, data);
+    editDateTimeRowData = data;
 
     let popupContainer = $("#edit-date-time-popup");
     if (popupContainer.length == 0) {
@@ -212,9 +218,7 @@ function editRowDateTime(rowIndex) {
                     height: "auto",
                     text: "Lưu",
                     stylingMode: "contained",
-                    onClick: function () {
-                        editRowDateTimeData(data);
-                    }
+                    onClick: editRowDateTimeData
                 }
             }]
         }).dxPopup("instance");
@@ -222,11 +226,11 @@ function editRowDateTime(rowIndex) {
     editDateTimePopup.show();
 }
 
-function editRowDateTimeData(data) {
-    data.date = $("#edit-popup-date-box").dxDateBox("instance").option("value").toISOString();
-    data.time = $("#edit-popup-time-box").dxDateBox("instance").option("text");
-    console.log("editRowDateTimeData", data);
-    $.ajax({ url: editDateTimeUrl, method: "POST", "data": data,
+function editRowDateTimeData() {
+    editDateTimeRowData.date = $("#edit-popup-date-box").dxDateBox("instance").option("value").toISOString();
+    editDateTimeRowData.time = $("#edit-popup-time-box").dxDateBox("instance").option("text");
+    console.log("editRowDateTimeData", editDateTimeRowData);
+    $.ajax({ url: editDateTimeUrl, method: "POST", "data": editDateTimeRowData,
         success: function (result) {
             editDateTimePopup.hide();
             reloadData();

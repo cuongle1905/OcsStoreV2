@@ -86,7 +86,7 @@ namespace OcsStore.Controllers
             _context.SaveChanges();
 
             //_context.Database.ExecuteSqlRaw("call calculate_strans_receiving(" + receivingId + ");");
-            DB.UpdateStockForReceiving(_context, receiving, newDetails);
+            DB.UpdateStoreTransactionsForReceiving(_context, receiving, newDetails);
 
             dbTran.Commit();
 
@@ -96,24 +96,15 @@ namespace OcsStore.Controllers
         [HttpPost]
         public IActionResult DeleteDetail(int id)
         {
-            _context.Database.ExecuteSqlRaw("call delete_receiving_detail(" + id + ");");
-            return Ok();
-        }
-
-        [HttpPost]
-        public IActionResult EditDateTime(int id, DateTime date, string time)
-        {
-            var receiving = _context.Receivings.FirstOrDefault(i => i.Id == id);
-            if (receiving != null)
+            var receivingDetail = _context.ReceivingDetails.FirstOrDefault(i => i.Id == id);
+            if (receivingDetail != null)
             {
-                receiving.Date = Common.GetLocalDateWithoutTime(date);
-                receiving.Time = time;
                 _context.Database.BeginTransaction();
-                _context.Receivings.Update(receiving);
-                _context.SaveChanges();
                 try
                 {
-                    DB.UpdateStoreTransactionDateTimesForReceiving(_context, receiving);
+                    DB.DeleteStoreTransactionsForReceivingDetail(_context, receivingDetail);
+                    _context.ReceivingDetails.Remove(receivingDetail);
+                    _context.SaveChanges();
                 }
                 catch (Exception ex)
                 {
@@ -123,6 +114,16 @@ namespace OcsStore.Controllers
                 _context.Database.CommitTransaction();
             }
             return Ok();
+        }
+
+        [HttpPost]
+        public IActionResult EditDateTime(int id, DateTime date, string time)
+        {
+            string errorMesssage;
+            if (DB.EditReceivingDateTime(_context, id, date, time, out errorMesssage))
+                return Ok();
+
+            return BadRequest(errorMesssage);
         }
     }
 }

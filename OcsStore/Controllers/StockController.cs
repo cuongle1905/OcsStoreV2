@@ -182,5 +182,36 @@ namespace OcsStore.Controllers
             var soh = _context.StockViews.FirstOrDefault(i => i.Item == materialId).Soh ?? 0;
             return Ok(soh);
         }
+
+        [HttpPost]
+        public IActionResult EditDateTime(int id, DateTime date, string time)
+        {
+            var tran = _context.StoreTransactions.FirstOrDefault(i => i.Id == id);
+            if (tran != null)
+            {
+                string errorMesssage;
+                if (tran.Type == StoreTransactionType.Receiving)
+                {
+                    if (!DB.EditReceivingDateTime(_context, tran.MainId, date, time, out errorMesssage))
+                        return BadRequest(errorMesssage);
+                }
+                else if (tran.Type == StoreTransactionType.Processing)
+                {
+                    if (!DB.EditProcessingDateTime(_context, tran.MainId, date, time, out errorMesssage))
+                        return BadRequest(errorMesssage);
+                }
+                else if (tran.Type == StoreTransactionType.Billing)
+                {
+                    if (!DB.EditBillDateTime(_context, tran.MainId, date, time, out errorMesssage))
+                        return BadRequest(errorMesssage);
+                }
+                else if (tran.Type == StoreTransactionType.Inventory)
+                {
+                    if (!DB.EditInventoryDateTime(_context, tran.MainId, date, time, out errorMesssage))
+                        return BadRequest(errorMesssage);
+                }
+            }
+            return Ok();
+        }
     }
 }

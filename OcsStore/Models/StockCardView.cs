@@ -15,7 +15,7 @@ public partial class StockCardView
 
     public short Store { get; set; }
 
-    public int? MainId { get; set; }
+    public int MainId { get; set; }
 
     public int? DetailId { get; set; }
 

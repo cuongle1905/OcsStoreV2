@@ -2,7 +2,6 @@
 @using OcsStore.Models
 @model OcsStore.Pages.StockCardModel
 @{
-    bool useLot = !string.IsNullOrEmpty(Model.Lot) && Model.Year > 0;
 }
 <style>
 </style>
@@ -21,28 +20,19 @@ Html.DevExtreme().DataGrid<StockCardView>()
     .OnContentReady("defaultOnGridContentReady")
     .Columns(columns =>
     {
-        columns.AddFor(m => m.Date).Caption("Ngày").Width(80).Alignment(HorizontalAlignment.Center).Format("dd/MM/yyyy").CellTemplate(new JS("stockCellTemplate")).GroupIndex(0);
-        columns.AddFor(m => m.Time).Caption("Giờ").Width(55).Alignment(HorizontalAlignment.Center).CellTemplate(new JS("stockCellTemplate"));
-        columns.AddFor(m => m.Description).Caption("Mô tả").Width(80).Alignment(HorizontalAlignment.Left).CellTemplate(new JS("stockCellTemplate"));
+        columns.AddFor(m => m.Date).Caption("Ngày").Width(80).Alignment(HorizontalAlignment.Center).Format("dd/MM/yyyy").GroupIndex(0);
+        columns.AddFor(m => m.Time).Caption("Giờ").Width(50).Alignment(HorizontalAlignment.Center).CellTemplate(new JS("editTimeCellTemplate"));
+        columns.AddFor(m => m.Description).Caption("Mô tả").Width(70).Alignment(HorizontalAlignment.Left);
         if (Model.Item.UseLot)
         {
-            columns.AddFor(m => m.Lot).Caption("Lô").Width(46).Alignment(HorizontalAlignment.Center).CellTemplate(new JS("stockCellTemplate"));
+            columns.AddFor(m => m.Lot).Caption("Lô").Width(40).Alignment(HorizontalAlignment.Center);
         }
-        columns.AddFor(m => m.Quantity).Caption("Số lượng").Width(70).Alignment(HorizontalAlignment.Right).Format("#,##0.0").CellTemplate(new JS("stockCellTemplate"));
-        columns.AddFor(m => m.Price).Caption("Giá").Width(64).Alignment(HorizontalAlignment.Right).Format("#,##0").CellTemplate(new JS("stockCellTemplate"));
+        columns.AddFor(m => m.Quantity).Caption("Số lượng").Width(65).Alignment(HorizontalAlignment.Right).Format("#,##0.0").CellTemplate(new JS("stockCellTemplate"));
+        columns.AddFor(m => m.Price).Caption("Giá").Width(64).Alignment(HorizontalAlignment.Right).Format("#,##0");
 
-        if (useLot)
-        {
-            columns.AddFor(m => m.LotSoh).Caption("SL tồn").Width(55).Alignment(HorizontalAlignment.Right).Format("#,##0.0").CellTemplate(new JS("stockCellTemplate"));
-            columns.AddFor(m => m.LotAve).Caption("Giá TB").Width(64).Alignment(HorizontalAlignment.Right).Format("#,##0").CellTemplate(new JS("stockCellTemplate"));
-            columns.AddFor(m => m.LotValue).Caption("Giá trị").Width(86).Alignment(HorizontalAlignment.Right).Format("#,##0").CellTemplate(new JS("stockCellTemplate"));
-        }
-        else
-        {
-            columns.AddFor(m => m.Soh).Caption("SL tồn").Width(55).Alignment(HorizontalAlignment.Right).Format("#,##0.0").CellTemplate(new JS("stockCellTemplate"));
-            columns.AddFor(m => m.Ave).Caption("Giá TB").Width(64).Alignment(HorizontalAlignment.Right).Format("#,##0").CellTemplate(new JS("stockCellTemplate"));
-            columns.AddFor(m => m.Value).Caption("Giá trị").Width(86).Alignment(HorizontalAlignment.Right).Format("#,##0").CellTemplate(new JS("stockCellTemplate"));
-        }
+        columns.AddFor(m => m.Soh).Caption("SL tồn").Width(55).Alignment(HorizontalAlignment.Right).Format("#,##0.0");
+        columns.AddFor(m => m.Ave).Caption("Giá TB").Width(64).Alignment(HorizontalAlignment.Right).Format("#,##0");
+        columns.AddFor(m => m.Value).Caption("Giá trị").Width(86).Alignment(HorizontalAlignment.Right).Format("#,##0");
     })
     .Editing(e => e.AllowUpdating(false))
     .Paging(p => p.Enabled(true).PageSize(100))
@@ -50,8 +40,9 @@ Html.DevExtreme().DataGrid<StockCardView>()
 
 <script>
     pageTitle = "Thẻ kho @(Model.Item.Name) @(Model.Lot ?? "")";
-    goBackUrl = "/stock";
+    goBackUrl = "/stock?itemGroup=@(Model.Item.Group)";
     const itemId = @(Model.ItemId);
+    editDateTimeUrl = '@Url.Action("EditDateTime", "Stock")';
 
     $(function () {
         appendButtonToGrid({ id: "calculate-soh", level: 2, text: "Tính toán lại tồn kho", width: "50%", icon: "bi bi-calculator", onClick: calculateSoh });
@@ -83,7 +74,12 @@ Html.DevExtreme().DataGrid<StockCardView>()
             if (options.data.Quantity > 0)
                 text = "+" + options.text;
         }
+
         let html = `<div class='${cssClass}'>${text}</div>`
-        container.html(html);
+
+        if (options.column.dataField == "Time")
+            editTimeCellTemplateForContent(container, options, html);
+        else
+            container.html(html);
     }
 </script>
