@@ -42,10 +42,11 @@ Html.DevExtreme().DataGrid<ProcessingLotInputView>()
 <script>
     pageTitle = "Trộn mới";
     goBackUrl = "/productprocessing";
-    var items = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Items));
+    var items = @Html.Raw(Json.Serialize(Model.Items));
     let itemId;
     let itemQuantity = 0.0;
     let materialUseLot = false;
+    var saveButtonContainer;
 
     $(function () {
         const topSection = $("#top-section");
@@ -60,8 +61,11 @@ Html.DevExtreme().DataGrid<ProcessingLotInputView>()
         appendNumberField({ id: "item-quantity", container: itemQuantityContainer, title: "Số lượng", suffix: "Kg", decimals: 1, onValueChanged: itemQuantityChanged });
         $("#item-quantity").parent().css("visibility", "hidden");
 
-        appendSaveButtonToGrid();
-        $("#save-button").css("visibility", "hidden");
+        const saveButton = appendSaveButtonToGrid();
+        appendSaveButtonToGrid({ text: "Bán hàng", icon: "bi bi-arrow-right", onClick: function() { save(true); } });
+
+        saveButtonContainer = saveButton.element().parent();
+        saveButtonContainer.css("visibility", "hidden");
     });
 
     function gridDataLoaded() {
@@ -135,7 +139,7 @@ Html.DevExtreme().DataGrid<ProcessingLotInputView>()
     function itemChanged(e) {
         itemId = e.value;
         $("#item-quantity").parent().css("visibility", "visible");
-        $("#save-button").css("visibility", "visible");
+        saveButtonContainer.css("visibility", "visible");
         reloadData();
     }
 
@@ -186,7 +190,7 @@ Html.DevExtreme().DataGrid<ProcessingLotInputView>()
         grid.cellValue(rowIndex, "Quantity", soh);
     }
 
-    function save() {
+    function save(goToSale) {
         let quantity = $("#item-quantity").dxNumberBox("instance").option("value");
         if (quantity == null || quantity <= 0) {
             DevExpress.ui.dialog.alert("Hãy nhập vào Số lượng.", "Cảnh báo");
@@ -203,8 +207,9 @@ Html.DevExtreme().DataGrid<ProcessingLotInputView>()
         for (var i = 0; i < rows.length; i++) {
             const row = rows[i];
             if (row.rowType == "data" && row.data.Quantity > 0) {
-                if (row.data.Quantity > row.data.Soh) {
-                    DevExpress.ui.dialog.alert(`[${row.data.ItemName + (row.data.Lot.length > 0 ? ' ' + row.data.Lot : '')}] Số lượng ${row.data.Quantity} vượt quá tồn kho ${row.data.Soh}.`, "Cảnh báo");
+                const soh = (row.data.Soh != null ? row.data.Soh : 0);
+                if (row.data.Quantity > soh) {
+                    DevExpress.ui.dialog.alert(`[${row.data.ItemName + (row.data.Lot != null && row.data.Lot.length > 0 ? ' ' + row.data.Lot : '')}] Số lượng ${row.data.Quantity} vượt quá tồn kho ${soh}.`, "Cảnh báo");
                     return;
                 }
 
@@ -246,9 +251,13 @@ Html.DevExtreme().DataGrid<ProcessingLotInputView>()
                     method: "POST",
                     data: { processing: processing, details: details },
                     success: function (result) {
-                        DevExpress.ui.dialog.alert("Đã lưu dữ liệu.", "Thông báo").then(function(dialogResult) {
-                            location.href = goBackUrl;
-                        });
+                        if (goToSale) {
+                            location.href = `/sales/new?processing=${result}`; 
+                        } else {
+                            DevExpress.ui.dialog.alert("Đã lưu dữ liệu.", "Thông báo").then(function(dialogResult) {
+                                location.href = goBackUrl;
+                            });
+                        }
                     },
                     error: function (xhr, status, error) {
                         console.log("xhr", xhr, "status", status, "error", error);

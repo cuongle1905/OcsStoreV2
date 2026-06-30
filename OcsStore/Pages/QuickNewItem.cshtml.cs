@@ -10,6 +10,7 @@ namespace OcsStore.Pages
         private ItemController _itemController;
         public Item[] Materials;
         public int DefaultMaterial1, DefaultMaterial2;
+        public ItemForm[] ItemForms = [];
 
         public QuickNewItemModel(ItemController itemController)
         {
@@ -21,6 +22,7 @@ namespace OcsStore.Pages
             Materials = _itemController.GetItems(2);
             DefaultMaterial1 = _itemController.FirstMaterialIdToCreateItem();
             DefaultMaterial2 = _itemController.SecondMaterialIdToCreateItem();
+            ItemForms = _itemController.GetItemForms();
         }
     }
 }

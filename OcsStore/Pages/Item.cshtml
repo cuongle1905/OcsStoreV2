@@ -84,7 +84,7 @@
 </div>
 <script>
     pageTitle = "@(Model.Item.Id == 0 ? "Thêm hàng hóa" : "Hàng hóa")"
-    var item = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Item));
+    var item = @Html.Raw(Json.Serialize(Model.Item));
 
     $(function () {
         if (item.Group > 1)

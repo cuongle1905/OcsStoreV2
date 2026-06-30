@@ -22,6 +22,8 @@ public partial class MyDbContext : DbContext
 
     public virtual DbSet<BillLotDetailView> BillLotDetailViews { get; set; }
 
+    public virtual DbSet<BillMinDetailIdView> BillMinDetailIdViews { get; set; }
+
     public virtual DbSet<BillView> BillViews { get; set; }
 
     public virtual DbSet<Customer> Customers { get; set; }
@@ -245,6 +247,8 @@ public partial class MyDbContext : DbContext
 
             entity.HasIndex(e => e.Bill, "fk_bill_detail_idx");
 
+            entity.HasIndex(e => e.Item, "fk_bill_detail_item_idx");
+
             entity.HasIndex(e => e.Processing, "fk_bill_detail_processing_idx");
 
             entity.Property(e => e.Id)
@@ -277,7 +281,6 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.Processing).HasColumnName("processing");
             entity.Property(e => e.Quantity)
                 .HasPrecision(10, 2)
-                .HasDefaultValueSql("'1.00'")
                 .HasColumnName("quantity");
             entity.Property(e => e.Type)
                 .IsRequired()
@@ -291,6 +294,11 @@ public partial class MyDbContext : DbContext
             entity.HasOne(d => d.BillNavigation).WithMany(p => p.BillDetails)
                 .HasForeignKey(d => d.Bill)
                 .HasConstraintName("fk_bill_detail");
+
+            entity.HasOne(d => d.ItemNavigation).WithMany(p => p.BillDetails)
+                .HasForeignKey(d => d.Item)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_bill_detail_item");
 
             entity.HasOne(d => d.ProcessingNavigation).WithMany(p => p.BillDetails)
                 .HasForeignKey(d => d.Processing)
@@ -307,6 +315,9 @@ public partial class MyDbContext : DbContext
                 .HasPrecision(10, 2)
                 .HasColumnName("ave");
             entity.Property(e => e.Bill).HasColumnName("bill");
+            entity.Property(e => e.BuExchange)
+                .HasDefaultValueSql("'1'")
+                .HasColumnName("bu_exchange");
             entity.Property(e => e.Customer)
                 .HasDefaultValueSql("'1'")
                 .HasColumnName("customer");
@@ -337,7 +348,6 @@ public partial class MyDbContext : DbContext
                 .HasColumnName("price");
             entity.Property(e => e.Quantity)
                 .HasPrecision(10, 2)
-                .HasDefaultValueSql("'1.00'")
                 .HasColumnName("quantity");
             entity.Property(e => e.Soh)
                 .HasPrecision(10, 2)
@@ -463,6 +473,17 @@ public partial class MyDbContext : DbContext
                 .HasColumnName("year");
         });
 
+        modelBuilder.Entity<BillMinDetailIdView>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToView("bill_min_detail_id_view");
+
+            entity.Property(e => e.Bill).HasColumnName("bill");
+            entity.Property(e => e.Count).HasColumnName("count");
+            entity.Property(e => e.MinId).HasColumnName("min_id");
+        });
+
         modelBuilder.Entity<BillView>(entity =>
         {
             entity
@@ -504,6 +525,11 @@ public partial class MyDbContext : DbContext
                 .HasColumnType("datetime")
                 .HasColumnName("date_paid");
             entity.Property(e => e.Deleted).HasColumnName("deleted");
+            entity.Property(e => e.Desc)
+                .HasMaxLength(175)
+                .HasColumnName("desc")
+                .UseCollation("utf8mb3_general_ci")
+                .HasCharSet("utf8mb3");
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.Note)
                 .HasMaxLength(200)
@@ -831,6 +857,12 @@ public partial class MyDbContext : DbContext
 
             entity.ToTable("item");
 
+            entity.HasIndex(e => e.Form, "fk_item_form_idx");
+
+            entity.HasIndex(e => e.Group, "fk_item_group_idx");
+
+            entity.HasIndex(e => e.Unit, "fk_item_unit_idx");
+
             entity.Property(e => e.Id)
                 .ValueGeneratedNever()
                 .HasColumnName("id");
@@ -841,6 +873,9 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.DateCreated)
                 .HasColumnType("datetime")
                 .HasColumnName("date_created");
+            entity.Property(e => e.Form)
+                .HasDefaultValueSql("'1'")
+                .HasColumnName("form");
             entity.Property(e => e.FullName)
                 .IsRequired()
                 .HasMaxLength(100)
@@ -878,6 +913,21 @@ public partial class MyDbContext : DbContext
                 .HasColumnName("unit");
             entity.Property(e => e.UseLot).HasColumnName("use_lot");
             entity.Property(e => e.UserCreated).HasColumnName("user_created");
+
+            entity.HasOne(d => d.FormNavigation).WithMany(p => p.Items)
+                .HasForeignKey(d => d.Form)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_item_form");
+
+            entity.HasOne(d => d.GroupNavigation).WithMany(p => p.Items)
+                .HasForeignKey(d => d.Group)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_item_group");
+
+            entity.HasOne(d => d.UnitNavigation).WithMany(p => p.Items)
+                .HasForeignKey(d => d.Unit)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_item_unit");
         });
 
         modelBuilder.Entity<ItemCoupleMaterialView>(entity =>
@@ -893,6 +943,9 @@ public partial class MyDbContext : DbContext
                 .UseCollation("utf8mb3_general_ci")
                 .HasCharSet("utf8mb3");
             entity.Property(e => e.Item).HasColumnName("item");
+            entity.Property(e => e.ItemForm)
+                .HasDefaultValueSql("'1'")
+                .HasColumnName("item_form");
             entity.Property(e => e.ItemName)
                 .IsRequired()
                 .HasMaxLength(100)
@@ -915,11 +968,9 @@ public partial class MyDbContext : DbContext
                 .HasCharSet("utf8mb3");
             entity.Property(e => e.Quantity1)
                 .HasPrecision(10, 2)
-                .HasDefaultValueSql("'1.00'")
                 .HasColumnName("quantity1");
             entity.Property(e => e.Quantity2)
                 .HasPrecision(10, 2)
-                .HasDefaultValueSql("'1.00'")
                 .HasColumnName("quantity2");
             entity.Property(e => e.Selected).HasColumnName("selected");
         });
@@ -1013,6 +1064,9 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.DateCreated)
                 .HasColumnType("datetime")
                 .HasColumnName("date_created");
+            entity.Property(e => e.Form)
+                .HasDefaultValueSql("'1'")
+                .HasColumnName("form");
             entity.Property(e => e.FullName)
                 .IsRequired()
                 .HasMaxLength(100)
@@ -1072,12 +1126,10 @@ public partial class MyDbContext : DbContext
                 .HasColumnName("lost_percent");
             entity.Property(e => e.Quantity)
                 .HasPrecision(10, 2)
-                .HasDefaultValueSql("'1.00'")
                 .HasColumnName("quantity");
 
             entity.HasOne(d => d.ItemNavigation).WithMany(p => p.ItemMaterialItemNavigations)
                 .HasForeignKey(d => d.Item)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_item_material_item");
 
             entity.HasOne(d => d.MaterialNavigation).WithMany(p => p.ItemMaterialMaterialNavigations)
@@ -1093,6 +1145,9 @@ public partial class MyDbContext : DbContext
                 .ToView("item_material_view");
 
             entity.Property(e => e.Item).HasColumnName("item");
+            entity.Property(e => e.ItemForm)
+                .HasDefaultValueSql("'1'")
+                .HasColumnName("item_form");
             entity.Property(e => e.ItemGroup)
                 .HasDefaultValueSql("'1'")
                 .HasColumnName("item_group");
@@ -1128,7 +1183,6 @@ public partial class MyDbContext : DbContext
                 .HasCharSet("utf8mb3");
             entity.Property(e => e.Quantity)
                 .HasPrecision(10, 2)
-                .HasDefaultValueSql("'1.00'")
                 .HasColumnName("quantity");
             entity.Property(e => e.Soh)
                 .HasPrecision(10, 2)
@@ -1212,6 +1266,9 @@ public partial class MyDbContext : DbContext
                 .ToView("item_view");
 
             entity.Property(e => e.AllowSale).HasColumnName("allow_sale");
+            entity.Property(e => e.BuExchange)
+                .HasDefaultValueSql("'1'")
+                .HasColumnName("bu_exchange");
             entity.Property(e => e.Code)
                 .HasMaxLength(50)
                 .HasColumnName("code");
@@ -1414,7 +1471,6 @@ public partial class MyDbContext : DbContext
                 .HasCharSet("utf8mb3");
             entity.Property(e => e.Quantity)
                 .HasPrecision(10, 2)
-                .HasDefaultValueSql("'1.00'")
                 .HasColumnName("quantity");
             entity.Property(e => e.Unit)
                 .HasDefaultValueSql("'1'")
@@ -1711,7 +1767,6 @@ public partial class MyDbContext : DbContext
                 .HasColumnName("material_lost_percent");
             entity.Property(e => e.MaterialQuantity)
                 .HasPrecision(10, 2)
-                .HasDefaultValueSql("'1.00'")
                 .HasColumnName("material_quantity");
             entity.Property(e => e.Note)
                 .HasMaxLength(100)
@@ -1788,6 +1843,9 @@ public partial class MyDbContext : DbContext
                 .HasPrecision(10, 2)
                 .HasDefaultValueSql("'1.00'")
                 .HasColumnName("quantity");
+            entity.Property(e => e.SalePrice)
+                .HasPrecision(8)
+                .HasColumnName("sale_price");
             entity.Property(e => e.Selected).HasColumnName("selected");
             entity.Property(e => e.Store)
                 .HasDefaultValueSql("'1'")
@@ -2058,6 +2116,9 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.Ave)
                 .HasPrecision(10, 2)
                 .HasColumnName("ave");
+            entity.Property(e => e.BuExchange)
+                .HasDefaultValueSql("'1'")
+                .HasColumnName("bu_exchange");
             entity.Property(e => e.Item).HasColumnName("item");
             entity.Property(e => e.ItemGroup)
                 .HasDefaultValueSql("'1'")

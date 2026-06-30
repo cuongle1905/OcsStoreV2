@@ -27,6 +27,8 @@ public partial class ProcessingView
 
     public bool UseLot { get; set; }
 
+    public decimal? SalePrice { get; set; }
+
     public string UnitName { get; set; }
 
     public string Note { get; set; }

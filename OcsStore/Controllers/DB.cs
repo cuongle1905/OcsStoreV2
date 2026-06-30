@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using DevExtreme.AspNet.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using OcsStore.Models;
@@ -19,59 +20,6 @@ namespace OcsStore
                 return result[0];
 
             return 1;
-        }
-
-        public static void UpdateStoreTransactionsForReceiving(MyDbContext _context, Receiving r, List<ReceivingDetail> details)
-        {
-            /*  DELETE FROM store_transaction where `type` = 1 and main_id = receivingId; */
-
-            sbyte yy = (sbyte)(r.Date.Year % 100);
-
-            /* insert into store_transaction (id, date, time, type, store, main_id, detail_id, item, unit, `year`, quantity, price, `user`, ordinal)
-                values (tranId, v_date, v_time, 1, storeId, receivingId, detailId, itemId, unitId, yy, v_quantity, v_price, userId, v_ordinal);
-             */
-            var tranId = GetNewId(_context, "store_transaction");
-
-            foreach (ReceivingDetail d in details)
-            {
-                try
-                {
-                    UpdateStoreTransactionForReceivingDetail(_context, tranId, yy, r, d);
-                }
-                catch
-                {
-                    throw;
-                }
-                tranId++;
-            }
-        }
-
-        public static void UpdateStoreTransactionForReceivingDetail(MyDbContext _context, int tranId, sbyte yy, Receiving r, ReceivingDetail d)
-        {
-            /* insert into store_transaction (id, date, time, type, store, main_id, detail_id, item, unit, `year`, quantity, price, `user`, ordinal)
-                values (tranId, v_date, v_time, 1, storeId, receivingId, detailId, itemId, unitId, yy, v_quantity, v_price, userId, v_ordinal); */
-            
-            var ordinal = GetNewStoreTransactionOrdinal(_context, yy, r.Date, r.Time, tranId);
-            var tran = new StoreTransaction() { Id = tranId, Date = r.Date, Time = r.Time, Type = 1, Store = r.Store, MainId = r.Id, DetailId = d.Id, Item = d.Item, Unit = d.Unit, Year = yy, Quantity = d.Quantity, Price = d.Price, User = r.User, Ordinal = ordinal };
-            
-            _context.StoreTransactions.Add(tran);
-            _context.SaveChanges();
-
-            UpdateStoreTransactions(_context, r.Store, d.Item, d.Unit, null, yy, ordinal, true);
-        }
-
-        public static void UpdateStoreTransactionForBillLotDetail(MyDbContext _context, int tranId, Bill b, BillDetail bd, BillLotDetail d)
-        {
-            /* insert into store_transaction (id, date, time, type, store, main_id, detail_id, item, unit, `year`, quantity, `user`, ordinal)
-                values (tranId, v_date, v_time, 3, storeId, billId, detailId, itemId, unitId, yy, -v_quantity, userId, v_ordinal); */
-
-            var ordinal = GetNewStoreTransactionOrdinal(_context, d.Year, b.Date, b.Time, tranId);
-            var tran = new StoreTransaction() { Id = tranId, Date = b.Date, Time = b.Time, Type = 3, Store = b.Store, MainId = b.Id, DetailId = d.Id, Item = bd.Item, Unit = bd.Unit, Lot = d.Lot, Year = d.Year, Quantity = -d.Quantity, User = b.UserCreated, Ordinal = ordinal };
-
-            _context.StoreTransactions.Add(tran);
-            _context.SaveChanges();
-
-            UpdateStoreTransactions(_context, b.Store, bd.Item, bd.Unit, d.Lot, d.Year, ordinal);
         }
 
         public static long GetNewStoreTransactionOrdinal(MyDbContext _context, sbyte yy, DateTime date, string time, int tranId)
@@ -151,14 +99,13 @@ namespace OcsStore
                 }
                 else
                 {
-                    value += tran.Quantity * ave;
                     soh += tran.Quantity;
 
-                    if (!ignoreError && soh < 0)
-                    {
-                        var itemName = _context.Items.FirstOrDefault(i => i.Id == itemId).Name;
-                        throw new InvalidOperationException($"Tồn kho < 0 '{itemName}' {tran.Date.ToString("dd/MM/yyyy")}");
-                    }
+                    ////if (!ignoreError && soh < 0)
+                    ////{
+                    ////    var itemName = _context.Items.FirstOrDefault(i => i.Id == itemId).Name;
+                    ////    throw new InvalidOperationException($"Tồn kho < 0 '{itemName}' {tran.Date.ToString("dd/MM/yyyy")}");
+                    ////}
 
                     if (tran.Quantity < 0)
                     {
@@ -172,12 +119,14 @@ namespace OcsStore
                         {
                             tran.Price = ave;
                         }
+                        value += tran.Quantity * tran.Price;
                     }
                     else
                     {
                         /* SET v_value = v_value + v_quantity * v_price, v_soh = v_soh + v_quantity;
                             SET v_ave = if(v_soh != 0, v_value / v_soh, 0);
                             UPDATE store_transaction set soh = v_soh, `value` = v_value, ave = v_ave where id = tranId; */
+                        value += tran.Quantity * tran.Price;
                         if (soh != 0)
                             ave = value / soh;
                     }
@@ -261,7 +210,6 @@ namespace OcsStore
                 }
                 else
                 {
-                    value += tran.Quantity * ave;
                     soh += tran.Quantity;
 
                     if (!ignoreError && soh < 0)
@@ -275,12 +223,14 @@ namespace OcsStore
                         /* SET v_value = v_value + v_quantity * v_ave, v_soh = v_soh + v_quantity;
                             UPDATE store_transaction set price = v_ave, lot_soh = v_soh, `lot_value` = v_value, lot_ave = v_ave where id = tranId; */
                         tran.Price = ave;
+                        value += tran.Quantity * tran.Price;
                     }
                     else
                     {
                         /* SET v_value = v_value + v_quantity * v_price, v_soh = v_soh + v_quantity;
                         SET v_ave = v_value / v_soh;
                         UPDATE store_transaction set lot_soh = v_soh, `lot_value` = v_value, lot_ave = v_ave where id = tranId; */
+                        value += tran.Quantity * tran.Price;
                         if (soh != 0)
                             ave = value / soh;
                     }
@@ -357,8 +307,8 @@ namespace OcsStore
             if (tran != null)
             {
                 _context.StoreTransactions.Remove(tran);
+                _context.SaveChanges();
             }
-
             UpdateStoreTransactions(_context, storeId, itemId, unitId, lot, yy, fromOrdinal, isNegativeQuantity);
         }
 
@@ -403,161 +353,18 @@ namespace OcsStore
             }
         }
 
-        public static void DeleteStoreTransactionsForProcessing(MyDbContext _context, Processing processing)
+        public static void UpdateAllStoreTransactions(MyDbContext _context)
         {
-            DeleteStoreTransaction(_context, 2, processing.Id, null);
-
-            var detailIds = _context.ProcessingLotInputViews.Where(i => i.Processing == processing.Id).Select(i => i.Id).ToArray();
-            foreach (var detailId in detailIds)
+            var data = _context.StoreTransactions.Select(i => new  { i.Store, i.Item, i.Unit, i.Lot, i.Year }).Distinct().ToArray();
+            foreach(var r in data)
             {
-                DeleteStoreTransaction(_context, 2, processing.Id, detailId);
+                UpdateItemAllStoreTransactions(_context, r.Store, r.Item, r.Unit, r.Lot, r.Year);
             }
         }
 
-        public static void DeleteStoreTransactionsForReceivingDetail(MyDbContext _context, ReceivingDetail detail)
+        public static void UpdateItemAllStoreTransactions(MyDbContext _context, short storeId, int itemId, short unitId, string lot, sbyte year)
         {
-            DeleteStoreTransaction(_context, 1, detail.Receiving, detail.Id);
-        }
-
-        public static void UpdateStoreTransactionDateTimesForProcessing(MyDbContext _context, Processing processing)
-        {
-            var outputStoreTransaction = _context.StoreTransactions.FirstOrDefault(i => i.Type == 2 && i.MainId == processing.Id && i.DetailId == null);
-            if (outputStoreTransaction != null)
-                UpdateStoreTransactionDateTime(_context, outputStoreTransaction, processing.Date, processing.Time);
-
-            var details = _context.ProcessingLotInputViews.Where(i => i.Processing == processing.Id).ToArray();
-            foreach (var detail in details)
-            {
-                var inputStoreTransaction = _context.StoreTransactions.FirstOrDefault(i => i.Type == 2 && i.MainId == processing.Id && i.DetailId == detail.Id);
-                if (inputStoreTransaction != null)
-                    UpdateStoreTransactionDateTime(_context, inputStoreTransaction, processing.Date, processing.Time);
-            }
-        }
-
-        public static void UpdateStoreTransactionDateTimesForReceiving(MyDbContext _context, Receiving receiving)
-        {
-            var detailIds = _context.ReceivingDetails.Where(i => i.Receiving == receiving.Id).Select(i => i.Id).ToArray();
-            UpdateStoreTransactionDateTimes(_context, StoreTransactionType.Processing, receiving.Id, detailIds, receiving.Date, receiving.Time);
-        }
-
-        public static void UpdateStoreTransactionDateTimesForBill(MyDbContext _context, Bill bill)
-        {
-            UpdateStoreTransactionDateTime(_context, StoreTransactionType.Billing, bill.Id, null, bill.Date, bill.Time);
-
-            var detailIds = _context.BillLotDetailViews.Where(i => i.Bill == bill.Id).Select(i => i.Id).ToArray();
-            UpdateStoreTransactionDateTimes(_context, StoreTransactionType.Billing, bill.Id, detailIds, bill.Date, bill.Time);
-        }
-
-        public static void UpdateStoreTransactionDateTimesForInventory(MyDbContext _context, Inventory inventory)
-        {
-            UpdateStoreTransactionDateTime(_context, StoreTransactionType.Inventory, inventory.Id, null, inventory.Date, inventory.Time);
-
-            var detailIds = _context.InventoryDetails.Where(i => i.Inventory == inventory.Id).Select(i => i.Id).ToArray();
-            UpdateStoreTransactionDateTimes(_context, StoreTransactionType.Inventory, inventory.Id, detailIds, inventory.Date, inventory.Time);
-        }
-
-        public static bool EditReceivingDateTime(MyDbContext _context, int id, DateTime date, string time, out string errorMessage)
-        {
-            var receiving = _context.Receivings.FirstOrDefault(i => i.Id == id);
-            if (receiving != null)
-            {
-                receiving.Date = Common.GetLocalDateWithoutTime(date);
-                receiving.Time = time;
-                _context.Database.BeginTransaction();
-                _context.Receivings.Update(receiving);
-                _context.SaveChanges();
-                try
-                {
-                    DB.UpdateStoreTransactionDateTimesForReceiving(_context, receiving);
-                }
-                catch (Exception ex)
-                {
-                    _context.Database.RollbackTransaction();
-                    errorMessage = ex.Message;
-                    return false;
-                }
-                _context.Database.CommitTransaction();
-            }
-            errorMessage = null;
-            return true;
-        }
-
-        public static bool EditProcessingDateTime(MyDbContext _context, int id, DateTime date, string time, out string errorMessage)
-        {
-            var processing = _context.Processings.FirstOrDefault(i => i.Id == id);
-            if (processing != null)
-            {
-                processing.Date = Common.GetLocalDateWithoutTime(date);
-                processing.Time = time;
-                _context.Database.BeginTransaction();
-                _context.Processings.Update(processing);
-                _context.SaveChanges();
-                try
-                {
-                    DB.UpdateStoreTransactionDateTimesForProcessing(_context, processing);
-                }
-                catch (Exception ex)
-                {
-                    _context.Database.RollbackTransaction();
-                    errorMessage = ex.Message;
-                    return false;
-                }
-                _context.Database.CommitTransaction();
-            }
-            errorMessage = null;
-            return true;
-        }
-
-        public static bool EditBillDateTime(MyDbContext _context, int id, DateTime date, string time, out string errorMessage)
-        {
-            var bill = _context.Bills.FirstOrDefault(i => i.Id == id);
-            if (bill != null)
-            {
-                bill.Date = Common.GetLocalDateWithoutTime(date);
-                bill.Time = time;
-                _context.Database.BeginTransaction();
-                _context.Bills.Update(bill);
-                _context.SaveChanges();
-                try
-                {
-                    DB.UpdateStoreTransactionDateTimesForBill(_context, bill);
-                }
-                catch (Exception ex)
-                {
-                    _context.Database.RollbackTransaction();
-                    errorMessage = ex.Message;
-                    return false;
-                }
-                _context.Database.CommitTransaction();
-            }
-            errorMessage = null;
-            return true;
-        }
-
-        public static bool EditInventoryDateTime(MyDbContext _context, int id, DateTime date, string time, out string errorMessage)
-        {
-            var inventory = _context.Inventories.FirstOrDefault(i => i.Id == id);
-            if (inventory != null)
-            {
-                inventory.Date = Common.GetLocalDateWithoutTime(date);
-                inventory.Time = time;
-                _context.Database.BeginTransaction();
-                _context.Inventories.Update(inventory);
-                _context.SaveChanges();
-                try
-                {
-                    DB.UpdateStoreTransactionDateTimesForInventory(_context, inventory);
-                }
-                catch (Exception ex)
-                {
-                    _context.Database.RollbackTransaction();
-                    errorMessage = ex.Message;
-                    return false;
-                }
-                _context.Database.CommitTransaction();
-            }
-            errorMessage = null;
-            return true;
+            UpdateStoreTransactions(_context, storeId, itemId, unitId, lot, year, 0, true);
         }
     }
 }

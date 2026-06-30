@@ -27,6 +27,8 @@ public partial class ItemView
 
     public string UnitName { get; set; }
 
+    public double BuExchange { get; set; }
+
     public string GroupName { get; set; }
 
     public sbyte ItemType { get; set; }

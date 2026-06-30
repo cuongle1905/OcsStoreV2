@@ -1,7 +1,8 @@
 ﻿@page "/sales/new"
 @using OcsStore.Models
-@model OcsStore.Pages.NewBillModel
+@model OcsStore.Pages.BillModel
 @{
+    bool isNewBill = Model.Bill.Id == 0;
 }
 <style>
 </style>
@@ -43,7 +44,7 @@ Html.DevExtreme().DataGrid<BillDetailView>()
 
         columns.AddFor(m => m.Note).Caption("Ghi chú").Width(140).Alignment(HorizontalAlignment.Left);
     })
-    .Editing(e => e.AllowUpdating(true).Mode(GridEditMode.Batch))
+    .Editing(e => e.AllowUpdating(isNewBill).Mode(GridEditMode.Batch))
     .Summary(s => s
         .TotalItems(items =>
         {
@@ -60,8 +61,7 @@ Html.DevExtreme().DataGrid<BillDetailView>()
 
 @(
 Html.DevExtreme().DataGrid<SaleItemView>()
-    .ID("sale-item-grid")
-    @* .DataSource(d => d.Mvc().Controller("Sales").LoadAction("GetNewBillDetails").LoadMethod("POST")) *@
+    .ID("sale-items-grid")
     .RemoteOperations(false)
     .ShowBorders(true)
     .ShowRowLines(true)
@@ -76,40 +76,55 @@ Html.DevExtreme().DataGrid<SaleItemView>()
 
         columns.AddFor(m => m.ItemName).Caption("Hàng hóa").Width(130).Fixed(true).FixedPosition(HorizontalEdge.Left).AllowEditing(false);
 
-        var col = columns.AddFor(m => m.LastProcessingQuantity).Caption("Số lượng trộn cuối").Format("#,##0").Width(80).AllowEditing(false);
+        var col = columns.AddFor(m => m.LastProcessingQuantity).Caption("Số lượng trộn cuối (kg)").Format("#,##0").Width(80).AllowEditing(false);
         GridUI.FormatNumberColumn(col);
 
-        col = columns.AddFor(m => m.Soh).Caption("Tồn kho").Format("#,##0").Width(70).AllowEditing(false);
+        col = columns.AddFor(m => m.Soh).Caption("Tồn kho (kg)").Format("#,##0").Width(70).AllowEditing(false);
         GridUI.FormatNumberColumn(col);
     })
     .Editing(e => e.AllowUpdating(true).Mode(GridEditMode.Batch))
 )
 
 <script>
-    pageTitle = "Tạo đơn hàng";
     goBackUrl = "/sales";
     var customerSelectBox;
     var debitCheckBox;
-    var billDetails = [];
-    var saleItems = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.SaleItems));
+    var bill = @Html.Raw(Json.Serialize(Model.Bill));
+    var billDetails = @Html.Raw(Json.Serialize(Model.BillDetails));
+    var customers = @Html.Raw(Json.Serialize(Model.Customers));
+    var saleItems = @Html.Raw(Json.Serialize(Model.SaleItems));
+    var isNewBill = @(isNewBill);
+    pageTitle = isNewBill ? "Tạo đơn hàng" : "Đơn hàng #@(Model.Bill.Id)";
     var addDataPopup;
     var customerId;
+    var dateBox;
+    var timeBox;
+    var grid;
 
     $(function () {
+        grid = $("#main-grid").dxDataGrid("instance");
+        itemsGrid = $("#sale-items-grid").dxDataGrid("instance");
+
         const topSection = $("#top-section");
         $("#main-grid").first().prepend(topSection);
 
-        appendDateTimeFields({ container: topSection, dateWidth: "12rem" });
+        const dateTimeBoxes = appendDateTimeFields({ container: topSection, dateWidth: "12rem", disabled: !isNewBill });
+        dateBox = dateTimeBoxes.dateBox;
+        timeBox = dateTimeBoxes.timeBox;
 
         const customerContainer = appendFlexContainer({ container: topSection });
-        customerSelectBox = appendSelectField({ id: "customer-select-box", container: customerContainer, width: "12rem", title: "Chọn khách hàng", onValueChanged: customerChanged, acceptCustomValue: true });
+        customerSelectBox = appendSelectField({ id: "customer-select-box", container: customerContainer, width: "12rem", title: "Chọn khách hàng", dataSource: customers, onValueChanged: customerChanged, acceptCustomValue: true, disabled: !isNewBill });
 
-        debitCheckBox = appendCheckField( { id: "debit-check-box", container: customerContainer, text: "Ghi nợ" } );
+        debitCheckBox = appendCheckField( { id: "debit-check-box", container: customerContainer, text: "Ghi nợ", disabled: !isNewBill } );
 
-        addButton = appendButtonToGrid({style: "text", onClick: showAddItemPopup});
-        appendUndoSaveButtonsToGrid();
+        if (isNewBill) {
+            addButton = appendButtonToGrid({style: "text", onClick: showAddItemPopup});
+            appendUndoSaveButtonsToGrid();
+        } else {
+            appendButtonToGrid({ gridId: "main-grid", level: 2, action: "delete", width: "50%", text: "Hủy", onClick: deleteData });
+        }
 
-        $("#sale-item-grid").css("visibility", "hidden");
+        $("#sale-items-grid").css("visibility", "hidden");
         addDataPopup = $("#popup-container").dxPopup({
             width: "auto",
             height: "auto",
@@ -119,7 +134,7 @@ Html.DevExtreme().DataGrid<SaleItemView>()
             showTitle: true,
             title: "Chọn sản phẩm",
             contentTemplate: function() {
-                return $("<div />").append($("#sale-item-grid"));
+                return $("<div />").append($("#sale-items-grid"));
             },
             toolbarItems: [{
                 widget: "dxButton",
@@ -148,11 +163,23 @@ Html.DevExtreme().DataGrid<SaleItemView>()
             }]
         }).dxPopup("instance");
         
-        reloadCustomers();
+        loadBill();
     });
 
-    function reloadCustomers() {
-        loadControlDataSource(customerSelectBox, '@Url.Action("GetCustomers", "Sales")');
+    function loadBill() {
+        if (!isNewBill) {
+            const date = new Date(bill.Date);
+            console.log("loadBill date", date);
+            dateBox.option("value", date);
+
+            const time = bill.Time.split(':');
+            date.setHours(time[0], time[1]);
+            timeBox.option("value", date);
+
+            customerSelectBox.option("value", bill.Customer);
+            debitCheckBox.option("value", !bill.Paid)
+        }
+        grid.option("dataSource", billDetails);
     }
 
     function customerChanged(e) {
@@ -160,27 +187,23 @@ Html.DevExtreme().DataGrid<SaleItemView>()
     }
 
     function showAddItemPopup() {
-        $("#sale-item-grid").css("visibility", "visible");
-
-        const saleItemGrid = $("#sale-item-grid").dxDataGrid("instance");
+        $("#sale-items-grid").css("visibility", "visible");
         const filteredItems = saleItems.filter(i => billDetails.find(j => j.Item == i.Item) == undefined);
         for (const item of filteredItems) {
             item.Selected = false;
         }
-        saleItemGrid.option("dataSource", filteredItems);
-        
+        itemsGrid.option("dataSource", filteredItems);
         addDataPopup.show();
     }
 
     function addItems() {
-        let grid = $("#sale-item-grid").dxDataGrid("instance");
-        var items = getGridSelectedRowData(grid);
+        var items = getGridSelectedRowData(itemsGrid);
         for (const item of items) {
             var billDetail = {};
             billDetail.Item = item.Item;
             billDetail.ItemName = item.ItemName;
             billDetail.Unit = item.Unit;
-            billDetail.Quantity = Math.min((item.LastProcessingQuantity != null ? item.LastProcessingQuantity : 0), item.Soh);
+            billDetail.Quantity = Math.min((item.LastProcessingQuantity != null ? item.LastProcessingQuantity : 0), item.Soh) / item.BuExchange;
             billDetail.Price = (item.SalePrice != null ? item.SalePrice : 0);
             billDetail.Discount = 0;
             billDetail.Value = billDetail.Quantity * billDetail.Price;
@@ -188,7 +211,7 @@ Html.DevExtreme().DataGrid<SaleItemView>()
         }
         console.log("new billDetails", billDetails);
 
-        $("#main-grid").dxDataGrid("instance").option("dataSource", billDetails);
+        grid.option("dataSource", billDetails);
         addDataPopup.hide();
     }
 
@@ -209,8 +232,6 @@ Html.DevExtreme().DataGrid<SaleItemView>()
             DevExpress.ui.dialog.alert(`Hãy chọn Khách hàng.`, "Cảnh báo");
             return;
         }
-
-        let grid = $("#main-grid").dxDataGrid("instance");
 
         var details = [];
         let rows = grid.getVisibleRows();
@@ -245,6 +266,24 @@ Html.DevExtreme().DataGrid<SaleItemView>()
                     data: { bill: bill, details: details },
                     success: function (result) {
                         DevExpress.ui.dialog.alert("Đã lưu dữ liệu.", "Thông báo").then(function(dialogResult) {
+                            location.href = "/sales";
+                        });
+                    },
+                    error: handleAjaxError
+                });
+            }
+        });
+    }
+
+    function deleteData() {
+        DevExpress.ui.dialog.confirm("<i>Bạn có chắc chắn hủy đơn hàng?</i>", "Xác nhận").then(function(dialogResult) {
+            if (dialogResult) {
+                $.ajax({
+                    url: '@Url.Action("DeleteBill", "Sales")',
+                    method: "POST",
+                    data: { id: bill.Id },
+                    success: function (result) {
+                        DevExpress.ui.dialog.alert("Đã hủy đơn hàng.", "Thông báo").then(function(dialogResult) {
                             location.href = "/sales";
                         });
                     },

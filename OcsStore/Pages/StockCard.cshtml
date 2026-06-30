@@ -30,7 +30,7 @@ Html.DevExtreme().DataGrid<StockCardView>()
         columns.AddFor(m => m.Quantity).Caption("Số lượng").Width(65).Alignment(HorizontalAlignment.Right).Format("#,##0.0").CellTemplate(new JS("stockCellTemplate"));
         columns.AddFor(m => m.Price).Caption("Giá").Width(64).Alignment(HorizontalAlignment.Right).Format("#,##0");
 
-        columns.AddFor(m => m.Soh).Caption("SL tồn").Width(55).Alignment(HorizontalAlignment.Right).Format("#,##0.0");
+        columns.AddFor(m => m.Soh).Caption("SL tồn").Width(55).Alignment(HorizontalAlignment.Right).Format("#,##0.0").CellTemplate(new JS("negativeAlertCellTemplate"));
         columns.AddFor(m => m.Ave).Caption("Giá TB").Width(64).Alignment(HorizontalAlignment.Right).Format("#,##0");
         columns.AddFor(m => m.Value).Caption("Giá trị").Width(86).Alignment(HorizontalAlignment.Right).Format("#,##0");
     })
@@ -66,7 +66,6 @@ Html.DevExtreme().DataGrid<StockCardView>()
     }
 
     function stockCellTemplate(container, options) {
-        let tranType = options.data.Type;
         let quantityOut = (options.data.Quantity < 0);
         let cssClass = (quantityOut ? "red" : "green");
         let text = options.text;
@@ -76,10 +75,15 @@ Html.DevExtreme().DataGrid<StockCardView>()
         }
 
         let html = `<div class='${cssClass}'>${text}</div>`
+        container.html(html);
+    }
 
-        if (options.column.dataField == "Time")
-            editTimeCellTemplateForContent(container, options, html);
-        else
+    function negativeAlertCellTemplate(container, options) {
+        console.log("redNegativeCellTemplate", options, options.value);
+        if (options.value < 0) {
+            let html = `<div class='d-flex align-items-center red'><div style='color: var(--red)'><i class="bi bi-exclamation-circle"></i></div><div style='margin-left:auto'>${options.text}</div></div>`;
             container.html(html);
+        } else
+            container.html(options.text);
     }
 </script>

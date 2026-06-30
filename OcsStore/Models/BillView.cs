@@ -48,4 +48,6 @@ public partial class BillView
     public bool? Paid { get; set; }
 
     public bool Deleted { get; set; }
+
+    public string Desc { get; set; }
 }

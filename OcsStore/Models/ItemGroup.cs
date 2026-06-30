@@ -14,4 +14,6 @@ public partial class ItemGroup
     public string ProcessingName { get; set; }
 
     public sbyte Ordinal { get; set; }
+
+    public virtual ICollection<Item> Items { get; set; } = new List<Item>();
 }

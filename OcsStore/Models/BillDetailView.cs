@@ -37,6 +37,8 @@ public partial class BillDetailView
 
     public string UnitName { get; set; }
 
+    public double BuExchange { get; set; }
+
     public decimal? Soh { get; set; }
 
     public decimal? Ave { get; set; }

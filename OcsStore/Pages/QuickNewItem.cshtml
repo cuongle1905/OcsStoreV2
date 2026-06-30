@@ -4,20 +4,12 @@
 @{
 }
 
-<div id="top-section" class="d-flex pt-3" style="position: relative; margin-left: auto; margin-right: auto;">
-    <div class="data-field">
-        <div class="field-title">Nguyên liệu 1:</div>
-        <div id="select-material1"></div>
-    </div>
-    <div class="data-field ms-3">
-        <div class="field-title">Nguyên liệu 2:</div>
-        <div id="select-material2"></div>
-    </div>
+<div id="top-section" class="d-flex pt-3 gap-3" style="position: relative; margin-left: auto; margin-right: auto;">
 </div>
 
 @(Html.DevExtreme().DataGrid<ItemCoupleMaterialView>()
     .ID("main-grid")
-    .DataSource(d => d.Mvc().Controller("Item").LoadAction("GetItemCoupleMaterials").LoadMethod("POST").LoadParams(new { Material1 = new JS("function() { return material1; }"), Material2 = new JS("function() { return material2; }") }))
+    .DataSource(d => d.Mvc().Controller("Item").LoadAction("GetItemCoupleMaterials").LoadMethod("POST").LoadParams(new { Material1 = new JS("function() { return material1; }"), Material2 = new JS("function() { return material2; }"), ItemForm = new JS("function() { return itemForm; }") }))
     .RemoteOperations(false)
     .ShowBorders(true)
     .ShowRowLines(true)
@@ -29,8 +21,8 @@
     .Columns(columns =>
     {
         columns.AddFor(m => m.Selected).Caption("").Width(30).AllowEditing(true);
-        columns.AddFor(m => m.CalculatedName).Caption("Công thức").Width(140).AllowEditing(false);
-        columns.AddFor(m => m.ItemName).Caption("Sản phẩm đã tạo").Width(140).AllowEditing(false);
+        columns.AddFor(m => m.CalculatedName).Caption("Tên sản phẩm").Width(170).AllowEditing(true);
+        columns.AddFor(m => m.ItemName).Caption("Sản phẩm đã tạo").Width(170).AllowEditing(false);
     })
     .Editing(e => e.AllowUpdating(true).Mode(GridEditMode.Batch).SelectTextOnEditStart(true))
     .OnCellPrepared("onCellPrepared")
@@ -39,40 +31,34 @@
 <script>
     pageTitle = "Tạo hàng từ công thức";
     goBackUrl = "/items?itemGroup=3";
-    var materials = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Materials));
+    var materials = @Html.Raw(Json.Serialize(Model.Materials));
     var material1 = @(Model.DefaultMaterial1);
     var material2 = @(Model.DefaultMaterial2);
+    var itemForms = @Html.Raw(Json.Serialize(Model.ItemForms));
+    var itemForm = 1;
     dataRowKeyFields = ["Quantity1", "Quantity2"];
     saveUrl = '@Url.Action("SaveItemCoupleMaterials", "Item")';
     goBackAfterSaving = true;
+    var topSection;
 
     $(function () {
-        $("#main-grid").first().prepend($("#top-section"));
+        topSection = $("#top-section");
+        $("#main-grid").first().prepend(topSection);
 
-        $(`#select-material1`).dxSelectBox({
-            dataSource: materials,
-            width: "auto",
-            height: "2rem",
-            displayExpr: "Name",
-            valueExpr: "Id",
-            value: material1,
-            onValueChanged: function(e) {
-                material1 = e.value;
-                reloadData();
-            }
-        });
-        $(`#select-material2`).dxSelectBox({
-            dataSource: materials,
-            width: "auto",
-            height: "2rem",
-            displayExpr: "Name",
-            valueExpr: "Id",
-            value: material2,
-            onValueChanged: function(e) {
-                material2 = e.value;
-                reloadData();
-            }
-        });
+        appendSelectField({ id: "select-material1", container: topSection, width: "9rem", title: "Nguyên liệu 1", dataSource: materials, value: material1, onValueChanged: function(e) {
+            material1 = e.value;
+            reloadData();
+        }});
+        
+        appendSelectField({ id: "select-material2", container: topSection, width: "9rem", title: "Nguyên liệu 2", dataSource: materials, value: material2, onValueChanged: function(e) {
+            material2 = e.value;
+            reloadData();
+        }});
+        
+        appendSelectField({ id: "select-form", container: topSection, width: "auto", title: "Dạng", dataSource: itemForms, value: 1, onValueChanged: function(e) {
+            itemForm = e.value;
+            reloadData();
+        }});
 
         appendSaveButtonToGrid();
     });

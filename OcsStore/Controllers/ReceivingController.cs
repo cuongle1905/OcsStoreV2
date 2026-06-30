@@ -86,7 +86,7 @@ namespace OcsStore.Controllers
             _context.SaveChanges();
 
             //_context.Database.ExecuteSqlRaw("call calculate_strans_receiving(" + receivingId + ");");
-            DB.UpdateStoreTransactionsForReceiving(_context, receiving, newDetails);
+            DBReceiving.UpdateStoreTransactionsForReceiving(_context, receiving, newDetails);
 
             dbTran.Commit();
 
@@ -102,7 +102,7 @@ namespace OcsStore.Controllers
                 _context.Database.BeginTransaction();
                 try
                 {
-                    DB.DeleteStoreTransactionsForReceivingDetail(_context, receivingDetail);
+                    DBReceiving.DeleteStoreTransactionsForReceivingDetail(_context, receivingDetail);
                     _context.ReceivingDetails.Remove(receivingDetail);
                     _context.SaveChanges();
                 }
@@ -120,7 +120,7 @@ namespace OcsStore.Controllers
         public IActionResult EditDateTime(int id, DateTime date, string time)
         {
             string errorMesssage;
-            if (DB.EditReceivingDateTime(_context, id, date, time, out errorMesssage))
+            if (DBReceiving.EditReceivingDateTime(_context, id, date, time, out errorMesssage))
                 return Ok();
 
             return BadRequest(errorMesssage);

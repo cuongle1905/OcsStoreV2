@@ -21,6 +21,8 @@ public partial class SaleItemView
 
     public string UnitName { get; set; }
 
+    public double BuExchange { get; set; }
+
     public decimal? SalePrice { get; set; }
 
     public sbyte ItemGroup { get; set; }

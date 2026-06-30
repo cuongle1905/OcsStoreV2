@@ -57,7 +57,7 @@
     var itemId = @(Model.ItemId);
     deleteUrl = '@Url.Action("DeleteMaterial", "Item")';
     saveUrl = '@Url.Action("SaveMaterials", "Item")';
-    var items = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Items));
+    var items = @Html.Raw(Json.Serialize(Model.Items));
     var filteredItems;
     var materialItems;
     dataRowKeyFields = ["Item", "Material"];

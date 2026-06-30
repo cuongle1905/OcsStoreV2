@@ -24,4 +24,6 @@ public partial class ItemCoupleMaterialView
     public decimal Quantity2 { get; set; }
 
     public string MaterialName2 { get; set; }
+
+    public sbyte ItemForm { get; set; }
 }

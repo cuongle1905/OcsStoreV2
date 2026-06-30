@@ -108,6 +108,19 @@ function editTimeCellTemplateForContent(container, options, htmlContent) {
     container.html(`<a href="#" class="text-link" onClick="editRowDateTime(${options.rowIndex});">${htmlContent}</a>`);
 }
 
+function linkCellTemplate(container, options) {
+    container.html(`<a href="#" class="text-link" onClick="cellLinkClicked(${options.rowIndex});">${options.text}</a>`);
+}
+
+var cellLinkUrl = '';
+
+function cellLinkClicked(rowIndex) {
+    let grid = $("#main-grid").dxDataGrid("instance");
+    const visibleRows = grid.getVisibleRows();
+    const rowData = visibleRows[rowIndex].data;
+    location.href = cellLinkUrl + `?id=${rowData.Id}`;
+}
+
 String.prototype.lowercaseFirstLetter = function () {
     return this.charAt(0).toLowerCase() + this.slice(1);
 };
@@ -154,10 +167,8 @@ var editDateTimeRowData;
 
 function editRowDateTime(rowIndex) {
     let grid = $("#main-grid").dxDataGrid("instance");
-    const hasNameColumn = grid.columnOption("Name") !== undefined;
     const visibleRows = grid.getVisibleRows();
     const rowData = visibleRows[rowIndex].data;
-    const name = (hasNameColumn ? `'${rowData.Name}'` : "dữ liệu");
     let data = {};
 
     if (typeof setEditDateTimeParams === "function") {
@@ -245,7 +256,7 @@ function appendButton(e) {
     div.dxButton({
         text: e.text,
         width: e.width,
-        type: "default",
+        type: e.type,
         stylingMode: e.style,
         icon: e.icon,
         onClick: e.onClick
@@ -319,8 +330,9 @@ function reloadData() {
 }
 
 function appendUndoSaveButtonsToGrid(gridId) {
-    appendButtonToGrid({ gridId: gridId, level: 2, action: "undo", fill: true, onClick: undo });
-    appendButtonToGrid({ gridId: gridId, level: 2, action: "save", fill: true, onClick: save });
+    const undoButton = appendButtonToGrid({ gridId: gridId, level: 2, action: "undo", fill: true, onClick: undo });
+    const saveButton = appendButtonToGrid({ gridId: gridId, level: 2, action: "save", fill: true, onClick: save });
+    return { undoButton: undoButton, saveButton: saveButton };
 }
 
 function appendSaveButtonToGrid(e) {
@@ -336,7 +348,7 @@ function appendSaveButtonToGrid(e) {
     if (e.width == undefined)
         e.width = "50%";
 
-    appendButtonToGrid(e);
+    return appendButtonToGrid(e);
 }
 
 function appendTopAddButtonToGrid(e) {
@@ -349,7 +361,7 @@ function appendTopAddButtonToGrid(e) {
     if (e.position == undefined)
         e.position = "top";
 
-    appendButtonToGrid(e);
+    return appendButtonToGrid(e);
 }
 
 function appendBottomAddButtonToGrid(e) {
@@ -362,7 +374,7 @@ function appendBottomAddButtonToGrid(e) {
     if (e.position == undefined)
         e.position = "bottom";
 
-    appendButtonToGrid(e);
+    return appendButtonToGrid(e);
 }
 
 function gridButtonContainer(e) {
@@ -391,7 +403,7 @@ function normalizeButtonParam(e) {
         e.idPostfix = "button";
 
     if (e.style == undefined) {
-        if (e.action == "undo")
+        if (e.action == "undo" || e.action == "delete")
             e.style = "outlined";
         else if (e.level == 1 && e.position == "bottom")
             e.style = "text";
@@ -406,6 +418,8 @@ function normalizeButtonParam(e) {
             e.icon = (e.style == "contained" ? "bi bi-plus" : "bi bi-plus-circle-fill");
         } else if (e.action == "undo") {
             e.icon = "undo";
+        } else if (e.action == "delete") {
+            e.icon = "bi bi-trash";
         }
     }
 
@@ -416,6 +430,16 @@ function normalizeButtonParam(e) {
             e.text = "Thêm";
         } else if (e.action == "undo") {
             e.text = "Bỏ qua";
+        } else if (e.action == "delete") {
+            e.text = "Xóa";
+        }
+    }
+
+    if (e.type == undefined) {
+        if (e.action == "delete") {
+            e.type = "danger";
+        } else {
+            e.type = "default";
         }
     }
 
@@ -667,8 +691,9 @@ function addDateOverlay(e, dateDiv) {
 // containerId, idPrefix, dateWidth, timeWidth, height, onDateChanged
 function appendDateTimeFields(e) {
     const div = appendFlexContainer(e);
-    appendDateField({ container: div, idPrefix: e.idPrefix, width: (e.dateWidth ?? e.width), height: e.height, onValueChanged: e.onDateChanged });
-    appendTimeField({ container: div, idPrefix: e.idPrefix, width: (e.timeWidth ?? e.width), height: e.height, onValueChanged: e.onTimeChanged });
+    const dateBox = appendDateField({ container: div, idPrefix: e.idPrefix, width: (e.dateWidth ?? e.width), height: e.height, disabled: e.disabled, onValueChanged: e.onDateChanged });
+    const timeBox = appendTimeField({ container: div, idPrefix: e.idPrefix, width: (e.timeWidth ?? e.width), height: e.height, disabled: e.disabled, onValueChanged: e.onTimeChanged });
+    return { dateBox: dateBox, timeBox: timeBox };
 }
 
 function appendFlexContainer(e) {
@@ -695,7 +720,7 @@ function appendDateField(e) {
 
     appendFieldTitle({ container: dataField, title: e.title });
 
-    return appendDateBox({ container: dataField, idPrefix: e.idPrefix, idPostfix: "date-box", width: e.width, height: e.height, onValueChanged: e.onValueChanged })
+    return appendDateBox({ container: dataField, idPrefix: e.idPrefix, idPostfix: "date-box", width: e.width, height: e.height, disabled: e.disabled, onValueChanged: e.onValueChanged })
 }
 
 function appendTimeField(e) {
@@ -707,7 +732,7 @@ function appendTimeField(e) {
 
     appendFieldTitle({ container: dataField, title: e.title })
 
-    return appendTimeBox({ container: dataField, idPrefix: e.idPrefix, idPostfix: "time-box", width: e.width, height: e.height, onValueChanged: e.onValueChanged })
+    return appendTimeBox({ container: dataField, idPrefix: e.idPrefix, idPostfix: "time-box", width: e.width, height: e.height, disabled: e.disabled, onValueChanged: e.onValueChanged })
 }
 
 function appendDataFieldContainer(e) {
@@ -727,6 +752,7 @@ function appendDateBox(e) {
     console.log("appendDateBox", e);
     const div = appendControlDiv(e);
     div.dxDateBox({
+        disabled: e.disabled,
         width: e.width,
         height: e.height,
         inputAttr: { "aria-label": "Date" },
@@ -746,6 +772,7 @@ function appendDateBox(e) {
 function appendTimeBox(e) {
     const div = appendControlDiv(e);
     div.dxDateBox({
+        disabled: e.disabled,
         width: e.width,
         height: e.height,
         type: "time",
@@ -772,6 +799,7 @@ function appendSelectBox(e) {
     const div = appendControlDiv(e);
     div.dxSelectBox({
         dataSource: e.dataSource,
+        disabled: e.disabled,
         width: e.width,
         height: e.height,
         displayExpr: e.nameField,
@@ -808,6 +836,7 @@ function appendCheckBox(e) {
     normalizeContainerParam(e);
     const div = appendControlDiv(e);
     div.dxCheckBox({
+        disabled: e.disabled,
         value: e.value ?? false,
         text: e.text,
         onValueChanged: e.onValueChanged
@@ -933,6 +962,9 @@ function normalizeIdParam(e) {
 function normalizeContainerParam(e) {
     if (e.container == undefined)
         e.container = $(`#${e.containerId}`);
+
+    if (e.disabled == undefined)
+        e.disabled = false;
 }
 
 function normalizeWidthHeightParam(e) {

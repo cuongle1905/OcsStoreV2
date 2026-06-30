@@ -19,6 +19,8 @@ public partial class Unit
 
     public string Note { get; set; }
 
+    public virtual ICollection<Item> Items { get; set; } = new List<Item>();
+
     public virtual ICollection<LastStoreTransaction> LastStoreTransactions { get; set; } = new List<LastStoreTransaction>();
 
     public virtual ICollection<ProcessingInput> ProcessingInputs { get; set; } = new List<ProcessingInput>();

@@ -32,14 +32,16 @@
 
     function updateTextBoxBackground() {
         let input = $("#username input")[0];
-        let cssObj = window.getComputedStyle(input, null);
-        let bgColor = cssObj.getPropertyValue("background-color");
-        $("#username").css("background-color", bgColor);
+        if (input != undefined) {
+            let cssObj = window.getComputedStyle(input, null);
+            let bgColor = cssObj.getPropertyValue("background-color");
+            $("#username").css("background-color", bgColor);
 
-        input = $("#password input")[0];
-        cssObj = window.getComputedStyle(input, null);
-        bgColor = cssObj.getPropertyValue("background-color");
-        $("#password").css("background-color", bgColor);
+            input = $("#password input")[0];
+            cssObj = window.getComputedStyle(input, null);
+            bgColor = cssObj.getPropertyValue("background-color");
+            $("#password").css("background-color", bgColor);
+        }
     }
 </script>
 

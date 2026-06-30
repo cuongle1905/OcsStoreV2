@@ -192,26 +192,36 @@ namespace OcsStore.Controllers
                 string errorMesssage;
                 if (tran.Type == StoreTransactionType.Receiving)
                 {
-                    if (!DB.EditReceivingDateTime(_context, tran.MainId, date, time, out errorMesssage))
+                    if (!DBReceiving.EditReceivingDateTime(_context, tran.MainId, date, time, out errorMesssage))
                         return BadRequest(errorMesssage);
                 }
                 else if (tran.Type == StoreTransactionType.Processing)
                 {
-                    if (!DB.EditProcessingDateTime(_context, tran.MainId, date, time, out errorMesssage))
+                    if (!DBProcessing.EditProcessingDateTime(_context, tran.MainId, date, time, out errorMesssage))
                         return BadRequest(errorMesssage);
                 }
                 else if (tran.Type == StoreTransactionType.Billing)
                 {
-                    if (!DB.EditBillDateTime(_context, tran.MainId, date, time, out errorMesssage))
+                    if (!DBBilling.EditBillDateTime(_context, tran.MainId, date, time, out errorMesssage))
                         return BadRequest(errorMesssage);
                 }
                 else if (tran.Type == StoreTransactionType.Inventory)
                 {
-                    if (!DB.EditInventoryDateTime(_context, tran.MainId, date, time, out errorMesssage))
+                    if (!DBInventory.EditInventoryDateTime(_context, tran.MainId, date, time, out errorMesssage))
                         return BadRequest(errorMesssage);
                 }
             }
             return Ok();
+        }
+
+        public void RemoveInvalidStoreTransactions()
+        {
+            _context.Database.ExecuteSqlRaw("call delete_invalid_store_transactions();");
+        }
+
+        public void UpdateAllStoreTransactions()
+        {
+            DB.UpdateAllStoreTransactions(_context);
         }
     }
 }

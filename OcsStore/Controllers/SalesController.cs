@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using OcsStore.Models;
 using System.Collections;
-using System.Data.Entity;
 using System.Net;
 using System.Net.Http;
 using System.Net.Mail;
@@ -39,25 +38,16 @@ namespace OcsStore.Controllers
             return Ok(result);
         }
 
-        [HttpPost]
-        public IActionResult GetNewBillDetails()
+        public BillDetailView[] GetBillDetails(int billId)
         {
-            var stocks = _context.StockViews.Where(i => i.Soh > 0).ToArray();
-
-            List<BillDetailView> details = new List<BillDetailView>();
-            foreach (var stock in stocks)
-            {
-                var detail = new BillDetailView() { Item = stock.Item, ItemName = stock.ItemName, Unit = stock.Unit, UnitName = stock.UnitName, Soh = stock.Soh, Ave = stock.Ave, StockUnit = stock.Unit, StockUnitName = stock.UnitName, Ordinal = 1 };
-
-                var lastBillPrice = _context.BillDetailViews.Where(i => i.Item == stock.Item && i.Unit == stock.Unit).OrderByDescending(j => j.Date).OrderByDescending(k => k.Time).OrderByDescending(l => l.Id).FirstOrDefault();
-                if (lastBillPrice != null)
-                    detail.Price = lastBillPrice.Price;
-
-                details.Add(detail);
-            }
-            return Ok(details);
+            return _context.BillDetailViews.Where(i => i.Bill == billId).AsNoTracking().ToArray();
         }
 
+        public Bill GetBill(int billId)
+        {
+            var data = _context.Bills.AsNoTracking().FirstOrDefault(i => i.Id == billId);
+            return data;
+        }
 
         [HttpPost]
         public IActionResult SaveBill(Bill bill, BillDetail[] details)
@@ -122,12 +112,18 @@ namespace OcsStore.Controllers
             StockView[] stocks;
             var item = _context.Items.FirstOrDefault(i => i.Id == billDetail.Item);
             if (item.UseLot)
-                stocks = _context.StockViews.Where(i => i.Item == billDetail.Item && !string.IsNullOrEmpty(i.Lot)).OrderBy(i => i.LotOrdinal).ToArray();
+                stocks = _context.StockViews.Where(i => i.Soh > 0 && i.Item == billDetail.Item && !string.IsNullOrEmpty(i.Lot)).OrderBy(i => i.LotOrdinal).AsNoTracking().ToArray();
             else
-                stocks = _context.StockViews.Where(i => i.Item == billDetail.Item && string.IsNullOrEmpty(i.Lot)).ToArray();
+                stocks = _context.StockViews.Where(i => i.Soh > 0 && i.Item == billDetail.Item && string.IsNullOrEmpty(i.Lot)).AsNoTracking().ToArray();
+
+            var remainQuantity = billDetail.Quantity;
+            if (billDetail.Unit != 1)
+            {
+                var buExchange = _context.Units.FirstOrDefault(i => i.Id == billDetail.Unit).BuExchange;
+                remainQuantity *= (decimal)buExchange;
+            }
 
             var billLotDetailId = DB.GetNewId(_context, "bill_lot_detail");
-            var remainQuantity = billDetail.Quantity;
             var tranId = DB.GetNewId(_context, "store_transaction");
 
             for (int i = 0; i < stocks.Length; i++)
@@ -148,7 +144,7 @@ namespace OcsStore.Controllers
 
                 try
                 {
-                    DB.UpdateStoreTransactionForBillLotDetail(_context, tranId, bill, billDetail, detail);
+                    DBBilling.UpdateStoreTransactionForBillLotDetail(_context, tranId++, bill, billDetail, detail);
                 }
                 catch
                 {
@@ -166,11 +162,9 @@ namespace OcsStore.Controllers
 
         }
 
-        [HttpPost]
-        public IActionResult GetCustomers(DataSourceLoadOptions loadOptions)
+        public Customer[] GetCustomers()
         {
-            var data = _context.Customers.ToArray();
-            return Ok(data);
+            return _context.Customers.AsNoTracking().ToArray();
         }
 
         [HttpPost]
@@ -230,6 +224,29 @@ namespace OcsStore.Controllers
             foreach (Customer unit in data)
             {
                 SaveCustomer(unit);
+            }
+            return Ok();
+        }
+
+        [HttpPost]
+        public IActionResult DeleteBill(int id)
+        {
+            var bill = _context.Bills.FirstOrDefault(i => i.Id == id);
+            if (bill != null)
+            {
+                _context.Database.BeginTransaction();
+                try
+                {
+                    DBBilling.DeleteStoreTransactionsForBill(_context, bill);
+                    _context.Bills.Remove(bill);
+                    _context.SaveChanges();
+                }
+                catch (Exception ex)
+                {
+                    _context.Database.RollbackTransaction();
+                    return BadRequest(ex.Message);
+                }
+                _context.Database.CommitTransaction();
             }
             return Ok();
         }

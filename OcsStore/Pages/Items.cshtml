@@ -26,6 +26,9 @@
     .Columns(columns =>
     {
         columns.AddFor(m => m.Name).Caption("Tên").Width(120).Alignment(HorizontalAlignment.Left).Fixed(true).FixedPosition(HorizontalEdge.Left);
+        columns.AddFor(m => m.Form).Caption("Dạng").Width(50).Alignment(HorizontalAlignment.Left)
+            .Lookup(lookup => lookup.DataSource(Model.ItemForms).ValueExpr("Id").DisplayExpr("Name"));
+
         columns.AddFor(m => m.Unit).Caption("Đơn vị").Width(70).Alignment(HorizontalAlignment.Left)
             .Lookup(lookup => lookup.DataSource(Model.Units).ValueExpr("Id").DisplayExpr("Name"));
 

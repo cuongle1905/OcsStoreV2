@@ -15,6 +15,8 @@ public partial class Item
 
     public string Code { get; set; }
 
+    public sbyte Form { get; set; }
+
     public short Unit { get; set; }
 
     public string Note { get; set; }
@@ -37,6 +39,12 @@ public partial class Item
 
     public short? UserCreated { get; set; }
 
+    public virtual ICollection<BillDetail> BillDetails { get; set; } = new List<BillDetail>();
+
+    public virtual ItemForm FormNavigation { get; set; }
+
+    public virtual ItemGroup GroupNavigation { get; set; }
+
     public virtual ICollection<ItemMaterial> ItemMaterialItemNavigations { get; set; } = new List<ItemMaterial>();
 
     public virtual ICollection<ItemMaterial> ItemMaterialMaterialNavigations { get; set; } = new List<ItemMaterial>();
@@ -50,4 +58,6 @@ public partial class Item
     public virtual ICollection<ReceivingDetail> ReceivingDetails { get; set; } = new List<ReceivingDetail>();
 
     public virtual ICollection<StoreTransaction> StoreTransactions { get; set; } = new List<StoreTransaction>();
+
+    public virtual Unit UnitNavigation { get; set; }
 }

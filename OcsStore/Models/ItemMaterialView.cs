@@ -35,5 +35,7 @@ public partial class ItemMaterialView
 
     public string ItemName { get; set; }
 
+    public sbyte ItemForm { get; set; }
+
     public sbyte ItemGroup { get; set; }
 }

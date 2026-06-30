@@ -22,13 +22,13 @@ Html.DevExtreme().DataGrid<BillView>()
     .Columns(columns =>
     {
         columns.AddFor(m => m.Date).Caption("Ngày").Width(90).Alignment(HorizontalAlignment.Center).Format("dd/MM/yyyy").GroupIndex(0);
-        columns.AddFor(m => m.Id).Caption("#").Width(40).Alignment(HorizontalAlignment.Center);
-        columns.AddFor(m => m.Time).Caption("Giờ").Width(50).Alignment(HorizontalAlignment.Center);
-        columns.AddFor(m => m.CustomerName).Caption("Khách hàng").Width(100).Alignment(HorizontalAlignment.Left);
-        columns.AddFor(m => m.CustomerPhone).Caption("Điện thoại").Width(100).Alignment(HorizontalAlignment.Left);
+        columns.AddFor(m => m.Id).Caption("#").Width(30).Alignment(HorizontalAlignment.Center).CellTemplate(new JS("linkCellTemplate"));
+        columns.AddFor(m => m.Time).Caption("Giờ").Width(50).Alignment(HorizontalAlignment.Center).CellTemplate(new JS("linkCellTemplate"));
+        columns.AddFor(m => m.CustomerName).Caption("Khách hàng").Width(100).Alignment(HorizontalAlignment.Left).CellTemplate(new JS("linkCellTemplate"));
+        columns.AddFor(m => m.Desc).Caption("Nội dung").Width(140).Alignment(HorizontalAlignment.Left);
         columns.AddFor(m => m.Note).Caption("Ghi chú").Width(140).Alignment(HorizontalAlignment.Left);
-        columns.AddFor(m => m.Paid).Caption("Đã thanh toán").Width(60).Alignment(HorizontalAlignment.Center).Fixed(true).FixedPosition(HorizontalEdge.Right);
-        columns.AddFor(m => m.TotalValue).Caption("Tổng tiền").Width(90).Alignment(HorizontalAlignment.Right).Fixed(true).FixedPosition(HorizontalEdge.Right).Format("#,##0");
+        columns.AddFor(m => m.Paid).Caption("Đã thanh toán").Width(42).Alignment(HorizontalAlignment.Center).Fixed(true).FixedPosition(HorizontalEdge.Right);
+        columns.AddFor(m => m.TotalValue).Caption("Tổng tiền").Width(80).Alignment(HorizontalAlignment.Right).Fixed(true).FixedPosition(HorizontalEdge.Right).Format("#,##0");
     })
     .Editing(e => e.AllowUpdating(false))
     .Paging(p => p.Enabled(true).PageSize(100))
@@ -45,10 +45,11 @@ Html.DevExtreme().DataGrid<BillView>()
 
 <script>
     pageTitle = "Bán hàng"
+    cellLinkUrl = 'sales/new';
 
     $(function () {
         appendTopAddButtonToGrid({ onClick: function() {
-            location.href = "sales/new";
+            location.href = cellLinkUrl;
         }});
     });
 </script>

@@ -15,6 +15,8 @@ public partial class ItemManagementView
 
     public string Code { get; set; }
 
+    public sbyte Form { get; set; }
+
     public short Unit { get; set; }
 
     public string Note { get; set; }

@@ -35,5 +35,7 @@ public partial class BillDetail
 
     public virtual Bill BillNavigation { get; set; }
 
+    public virtual Item ItemNavigation { get; set; }
+
     public virtual Processing ProcessingNavigation { get; set; }
 }

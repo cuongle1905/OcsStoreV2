@@ -24,13 +24,13 @@ namespace OcsStore.Controllers
         [HttpPost]
         public IActionResult GetItemViews(int groupId, DataSourceLoadOptions loadOptions)
         {
-            var result = DataSourceLoader.Load(_context.ItemViews.Where(i => i.Group == groupId), loadOptions);
+            var result = DataSourceLoader.Load(_context.ItemViews.AsNoTracking().Where(i => i.Group == groupId), loadOptions);
             return Ok(result);
         }
 
         public Item[] GetItems(short groupId)
         {
-            return _context.Items.Where(i => i.Group == groupId).ToArray();
+            return _context.Items.Where(i => i.Group == groupId).AsNoTracking().ToArray();
         }
 
         [HttpPost]
@@ -41,11 +41,11 @@ namespace OcsStore.Controllers
             {
                 var materialIdArray = materialIds.Split(",").Select(int.Parse);
                 var itemIds = _context.ItemMaterials.Where(i => materialIdArray.Contains(i.Material)).Select(i => i.Item).Distinct().ToList();
-                data = _context.ItemManagementViews.Where(i => i.Group == groupId && itemIds.Contains(i.Id));
+                data = _context.ItemManagementViews.AsNoTracking().Where(i => i.Group == groupId && itemIds.Contains(i.Id));
             }
             else
             {
-                data = _context.ItemManagementViews.Where(i => i.Group == groupId);
+                data = _context.ItemManagementViews.AsNoTracking().Where(i => i.Group == groupId);
             }
 
             var result = DataSourceLoader.Load(data, loadOptions);
@@ -71,12 +71,12 @@ namespace OcsStore.Controllers
 
         public ItemView GetItemView(int itemId)
         {
-            return _context.ItemViews.FirstOrDefault(i => i.Id == itemId);
+            return _context.ItemViews.AsNoTracking().FirstOrDefault(i => i.Id == itemId);
         }
 
         public ItemView GetItemViewOfGroup(int itemGroupId)
         {
-            return _context.ItemViews.FirstOrDefault(i => i.Group == itemGroupId);
+            return _context.ItemViews.AsNoTracking().FirstOrDefault(i => i.Group == itemGroupId);
         }
 
         public Item GetItem(int itemId)
@@ -86,12 +86,12 @@ namespace OcsStore.Controllers
 
         public Unit[] GetUnits()
         {
-            return _context.Units.ToArray();
+            return _context.Units.AsNoTracking().ToArray();
         }
 
         public ItemGroup[] GetItemGroups()
         {
-            return _context.ItemGroups.ToArray();
+            return _context.ItemGroups.AsNoTracking().ToArray();
         }
 
         [HttpPost]
@@ -254,24 +254,24 @@ namespace OcsStore.Controllers
         [HttpPost]
         public IActionResult GetMaterialViews(int groupId, DataSourceLoadOptions loadOptions)
         {
-            var result = DataSourceLoader.Load(_context.MaterialViews.Where(i => i.ItemGroup == groupId), loadOptions);
+            var result = DataSourceLoader.Load(_context.MaterialViews.AsNoTracking().Where(i => i.ItemGroup == groupId), loadOptions);
             return Ok(result);
         }
 
         public Item[] GetAllItems()
         {
-            return _context.Items.ToArray();
+            return _context.Items.AsNoTracking().ToArray();
         }
 
         public Item[] GetItemsForMaterials()
         {
-            return _context.Items.Where(i => i.Group > 1).ToArray();
+            return _context.Items.Where(i => i.Group > 1).AsNoTracking().ToArray();
         }
 
         public Item[] GetMaterialItems(int itemId)
         {
             var itemGroup = _context.Items.FirstOrDefault(i => i.Id  == itemId).Group;
-            return _context.Items.Where(i => i.Group < itemGroup).ToArray();
+            return _context.Items.Where(i => i.Group < itemGroup).AsNoTracking().ToArray();
         }
 
         [HttpPost]
@@ -320,23 +320,23 @@ namespace OcsStore.Controllers
 
         public int FirstMaterialIdToCreateItem()
         {
-            return _context.Items.FirstOrDefault(i => i.Group == 2).Id;
+            return _context.Items.AsNoTracking().FirstOrDefault(i => i.Group == 2).Id;
         }
 
         public int SecondMaterialIdToCreateItem()
         {
-            return _context.Items.FirstOrDefault(i => i.Group == 2 && i.Name.ToLower().StartsWith("ao")).Id;
+            return _context.Items.AsNoTracking().FirstOrDefault(i => i.Group == 2 && i.Name.ToLower().StartsWith("ao")).Id;
         }
 
         [HttpPost]
-        public IActionResult GetItemCoupleMaterials(int material1, int material2, DataSourceLoadOptions loadOptions)
+        public IActionResult GetItemCoupleMaterials(int material1, int material2, sbyte itemForm, DataSourceLoadOptions loadOptions)
         {
-            var itemMaterials = _context.ItemMaterialViews.Where(i => i.ItemGroup == 3).ToList();
+            var itemMaterials = _context.ItemMaterialViews.Where(i => i.ItemGroup == 3 && i.ItemForm == itemForm).AsNoTracking().ToList();
 
             List<ItemCoupleMaterialView> data = new List<ItemCoupleMaterialView>();
             for (int i = 0; i <= 10; i++)
             {
-                ItemCoupleMaterialView v = new ItemCoupleMaterialView() { Selected = false, Item = 0, Material1 = material1,MaterialName1 = GetItem(material1).Name, Quantity1 = (10 - i), Material2 = material2, MaterialName2 = GetItem(material2).Name, Quantity2 = i};
+                ItemCoupleMaterialView v = new ItemCoupleMaterialView() { Selected = false, Item = 0, ItemForm = itemForm, Material1 = material1, MaterialName1 = GetItem(material1).Name, Quantity1 = (10 - i), Material2 = material2, MaterialName2 = GetItem(material2).Name, Quantity2 = i };
 
                 if (i == 0)
                     v.CalculatedName = "100" + v.MaterialName1;
@@ -370,14 +370,17 @@ namespace OcsStore.Controllers
         {
             foreach (var record in data)
             {
-                var item = new Item() { Id = 0, Name = record.CalculatedName, Group = 3 };
+                var item = new Item() { Id = 0, Name = record.CalculatedName, Group = 3, Form = record.ItemForm, AllowSale = true };
                 SaveItem(item);
 
                 var itemMaterial1 = new ItemMaterial() { Item = item.Id, Material = record.Material1, Quantity = record.Quantity1 / 10 };
                 _context.ItemMaterials.Add(itemMaterial1);
 
-                var itemMaterial2 = new ItemMaterial() { Item = item.Id, Material = record.Material2, Quantity = record.Quantity2 / 10 };
-                _context.ItemMaterials.Add(itemMaterial2);
+                if (itemMaterial1.Quantity < 1)
+                {
+                    var itemMaterial2 = new ItemMaterial() { Item = item.Id, Material = record.Material2, Quantity = 1 - itemMaterial1.Quantity };
+                    _context.ItemMaterials.Add(itemMaterial2);
+                }
 
                 _context.SaveChanges();
             }
@@ -386,7 +389,12 @@ namespace OcsStore.Controllers
 
         public SaleItemView[] GetSaleItems()
         {
-            return _context.SaleItemViews.ToArray();
+            return _context.SaleItemViews.AsNoTracking().ToArray();
+        }
+
+        public ItemForm[] GetItemForms()
+        {
+            return _context.ItemForms.AsNoTracking().ToArray();
         }
     }
 }

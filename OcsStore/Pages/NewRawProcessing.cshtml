@@ -18,7 +18,7 @@
 <script>
     pageTitle = "Rang mới";
     goBackUrl = "/rawprocessing";
-    var items = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Items));
+    var items = @Html.Raw(Json.Serialize(Model.Items));
     let itemId;
     let materialQuantity = 0.0;
     let itemQuantity = 0.0;

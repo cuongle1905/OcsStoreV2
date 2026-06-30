@@ -337,7 +337,7 @@
 
 <script>
     $(function () {
-    console.log("loginSession", @(loginSession));
+        console.log("loginSession", @(loginSession));
         $("#page-title").html(pageTitle);
 
         if (goBackUrl != "/") {
@@ -359,7 +359,7 @@
                 break;
             }
         }
-    if (location.href == "" || location.href == "#") {
+        if (location.href == "" || location.href == "#") {
             links[0].children[0].classList.add("item-active");
         } else {
         }

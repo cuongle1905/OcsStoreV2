@@ -10,6 +10,7 @@ using System.Net.Http;
 using System.Net.Mail;
 using System.Text;
 using System.Text.Json;
+using static Org.BouncyCastle.Asn1.Cmp.Challenge;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace OcsStore.Controllers
@@ -115,161 +116,99 @@ namespace OcsStore.Controllers
         [HttpPost]
         public IActionResult SaveRawProcessing(Processing processing, decimal materialQuantity)
         {
-            var processingId = SaveNewProcessing(processing);
+            var tranId = DB.GetNewId(_context, "store_transaction");
+            SaveNewProcessing(processing, tranId++);
 
             var materialId = _context.ItemMaterials.FirstOrDefault(i => i.Item == processing.Item).Material;
 
             int inputId = GetNewProcessingInputId();
 
-            var processingInput = new ProcessingInput() { Id = inputId, Processing = processingId, Item = materialId, Quantity = materialQuantity };
+            var processingInput = new ProcessingInput() { Id = inputId, Processing = processing.Id, Item = materialId, Quantity = materialQuantity };
             _context.ProcessingInputs.Add(processingInput);
 
             int lotInputId = GetNewProcessingLotInputId();
             var processingLotInput = new ProcessingLotInput() { Id = lotInputId++, Input = inputId, Lot = null, Year = processing.Year, Quantity = materialQuantity };
             _context.ProcessingLotInputs.Add(processingLotInput);
-
             _context.SaveChanges();
+            DBProcessing.UpdateStoreTransactionForProcessingLotInput(_context, tranId++, processing, processingInput, processingLotInput);
 
-            _context.Database.ExecuteSqlRaw("call calculate_strans_processing(" + processingId + ");");
+            DBProcessing.UpdateStoreTransactionForProcessingOutput(_context, tranId, processing); // Call at the end to calculate correct price
 
             return Ok();
         }
 
-        private int SaveNewProcessing(Processing processing)
+        private void SaveNewProcessing(Processing processing, int tranId)
         {
+
+            processing.Id = GetNewProcessingId();
             processing.Date = Common.GetLocalDateWithoutTime(processing.Date); // Remove hour, minute...
-            DateTime dateCreated = DateTime.Today;
-            string timeCreated = DateTime.Now.ToString("HH:mm");
+            processing.Year = (sbyte)(processing.Date.Year % 100);
 
-            int processingId = GetNewProcessingId();
+            var itemUseLot = _context.Items.FirstOrDefault(i => i.Id == processing.Item).UseLot;
+            if (itemUseLot)
+                processing.Lot = processing.Date.ToString("ddMM");
 
-            var item = _context.ItemViews.FirstOrDefault(i => i.Id == processing.Item);
-            var yy = (sbyte)(processing.Date.Year % 100);
-            var newProcessing = new Processing() { Id = processingId, Year = yy, Item = processing.Item, Quantity = processing.Quantity, Date = processing.Date, Time = processing.Time, User = Session.UserId(Request), DateCreated = dateCreated, TimeCreated = timeCreated };
+            processing.Store = 1;
+            processing.Unit = 1;
+            processing.User = Session.UserId(Request);
+            processing.DateCreated = DateTime.Today;
+            processing.TimeCreated = DateTime.Now.ToString("HH:mm");
 
-            _context.Processings.Add(newProcessing);
-            return processingId;
+            _context.Processings.Add(processing);
+            _context.SaveChanges();
         }
 
         [HttpPost]
         public IActionResult Save(Processing processing, ProcessingLotInputView[] details)
         {
-            var processingId = SaveNewProcessing(processing);
+            _context.Database.BeginTransaction();
 
-            int inputId = GetNewProcessingInputId();
+            var tranId = DB.GetNewId(_context, "store_transaction");
+            SaveNewProcessing(processing, tranId++);
+
+            int inputId = GetNewProcessingInputId() - 1;
 
             int lotInputId = GetNewProcessingLotInputId();
 
-            foreach (var detail in details)
-            {
-                if (detail.Lot == null || detail.Lot == "")
-                {
-                    ++inputId;
-                    var processingInput = new ProcessingInput() { Id = inputId, Processing = processingId, Item = detail.Item, Unit = detail.Unit, Quantity = detail.Quantity, Note = detail.Note };
-                    _context.ProcessingInputs.Add(processingInput);
 
-                    if (!detail.UseLot)
+            ProcessingInput processingInput = new ProcessingInput();
+            try
+            {
+                foreach (var detail in details)
+                {
+                    if (detail.Lot == null || detail.Lot == "")
                     {
-                        var processingLotInput = new ProcessingLotInput() { Id = lotInputId++, Input = inputId, Lot = null, Year = detail.Year, Quantity = detail.Quantity, Note = detail.Note };
+                        ++inputId;
+                        processingInput = new ProcessingInput() { Id = inputId, Processing = processing.Id, Item = detail.Item, Unit = detail.Unit, Quantity = detail.Quantity, Note = detail.Note };
+                        _context.ProcessingInputs.Add(processingInput);
+
+                        if (!detail.UseLot)
+                        {
+                            var processingLotInput = new ProcessingLotInput() { Id = lotInputId++, Input = inputId, Lot = null, Year = detail.Year, Quantity = detail.Quantity, Note = detail.Note };
+                            _context.ProcessingLotInputs.Add(processingLotInput);
+                            _context.SaveChanges();
+                            DBProcessing.UpdateStoreTransactionForProcessingLotInput(_context, tranId++, processing, processingInput, processingLotInput);
+                        }
+                    }
+                    else
+                    {
+                        var processingLotInput = new ProcessingLotInput() { Id = lotInputId++, Input = inputId, Lot = detail.Lot, Year = detail.Year, Quantity = detail.Quantity, Note = detail.Note };
                         _context.ProcessingLotInputs.Add(processingLotInput);
+                        _context.SaveChanges();
+                        DBProcessing.UpdateStoreTransactionForProcessingLotInput(_context, tranId++, processing, processingInput, processingLotInput);
                     }
                 }
-                else
-                {
-                    var processingLotInput = new ProcessingLotInput() { Id = lotInputId++, Input = inputId, Lot = detail.Lot, Year = detail.Year, Quantity = detail.Quantity, Note = detail.Note };
-                    _context.ProcessingLotInputs.Add(processingLotInput);
-                }
+
+                DBProcessing.UpdateStoreTransactionForProcessingOutput(_context, tranId, processing); // Call at the end to calculate correct price
             }
-
-            _context.SaveChanges();
-
-            _context.Database.ExecuteSqlRaw("call calculate_strans_processing(" + processingId + ");");
-
-            return Ok();
-        }
-
-        private void CreateBill(DateTime date, string time, BillDetail[] details, Customer customer, bool debit)
-        {
-            date = Common.GetLocalDateWithoutTime(date); // Remove hour, minute...
-            DateTime currentDate = DateTime.Today;
-            string currentTime = DateTime.Now.ToString("HH:mm");
-            short currentUser = Session.UserId(Request);
-
-            if (customer.Id <= 0 && !string.IsNullOrEmpty(customer.Name))
+            catch (Exception ex)
             {
-                try
-                {
-                    customer.Id = (short)(_context.Customers.Max(i => i.Id) + 1);
-                }
-                catch
-                {
-                    customer.Id = 1;
-                }
-                _context.Customers.Add(customer);
-            }
-            else
-            {
-                var existingCustomer = _context.Customers.FirstOrDefault(i => i.Id == customer.Id);
-                if (existingCustomer != null)
-                {
-                    existingCustomer.Name = customer.Name;
-                    existingCustomer.Phone = customer.Phone;
-                    existingCustomer.Address = customer.Address;
-                    existingCustomer.Email = customer.Email;
-                }
-                else
-                {
-                    customer.Id = 0; // Unknown customer
-                }
-                _context.Customers.Update(existingCustomer);
+                _context.Database.RollbackTransaction();
+                return BadRequest(ex.Message);
             }
 
-            int billId;
-            try
-            {
-                billId = _context.Bills.Max(i => i.Id) + 1;
-            }
-            catch
-            {
-                billId = 1;
-            }
-
-            var billTotal = details.Sum(i => i.Quantity * (i.Price - i.Discount));
-
-            var bill = new Bill() { Id = billId, Date = date, Time = time, DateCreated = currentDate, TimeCreated = currentTime, UserCreated = currentUser, CustomerName = customer.Name, CustomerPhone = customer.Phone, CustomerAddress = customer.Address, CustomerEmail = customer.Email, Paid = !debit, TotalValue = billTotal };
-            if (customer.Id > 0)
-            {
-                bill.Customer = customer.Id;
-            }
-
-            if (!debit)
-            {
-                bill.DatePaid = currentDate;
-                bill.TimePaid = currentTime;
-                bill.UserPaid = currentUser;
-            }
-            _context.Bills.Add(bill);
-
-            int detailId;
-            try
-            {
-                detailId = _context.BillDetails.Max(i => i.Id) + 1;
-            }
-            catch
-            {
-                detailId = 1;
-            }
-
-            for (int i = 0; i < details.Length; i++)
-            {
-                var detail = details[i];
-                var billDetail = new BillDetail() { Id = detailId++, Bill = billId, Item = detail.Item, Unit = detail.Unit, Quantity = detail.Quantity, Price = detail.Price, Discount = detail.Discount, Note = detail.Note, Ordinal = i + 1 };
-                _context.BillDetails.AddRange(billDetail);
-            }
-
-            _context.SaveChanges();
-
-            _context.Database.ExecuteSqlRaw("call calculate_strans_bill(" + billId + ");");
+            _context.Database.CommitTransaction();
+            return Ok(processing.Id);
         }
 
         [HttpPost]
@@ -281,7 +220,7 @@ namespace OcsStore.Controllers
                 _context.Database.BeginTransaction();
                 try
                 {
-                    DB.DeleteStoreTransactionsForProcessing(_context, processing);
+                    DBProcessing.DeleteStoreTransactionsForProcessing(_context, processing);
                     _context.Processings.Remove(processing);
                     _context.SaveChanges();
                 }
@@ -299,10 +238,15 @@ namespace OcsStore.Controllers
         public IActionResult EditDateTime(int id, DateTime date, string time)
         {
             string errorMesssage;
-            if (DB.EditProcessingDateTime(_context, id, date, time, out errorMesssage))
+            if (DBProcessing.EditProcessingDateTime(_context, id, date, time, out errorMesssage))
                 return Ok();
 
             return BadRequest(errorMesssage);
+        }
+
+        public ProcessingView GetProcessingView(int id)
+        {
+            return _context.ProcessingViews.AsNoTracking().FirstOrDefault(i => i.Id == id);
         }
     }
 }

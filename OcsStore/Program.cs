@@ -6,6 +6,7 @@ using OcsStore.Models;
 using System.Data.Entity;
 using System.Net;
 using System.Text;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,8 +24,16 @@ builder.Services.AddDbContext<MyDbContext>(options =>
 
 builder.Services.AddHttpClient();
 
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+    });
+
 builder.Services.AddTransient<ItemController>();
 builder.Services.AddTransient<ProcessingController>();
+builder.Services.AddTransient<SalesController>();
+builder.Services.AddTransient<StockController>();
 builder.Services.AddTransient<ReportController>();
 
 builder.Services.AddSession(options =>
