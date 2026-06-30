@@ -52,4 +52,6 @@ public partial class StockView
     public string UnitName { get; set; }
 
     public bool? SohWarning { get; set; }
+
+    public sbyte? InvalidTran { get; set; }
 }

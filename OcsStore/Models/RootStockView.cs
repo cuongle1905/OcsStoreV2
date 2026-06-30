@@ -40,4 +40,6 @@ public partial class RootStockView
     public int ItemOrdinal { get; set; }
 
     public sbyte? SohWarning { get; set; }
+
+    public sbyte? InvalidTran { get; set; }
 }

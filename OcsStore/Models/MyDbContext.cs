@@ -38,6 +38,10 @@ public partial class MyDbContext : DbContext
 
     public virtual DbSet<ExpenseType> ExpenseTypes { get; set; }
 
+    public virtual DbSet<InvalidStoreTransactionLotSohView> InvalidStoreTransactionLotSohViews { get; set; }
+
+    public virtual DbSet<InvalidStoreTransactionSohView> InvalidStoreTransactionSohViews { get; set; }
+
     public virtual DbSet<Inventory> Inventories { get; set; }
 
     public virtual DbSet<InventoryDetail> InventoryDetails { get; set; }
@@ -748,6 +752,27 @@ public partial class MyDbContext : DbContext
                 .HasColumnName("ordinal");
         });
 
+        modelBuilder.Entity<InvalidStoreTransactionLotSohView>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToView("invalid_store_transaction_lot_soh_view");
+
+            entity.Property(e => e.Item).HasColumnName("item");
+            entity.Property(e => e.Lot)
+                .HasMaxLength(10)
+                .HasColumnName("lot");
+        });
+
+        modelBuilder.Entity<InvalidStoreTransactionSohView>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToView("invalid_store_transaction_soh_view");
+
+            entity.Property(e => e.Item).HasColumnName("item");
+        });
+
         modelBuilder.Entity<Inventory>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PRIMARY");
@@ -1213,6 +1238,7 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.Date)
                 .HasColumnType("datetime")
                 .HasColumnName("date");
+            entity.Property(e => e.InvalidTran).HasColumnName("invalid_tran");
             entity.Property(e => e.Item).HasColumnName("item");
             entity.Property(e => e.ItemGroup)
                 .HasDefaultValueSql("'1'")
@@ -1393,6 +1419,7 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.Date)
                 .HasColumnType("datetime")
                 .HasColumnName("date");
+            entity.Property(e => e.InvalidTran).HasColumnName("invalid_tran");
             entity.Property(e => e.Item).HasColumnName("item");
             entity.Property(e => e.ItemGroup)
                 .HasDefaultValueSql("'1'")
@@ -1413,9 +1440,7 @@ public partial class MyDbContext : DbContext
                 .HasDefaultValueSql("''")
                 .HasColumnName("lot");
             entity.Property(e => e.LotOrdinal)
-                .IsRequired()
                 .HasMaxLength(8)
-                .HasDefaultValueSql("''")
                 .HasColumnName("lot_ordinal");
             entity.Property(e => e.Soh)
                 .HasPrecision(10, 2)
@@ -2071,6 +2096,7 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.Date)
                 .HasColumnType("datetime")
                 .HasColumnName("date");
+            entity.Property(e => e.InvalidTran).HasColumnName("invalid_tran");
             entity.Property(e => e.Item).HasColumnName("item");
             entity.Property(e => e.ItemGroup).HasColumnName("item_group");
             entity.Property(e => e.ItemName)
@@ -2245,6 +2271,7 @@ public partial class MyDbContext : DbContext
                 .HasColumnName("group_name")
                 .UseCollation("utf8mb3_general_ci")
                 .HasCharSet("utf8mb3");
+            entity.Property(e => e.InvalidTran).HasColumnName("invalid_tran");
             entity.Property(e => e.Item).HasColumnName("item");
             entity.Property(e => e.ItemGroup).HasColumnName("item_group");
             entity.Property(e => e.ItemName)

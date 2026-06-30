@@ -40,4 +40,6 @@ public partial class ItemStockView
     public string LotOrdinal { get; set; }
 
     public bool? SohWarning { get; set; }
+
+    public bool? InvalidTran { get; set; }
 }

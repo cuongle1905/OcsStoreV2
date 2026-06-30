@@ -212,11 +212,11 @@ namespace OcsStore
                 {
                     soh += tran.Quantity;
 
-                    if (!ignoreError && soh < 0)
-                    {
-                        var itemName = _context.Items.FirstOrDefault(i => i.Id == itemId).Name;
-                        throw new InvalidOperationException($"Tồn kho < 0 '{itemName} {lot}' {tran.Date.ToString("dd/MM/yyyy")}");
-                    }
+                    ////if (!ignoreError && soh < 0)
+                    ////{
+                    ////    var itemName = _context.Items.FirstOrDefault(i => i.Id == itemId).Name;
+                    ////    throw new InvalidOperationException($"Tồn kho < 0 '{itemName} {lot}' {tran.Date.ToString("dd/MM/yyyy")}");
+                    ////}
 
                     if (tran.Quantity < 0)
                     {

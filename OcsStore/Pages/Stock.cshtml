@@ -32,7 +32,7 @@ Html.DevExtreme().DataGrid<StockView>()
     .Columns(columns =>
     {
         columns.AddFor(m => m.ItemName).Caption("Hàng hóa").Width(130).Alignment(HorizontalAlignment.Left).Fixed(true).FixedPosition(HorizontalEdge.Left).CellTemplate(new JS("stockCellTemplate"));
-        columns.AddFor(m => m.Soh).Caption("Số lượng\n(Kg)").Width(80).HeaderCellTemplate(new JS("subLineHeaderCellTemplate")).Alignment(HorizontalAlignment.Right).Format("#,##0.0").CellTemplate(new JS("stockCellTemplate"));
+        columns.AddFor(m => m.Soh).Caption("Số lượng tồn\n(Kg)").Width(80).HeaderCellTemplate(new JS("subLineHeaderCellTemplate")).Alignment(HorizontalAlignment.Right).Format("#,##0.0").CellTemplate(new JS("stockCellTemplate"));
         columns.AddFor(m => m.Ave).Caption("Giá TB\n(đồng)").Width(70).HeaderCellTemplate(new JS("subLineHeaderCellTemplate")).Format("#,##0").CellTemplate(new JS("stockCellTemplate"));
         columns.AddFor(m => m.ValueK).Caption("Giá trị\n(x 1000đ)").Width(80).HeaderCellTemplate(new JS("subLineHeaderCellTemplate")).Format("#,##0").CellTemplate(new JS("stockCellTemplate"));
         
@@ -114,6 +114,11 @@ Html.DevExtreme().DataGrid<StockView>()
             if (options.data.SohWarning) {
                 let html = `<div class='d-flex align-items-center'><div style='color: var(--red)'><i class="bi bi-exclamation-circle"></i></div><div style='margin-left:auto'>${options.text}</div></div>`;
                 container.children().first().html(html);
+            }
+        } else if (options.column.dataField == "ItemName") {
+            if (options.data.InvalidTran) {
+                let html = `<div class='d-flex align-items-center'><div>${container.html()}</div><div style='color: var(--red); margin-left:auto'><i class="bi bi-exclamation-circle"></i></div></div>`;
+                container.html(html);
             }
         }
 
