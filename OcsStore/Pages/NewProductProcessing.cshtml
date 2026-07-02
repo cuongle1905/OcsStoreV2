@@ -83,6 +83,11 @@ Html.DevExtreme().DataGrid<ProcessingLotInputView>()
                 let originalOnValueChanged = e.editorOptions.onValueChanged;
 
                 // 3. Override the event
+                e.editorOptions.onClick = function(args) {
+                    console.log("onEditorPreparing onClick", e, args);
+                };
+
+
                 e.editorOptions.onValueChanged = function(args) {
                     let newValue = args.value;
                     let previousValue = args.previousValue;

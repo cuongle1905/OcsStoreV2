@@ -4,6 +4,9 @@
 @{
 }
 <style>
+    .dx-datagrid-rowsview .dx-data-row .dx-cell-modified.dx-cell-modified::after, .dx-datagrid-rowsview .dx-data-row .dx-cell-modified.dx-datagrid-invalid::after {
+        border-color: transparent;
+    }
 </style>
 <div id="top-section" class="ms-auto me-auto pt-3" style="width: 100%;">
 </div>
@@ -19,15 +22,16 @@ Html.DevExtreme().DataGrid<BillView>()
     .Paging(p => p.PageSize(100))
     .Pager(p => p.Visible(false))
     .OnContentReady("defaultOnGridContentReady")
+    .OnCellClick("onCellClick")
     .Columns(columns =>
     {
-        columns.AddFor(m => m.Date).Caption("Ngày").Width(90).Alignment(HorizontalAlignment.Center).Format("dd/MM/yyyy").GroupIndex(0);
+        columns.AddFor(m => m.Date).Caption("Ngày").Width(90).Alignment(HorizontalAlignment.Center).Format("dd/MM/yyyy").GroupIndex(0).SortIndex(0).SortOrder(SortOrder.Desc);
         columns.AddFor(m => m.Id).Caption("#").Width(30).Alignment(HorizontalAlignment.Center).CellTemplate(new JS("linkCellTemplate"));
         columns.AddFor(m => m.Time).Caption("Giờ").Width(50).Alignment(HorizontalAlignment.Center).CellTemplate(new JS("linkCellTemplate"));
         columns.AddFor(m => m.CustomerName).Caption("Khách hàng").Width(100).Alignment(HorizontalAlignment.Left).CellTemplate(new JS("linkCellTemplate"));
         columns.AddFor(m => m.Desc).Caption("Nội dung").Width(140).Alignment(HorizontalAlignment.Left);
         columns.AddFor(m => m.Note).Caption("Ghi chú").Width(140).Alignment(HorizontalAlignment.Left);
-        columns.AddFor(m => m.Paid).Caption("Đã thanh toán").Width(42).Alignment(HorizontalAlignment.Center).Fixed(true).FixedPosition(HorizontalEdge.Right);
+        columns.AddFor(m => m.Paid).Caption("Đã thanh toán").Width(42).Alignment(HorizontalAlignment.Center).Fixed(true).FixedPosition(HorizontalEdge.Right).AllowEditing(false);
         columns.AddFor(m => m.TotalValue).Caption("Tổng tiền").Width(80).Alignment(HorizontalAlignment.Right).Fixed(true).FixedPosition(HorizontalEdge.Right).Format("#,##0");
     })
     .Editing(e => e.AllowUpdating(false))
@@ -41,6 +45,7 @@ Html.DevExtreme().DataGrid<BillView>()
                  .ValueFormat("#,##0");
         })
     )
+    .RepaintChangesOnly(false)
 )
 
 <script>
@@ -52,4 +57,34 @@ Html.DevExtreme().DataGrid<BillView>()
             location.href = cellLinkUrl;
         }});
     });
+
+    function onCellClick(e) {
+        console.log("onCellClick", e);
+        if (e.rowType === "data") {
+            if (e.column.dataField === "Paid") {
+                const rowIndex = e.rowIndex;
+                const billId = e.row.data.Id;
+                const paid = !e.row.data.Paid;
+                const action = (paid ? "" : " hủy");
+
+                DevExpress.ui.dialog.confirm(`<i>Bạn có chắc chắn${action} thanh toán đơn hàng #${billId} ${e.row.data.CustomerName}?</i>`, "Xác nhận").then(function(dialogResult) {
+                    if (dialogResult) {
+                        $.ajax({
+                            url: '@Url.Action("UpdatePaid", "Sales")',
+                            method: "POST",
+                            data: { id: billId, paid: paid },
+                            success: function (result) {
+                                // reloadData();
+                                $("#main-grid").dxDataGrid("instance").cellValue(rowIndex, "Paid", paid);
+                            },
+                            error: function (xhr, status, error) {
+                                console.log("xhr", xhr, "status", status, "error", error);
+                                DevExpress.ui.dialog.alert("Có lỗi xảy ra. Vui lòng thử lại sau.", "Cảnh báo");
+                            }
+                        });
+                    }
+                });
+            }
+        }
+    }
 </script>

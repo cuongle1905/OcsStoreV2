@@ -45,7 +45,7 @@ namespace OcsStore.Pages
                 Stock2Value = _reportController.GetStockValue(2);
                 RecevingTotalValue = _reportController.GetReceivingTotalValue();
                 TotalExpense = _reportController.GetTotalExpense();
-                TotalProfit = _reportController.GetTotalProfit();
+                TotalProfit = BillTotal - RecevingTotalValue - TotalExpense;
             }
         }
     }

@@ -250,5 +250,30 @@ namespace OcsStore.Controllers
             }
             return Ok();
         }
+
+        [HttpPost]
+        public IActionResult UpdatePaid(int id, bool paid)
+        {
+            var bill = _context.Bills.FirstOrDefault(i => i.Id == id);
+            if (bill != null)
+            {
+                bill.Paid = paid;
+                if (paid)
+                {
+                    bill.DatePaid = DateTime.Today;
+                    bill.TimePaid = DateTime.Now.ToString("HH:mm");
+                    bill.UserPaid = Session.UserId(Request);
+                }
+                else
+                {
+                    bill.DatePaid = null;
+                    bill.TimePaid = null;
+                    bill.UserPaid = null;
+                }
+                _context.Bills.Update(bill);
+                _context.SaveChanges();
+            }
+            return Ok();
+        }
     }
 }

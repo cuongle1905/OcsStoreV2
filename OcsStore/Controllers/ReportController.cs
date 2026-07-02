@@ -47,10 +47,5 @@ namespace OcsStore.Controllers
         {
             return _context.Expenses.Sum(i => i.Amount);
         }
-
-        public decimal GetTotalProfit()
-        {
-            return _context.ProfitViews.Sum(i => i.Profit) ?? 0;
-        }
     }
 }
