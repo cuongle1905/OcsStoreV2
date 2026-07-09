@@ -1,40 +1,60 @@
 ﻿using OcsStore.Models;
+using static Org.BouncyCastle.Asn1.Cmp.Challenge;
 
 namespace OcsStore
 {
     public class DBProcessing
     {
+        public static void UpdateStoreTransactionsForMissingProcessingDetails(MyDbContext _context)
+        {
+            var tranId = DB.GetNewId(_context, "store_transaction");
+            var processingIdQuery = _context.StoreTransactions.Where(i => i.Type == StoreTransactionType.Processing && i.DetailId == null).Select(i => i.MainId);
+            var missingProcessings = _context.Processings.Where(i => !processingIdQuery.Contains(i.Id)).ToArray();
+            foreach (var processing in missingProcessings)
+            {
+                DBProcessing.UpdateStoreTransactionForProcessingOutput(_context, tranId++, processing);
+            }
+
+            var detailIdQuery = _context.StoreTransactions.Where(i => i.Type == StoreTransactionType.Processing).Select(i => i.DetailId);
+            var missingProcessingInputs = _context.ProcessingInputs.Where(i => !detailIdQuery.Contains(i.Id)).ToArray();
+            foreach (var processingInput in missingProcessingInputs)
+            {
+                var processing = _context.Processings.FirstOrDefault(i => i.Id == processingInput.Processing);
+                DBProcessing.UpdateStoreTransactionForProcessingInput(_context, tranId++, processing, processingInput);
+            }
+        }
+
         public static void UpdateStoreTransactionForProcessingOutput(MyDbContext _context, int tranId, Processing p)
         {
-            var ordinal = DB.GetNewStoreTransactionOrdinal(_context, p.Year, p.Date, p.Time, tranId);
+            var ordinal = DB.GetNewStoreTransactionOrdinal(_context, p.Date, p.Time, tranId);
 
             var totalValue = _context.StoreTransactions.Where(i => i.Type == StoreTransactionType.Processing && i.MainId == p.Id).Sum(i => i.Price * i.Quantity);
             var price = -totalValue / p.Quantity;
 
-            var tran = new StoreTransaction() { Id = tranId, Date = p.Date, Time = p.Time, Type = StoreTransactionType.Processing, Store = p.Store, MainId = p.Id, Item = p.Item, Unit = p.Unit, Lot = p.Lot, Year = p.Year, Quantity = p.Quantity, Price = price, User = p.User, Ordinal = ordinal };
+            var tran = new StoreTransaction() { Id = tranId, Date = p.Date, Time = p.Time, Type = StoreTransactionType.Processing, Store = p.Store, MainId = p.Id, Item = p.Item, Unit = p.Unit, Quantity = p.Quantity, Price = price, User = p.User, Ordinal = ordinal };
 
             _context.StoreTransactions.Add(tran);
             _context.SaveChanges();
 
-            DB.UpdateStoreTransactions(_context, p.Store, p.Item, p.Unit, p.Lot, p.Year, ordinal);
+            DB.UpdateStoreTransactions(_context, p.Store, p.Item, p.Unit, ordinal);
         }
 
-        public static void UpdateStoreTransactionForProcessingLotInput(MyDbContext _context, int tranId, Processing p, ProcessingInput pi, ProcessingLotInput pli)
+        public static void UpdateStoreTransactionForProcessingInput(MyDbContext _context, int tranId, Processing p, ProcessingInput pi)
         {
-            var ordinal = DB.GetNewStoreTransactionOrdinal(_context, pli.Year, p.Date, p.Time, tranId);
-            var tran = new StoreTransaction() { Id = tranId, Date = p.Date, Time = p.Time, Type = StoreTransactionType.Processing, Store = p.Store, MainId = p.Id, DetailId = pli.Id, Item = pi.Item, Unit = pi.Unit, Lot = pli.Lot, Year = pli.Year, Quantity = -pli.Quantity, User = p.User, Ordinal = ordinal };
+            var ordinal = DB.GetNewStoreTransactionOrdinal(_context, p.Date, p.Time, tranId);
+            var tran = new StoreTransaction() { Id = tranId, Date = p.Date, Time = p.Time, Type = StoreTransactionType.Processing, Store = p.Store, MainId = p.Id, DetailId = pi.Id, Item = pi.Item, Unit = pi.Unit, Quantity = -pi.Quantity, User = p.User, Ordinal = ordinal };
 
             _context.StoreTransactions.Add(tran);
             _context.SaveChanges();
 
-            DB.UpdateStoreTransactions(_context, p.Store, pi.Item, pi.Unit, pli.Lot, pli.Year, ordinal);
+            DB.UpdateStoreTransactions(_context, p.Store, pi.Item, pi.Unit, ordinal);
         }
 
         public static void DeleteStoreTransactionsForProcessing(MyDbContext _context, Processing processing)
         {
             DB.DeleteStoreTransaction(_context, StoreTransactionType.Processing, processing.Id, null);
 
-            var detailIds = _context.ProcessingLotInputViews.Where(i => i.Processing == processing.Id).Select(i => i.Id).ToArray();
+            var detailIds = _context.ProcessingInputViews.Where(i => i.Processing == processing.Id).Select(i => i.Id).ToArray();
             foreach (var detailId in detailIds)
             {
                 DB.DeleteStoreTransaction(_context, StoreTransactionType.Processing, processing.Id, detailId);
@@ -47,7 +67,7 @@ namespace OcsStore
             if (outputStoreTransaction != null)
                 DB.UpdateStoreTransactionDateTime(_context, outputStoreTransaction, processing.Date, processing.Time);
 
-            var details = _context.ProcessingLotInputViews.Where(i => i.Processing == processing.Id).ToArray();
+            var details = _context.ProcessingInputViews.Where(i => i.Processing == processing.Id).ToArray();
             foreach (var detail in details)
             {
                 var inputStoreTransaction = _context.StoreTransactions.FirstOrDefault(i => i.Type == 2 && i.MainId == processing.Id && i.DetailId == detail.Id);

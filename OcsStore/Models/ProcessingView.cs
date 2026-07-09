@@ -9,10 +9,6 @@ public partial class ProcessingView
 
     public int Id { get; set; }
 
-    public string Lot { get; set; }
-
-    public sbyte Year { get; set; }
-
     public int Item { get; set; }
 
     public short Unit { get; set; }

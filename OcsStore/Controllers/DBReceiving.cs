@@ -1,46 +1,43 @@
 ﻿using OcsStore.Models;
+using static Org.BouncyCastle.Asn1.Cmp.Challenge;
 
 namespace OcsStore
 {
     public class DBReceiving
     {
-        public static void UpdateStoreTransactionsForReceiving(MyDbContext _context, Receiving r, List<ReceivingDetail> details)
+        public static void UpdateStoreTransactionsForMissingReceivingDetails(MyDbContext _context)
         {
-            /*  DELETE FROM store_transaction where `type` = 1 and main_id = receivingId; */
-
-            sbyte yy = (sbyte)(r.Date.Year % 100);
-
-            /* insert into store_transaction (id, date, time, type, store, main_id, detail_id, item, unit, `year`, quantity, price, `user`, ordinal)
-                values (tranId, v_date, v_time, 1, storeId, receivingId, detailId, itemId, unitId, yy, v_quantity, v_price, userId, v_ordinal);
-             */
             var tranId = DB.GetNewId(_context, "store_transaction");
-
-            foreach (ReceivingDetail d in details)
+            var detailIdQuery = _context.StoreTransactions.Where(i => i.Type == StoreTransactionType.Receiving).Select(i => i.DetailId);
+            var missingReceivingDetails = _context.ReceivingDetails.Where(i => !detailIdQuery.Contains(i.Id)).ToArray();
+            foreach (var receivingDetail in missingReceivingDetails)
             {
-                try
-                {
-                    UpdateStoreTransactionForReceivingDetail(_context, tranId, yy, r, d);
-                }
-                catch
-                {
-                    throw;
-                }
-                tranId++;
+                var receiving = _context.Receivings.FirstOrDefault(i => i.Id == receivingDetail.Receiving);
+                UpdateStoreTransactionForReceivingDetail(_context, tranId++, receiving, receivingDetail);
             }
         }
 
-        public static void UpdateStoreTransactionForReceivingDetail(MyDbContext _context, int tranId, sbyte yy, Receiving r, ReceivingDetail d)
+        public static void UpdateStoreTransactionsForReceiving(MyDbContext _context, Receiving r, List<ReceivingDetail> details)
+        {
+            var tranId = DB.GetNewId(_context, "store_transaction");
+            foreach (ReceivingDetail d in details)
+            {
+                UpdateStoreTransactionForReceivingDetail(_context, tranId++, r, d);
+            }
+        }
+
+        public static void UpdateStoreTransactionForReceivingDetail(MyDbContext _context, int tranId, Receiving r, ReceivingDetail d)
         {
             /* insert into store_transaction (id, date, time, type, store, main_id, detail_id, item, unit, `year`, quantity, price, `user`, ordinal)
                 values (tranId, v_date, v_time, 1, storeId, receivingId, detailId, itemId, unitId, yy, v_quantity, v_price, userId, v_ordinal); */
 
-            var ordinal = DB.GetNewStoreTransactionOrdinal(_context, yy, r.Date, r.Time, tranId);
-            var tran = new StoreTransaction() { Id = tranId, Date = r.Date, Time = r.Time, Type = 1, Store = r.Store, MainId = r.Id, DetailId = d.Id, Item = d.Item, Unit = d.Unit, Year = yy, Quantity = d.Quantity, Price = d.Price, User = r.User, Ordinal = ordinal };
+            var ordinal = DB.GetNewStoreTransactionOrdinal(_context, r.Date, r.Time, tranId);
+            var tran = new StoreTransaction() { Id = tranId, Date = r.Date, Time = r.Time, Type = 1, Store = r.Store, MainId = r.Id, DetailId = d.Id, Item = d.Item, Unit = d.Unit, Quantity = d.Quantity, Price = d.Price, User = r.User, Ordinal = ordinal };
 
             _context.StoreTransactions.Add(tran);
             _context.SaveChanges();
 
-            DB.UpdateStoreTransactions(_context, r.Store, d.Item, d.Unit, null, yy, ordinal, true);
+            DB.UpdateStoreTransactions(_context, r.Store, d.Item, d.Unit, ordinal, true);
         }
 
         public static void DeleteStoreTransactionsForReceivingDetail(MyDbContext _context, ReceivingDetail detail)

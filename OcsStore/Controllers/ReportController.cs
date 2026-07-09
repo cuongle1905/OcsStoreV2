@@ -35,7 +35,7 @@ namespace OcsStore.Controllers
 
         public decimal GetStockValue(short itemGroupId)
         {
-            return _context.StockViews.Where(i => i.ItemGroup == itemGroupId && string.IsNullOrEmpty(i.Lot) && i.Soh > 0).Sum(i => i.Value) ?? 0;
+            return _context.StockViews.Where(i => i.ItemGroup == itemGroupId && i.Soh > 0).Sum(i => i.Value) ?? 0;
         }
 
         public decimal GetReceivingTotalValue()

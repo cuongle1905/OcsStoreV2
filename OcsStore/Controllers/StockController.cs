@@ -23,33 +23,33 @@ namespace OcsStore.Controllers
         }
 
         [HttpPost]
-        public IActionResult GetStocks(sbyte itemGroupId, string materialIds, DataSourceLoadOptions loadOptions)
+        public IActionResult GetStockDataSource(sbyte itemGroupId, string materialIds, DataSourceLoadOptions loadOptions)
+        {
+            var data = GetStocks(itemGroupId, materialIds);
+            var result = DataSourceLoader.Load(data, loadOptions);
+            return Ok(result);
+        }
+
+        public IQueryable<StockView> GetStocks(sbyte itemGroupId, string materialIds)
         {
             IQueryable<StockView> data;
             if (itemGroupId == 3 && !string.IsNullOrEmpty(materialIds))
             {
                 var materialIdArray = materialIds.Split(",").Select(int.Parse);
                 var itemIds = _context.ItemMaterials.Where(i => materialIdArray.Contains(i.Material)).Select(i => i.Item).Distinct().ToList();
-                data = _context.StockViews.Where(i => i.ItemGroup == itemGroupId && itemIds.Contains(i.Item) && (string.IsNullOrEmpty(i.Lot) || i.Soh > 0));
+                data = _context.StockViews.Where(i => i.ItemGroup == itemGroupId && itemIds.Contains(i.Item));
             }
             else
             {
-                data = _context.StockViews.Where(i => i.ItemGroup == itemGroupId && (string.IsNullOrEmpty(i.Lot) || i.Soh > 0));
+                data = _context.StockViews.Where(i => i.ItemGroup == itemGroupId);
             }
-
-            var result = DataSourceLoader.Load(data, loadOptions);
-            return Ok(result);
+            return data;
         }
 
         [HttpPost]
-        public IActionResult GetStockCard(int itemId, string lot, short year, DataSourceLoadOptions loadOptions)
+        public IActionResult GetStockCard(int itemId, DataSourceLoadOptions loadOptions)
         {
-            IQueryable<StockCardView> data;
-            if (string.IsNullOrEmpty(lot) || year <= 0)
-                data = _context.StockCardViews.Where(i => i.Item == itemId);
-            else
-                data = _context.StockCardViews.Where(i => i.Item == itemId && i.Lot == lot && i.Year == year);
-
+            var data = _context.StockCardViews.Where(i => i.Item == itemId);
             var result = DataSourceLoader.Load(data, loadOptions);
             return Ok(result);
         }
@@ -57,46 +57,33 @@ namespace OcsStore.Controllers
         [HttpPost]
         public IActionResult CalculateItemSoh(int itemId)
         {
-            CalculateStoreTransactionItem(itemId);
+            DB.UpdateItemAllStoreTransactions(_context, 1, itemId, 1);
             return Ok();
         }
 
         [HttpPost]
         public IActionResult CalculateItemGroupSoh(int itemGroupId)
         {
+            DBInventory.UpdateStoreTransactionsForMissingInventoryDetails(_context);
+
+            if (itemGroupId == 1)
+                DBReceiving.UpdateStoreTransactionsForMissingReceivingDetails(_context);
+            else
+            {
+                DBProcessing.UpdateStoreTransactionsForMissingProcessingDetails(_context);
+
+                if (itemGroupId == 3)
+                    DBBilling.UpdateStoreTransactionsForMissingBillDetails(_context);
+            }
+
             var itemIds = _context.Items.Where(i => i.Group == itemGroupId).Select(i => i.Id).ToArray();
             foreach (var itemId in itemIds)
             {
-                CalculateStoreTransactionItem(itemId);
-            }
-
-            if (itemGroupId == 1)
-            {
-                var detailIdQuery = _context.StoreTransactions.Where(i => i.Type == 1).Select(i => i.DetailId);
-                var missingReceivingIds = _context.ReceivingDetails.Where(i => !detailIdQuery.Contains(i.Id)).Select(i => i.Receiving).Distinct().ToArray();
-                foreach(var receivingId in missingReceivingIds)
-                {
-                    _context.Database.ExecuteSqlRaw("call calculate_strans_receiving(" + receivingId + ");");
-                }
-            }
-            else
-            {
-                var detailIdQuery = _context.StoreTransactions.Where(i => i.Type == 2).Select(i => i.DetailId);
-                var missingProcessingIds = _context.ProcessingInputs.Where(i => !detailIdQuery.Contains(i.Id)).Select(i => i.Processing).Distinct().ToArray();
-                foreach (var processingId in missingProcessingIds)
-                {
-                    _context.Database.ExecuteSqlRaw("call calculate_strans_processing(" + processingId + ");");
-                }
+                DB.UpdateItemAllStoreTransactions(_context, 1, itemId, 1);
             }
 
             return Ok();
         }
-
-        private void CalculateStoreTransactionItem(int itemId)
-        {
-            _context.Database.ExecuteSqlRaw("call calculate_strans_item(" + itemId + ");");
-        }
-
 
         [HttpPost]
         public IActionResult GetInventoryDetails(sbyte itemGroupId, DataSourceLoadOptions loadOptions)
@@ -108,20 +95,13 @@ namespace OcsStore.Controllers
         [HttpPost]
         public IActionResult GetNewInventoryDetails(sbyte itemGroupId, DataSourceLoadOptions loadOptions)
         {
-            var stocks = _context.StockViews.Where(i => i.ItemGroup == itemGroupId);
+            var stocks = GetStocks(itemGroupId, null).ToArray();
             List<InventoryDetailView> details = new List<InventoryDetailView>();
 
-            InventoryDetailView detail =  null;
             foreach (var s in stocks)
             {
-                var newDetail = new InventoryDetailView() { Selected = false, Item = s.Item, ItemGroup = s.ItemGroup, ItemName = s.ItemName, UseLot = s.UseLot ?? false, Lot = s.Lot, Year = (sbyte)(s.Year ?? DateTime.Today.Year % 100), Soh = s.Soh ?? 0 };
-
-                if (detail != null && newDetail.Item == detail.Item && string.IsNullOrEmpty(detail.Lot))
-                {
-                    details.Remove(detail);
-                }
-                detail = newDetail;
-                details.Add(detail);
+                var newDetail = new InventoryDetailView() { Selected = false, Item = s.Item, ItemGroup = s.ItemGroup, ItemName = s.ItemName, Soh = s.Soh };
+                details.Add(newDetail);
             }
 
             var result = DataSourceLoader.Load(details, loadOptions);
@@ -132,38 +112,26 @@ namespace OcsStore.Controllers
         public IActionResult SaveInventory(DateTime date, string time, InventoryDetail[] details)
         {
             date = Common.GetLocalDateWithoutTime(date); // Remove hour, minute...
-            int inventoryId;
-            try
-            {
-                inventoryId = _context.Inventories.Max(i => i.Id) + 1;
-            }
-            catch
-            {
-                inventoryId = 1;
-            }
 
+            var dbTran = _context.Database.BeginTransaction();
+
+            var inventoryId = DB.GetNewId(_context, "inventory");
             var inventory = new Inventory() { Id = inventoryId, Date = date, Time = time, UserCreated = Session.UserId(Request) };
             _context.Inventories.Add(inventory);
 
-            int detailId;
-            try
-            {
-                detailId = _context.InventoryDetails.Max(i => i.Id) + 1;
-            }
-            catch
-            {
-                detailId = 1;
-            }
-
+            var detailId = DB.GetNewId(_context, "inventory_detail");
             foreach (var d in details)
             {
-                var inventoryDetail = new InventoryDetail() { Id = detailId++, Inventory = inventoryId, Item = d.Item, Unit = d.Unit, Lot = d.Lot, Year = d.Year, Soh = d.Soh, Ave = d.Ave };
-                _context.InventoryDetails.Add(inventoryDetail);
+                d.Id = detailId++;
+                d.Inventory = inventoryId;
+                d.Unit = 1;
+                _context.InventoryDetails.Add(d);
             }
-
             _context.SaveChanges();
 
-            _context.Database.ExecuteSqlRaw("call calculate_strans_inventory(" + inventoryId + ");");
+            DBInventory.UpdateStoreTransactionsForInventory(_context, inventory, details);
+
+            dbTran.Commit();
 
             return Ok();
         }
@@ -171,7 +139,23 @@ namespace OcsStore.Controllers
         [HttpPost]
         public IActionResult DeleteInventory(int inventory)
         {
-            _context.Database.ExecuteSqlRaw("call delete_inventory(" + inventory + ");");
+            var inventoryData = _context.Inventories.FirstOrDefault(i => i.Id == inventory);
+            if (inventoryData != null)
+            {
+                _context.Database.BeginTransaction();
+                try
+                {
+                    DBInventory.DeleteStoreTransactionsForInventory(_context, inventoryData);
+                    _context.Inventories.Remove(inventoryData);
+                    _context.SaveChanges();
+                }
+                catch (Exception ex)
+                {
+                    _context.Database.RollbackTransaction();
+                    return BadRequest(ex.Message);
+                }
+                _context.Database.CommitTransaction();
+            }
             return Ok();
         }
 
@@ -179,7 +163,7 @@ namespace OcsStore.Controllers
         public IActionResult GetMaterialSoh(int itemId)
         {
             var materialId = _context.ItemMaterials.FirstOrDefault(i => i.Item == itemId).Material;
-            var soh = _context.StockViews.FirstOrDefault(i => i.Item == materialId).Soh ?? 0;
+            var soh = _context.StockViews.FirstOrDefault(i => i.Item == materialId).Soh;
             return Ok(soh);
         }
 

@@ -15,11 +15,7 @@ public partial class ProcessingInputView
 
     public int Item { get; set; }
 
-    public string Lot { get; set; }
-
     public string ItemName { get; set; }
-
-    public string ItemLotName { get; set; }
 
     public decimal Quantity { get; set; }
 
@@ -35,8 +31,6 @@ public partial class ProcessingInputView
 
     public string MaterialName { get; set; }
 
-    public bool MaterialUseLot { get; set; }
-
     public short User { get; set; }
 
     public string UserName { get; set; }
@@ -46,4 +40,6 @@ public partial class ProcessingInputView
     public string TimeCreated { get; set; }
 
     public bool? AllowDelete { get; set; }
+
+    public decimal? Soh { get; set; }
 }

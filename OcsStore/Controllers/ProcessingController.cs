@@ -62,10 +62,10 @@ namespace OcsStore.Controllers
         public IActionResult GetNewDetails(int itemId)
         {
             var materials = _context.ItemMaterialViews.Where(i => i.Item == itemId).ToArray();
-            List<ProcessingLotInputView> details = new List<ProcessingLotInputView>();
+            List<ProcessingInputView> details = new List<ProcessingInputView>();
             foreach (var m in materials)
             {
-                var detail = new ProcessingLotInputView() { Item = m.Material, ItemName = m.Name, Unit = m.Unit, UnitName = m.UnitName, Lot = m.Lot, Year = (sbyte)(DateTime.Today.Year % 100), UseLot = m.UseLot, ItemType = m.ItemType, Soh = m.Soh, MaterialQuantity = m.Quantity };
+                var detail = new ProcessingInputView() { Item = m.Material, ItemName = m.Name, Unit = m.Unit, UnitName = m.UnitName, MaterialQuantity = m.Quantity };
                 details.Add(detail);
             }
             return Ok(details);
@@ -99,20 +99,6 @@ namespace OcsStore.Controllers
             return inputId;
         }
 
-        private int GetNewProcessingLotInputId()
-        {
-            int lotInputId;
-            try
-            {
-                lotInputId = _context.ProcessingLotInputs.Max(i => i.Id) + 1;
-            }
-            catch
-            {
-                lotInputId = 1;
-            }
-            return lotInputId;
-        }
-
         [HttpPost]
         public IActionResult SaveRawProcessing(Processing processing, decimal materialQuantity)
         {
@@ -126,11 +112,8 @@ namespace OcsStore.Controllers
             var processingInput = new ProcessingInput() { Id = inputId, Processing = processing.Id, Item = materialId, Quantity = materialQuantity };
             _context.ProcessingInputs.Add(processingInput);
 
-            int lotInputId = GetNewProcessingLotInputId();
-            var processingLotInput = new ProcessingLotInput() { Id = lotInputId++, Input = inputId, Lot = null, Year = processing.Year, Quantity = materialQuantity };
-            _context.ProcessingLotInputs.Add(processingLotInput);
             _context.SaveChanges();
-            DBProcessing.UpdateStoreTransactionForProcessingLotInput(_context, tranId++, processing, processingInput, processingLotInput);
+            DBProcessing.UpdateStoreTransactionForProcessingInput(_context, tranId++, processing, processingInput);
 
             DBProcessing.UpdateStoreTransactionForProcessingOutput(_context, tranId, processing); // Call at the end to calculate correct price
 
@@ -139,15 +122,8 @@ namespace OcsStore.Controllers
 
         private void SaveNewProcessing(Processing processing, int tranId)
         {
-
             processing.Id = GetNewProcessingId();
             processing.Date = Common.GetLocalDateWithoutTime(processing.Date); // Remove hour, minute...
-            processing.Year = (sbyte)(processing.Date.Year % 100);
-
-            var itemUseLot = _context.Items.FirstOrDefault(i => i.Id == processing.Item).UseLot;
-            if (itemUseLot)
-                processing.Lot = processing.Date.ToString("ddMM");
-
             processing.Store = 1;
             processing.Unit = 1;
             processing.User = Session.UserId(Request);
@@ -159,7 +135,7 @@ namespace OcsStore.Controllers
         }
 
         [HttpPost]
-        public IActionResult Save(Processing processing, ProcessingLotInputView[] details)
+        public IActionResult Save(Processing processing, ProcessingInputView[] details)
         {
             _context.Database.BeginTransaction();
 
@@ -168,35 +144,19 @@ namespace OcsStore.Controllers
 
             int inputId = GetNewProcessingInputId() - 1;
 
-            int lotInputId = GetNewProcessingLotInputId();
-
+            var lotInputId = DB.GetNewId(_context, "processing_input");
 
             ProcessingInput processingInput = new ProcessingInput();
             try
             {
                 foreach (var detail in details)
                 {
-                    if (detail.Lot == null || detail.Lot == "")
-                    {
-                        ++inputId;
-                        processingInput = new ProcessingInput() { Id = inputId, Processing = processing.Id, Item = detail.Item, Unit = detail.Unit, Quantity = detail.Quantity, Note = detail.Note };
-                        _context.ProcessingInputs.Add(processingInput);
+                    ++inputId;
+                    processingInput = new ProcessingInput() { Id = inputId, Processing = processing.Id, Item = detail.Item, Unit = detail.Unit, Quantity = detail.Quantity };
+                    _context.ProcessingInputs.Add(processingInput);
 
-                        if (!detail.UseLot)
-                        {
-                            var processingLotInput = new ProcessingLotInput() { Id = lotInputId++, Input = inputId, Lot = null, Year = detail.Year, Quantity = detail.Quantity, Note = detail.Note };
-                            _context.ProcessingLotInputs.Add(processingLotInput);
-                            _context.SaveChanges();
-                            DBProcessing.UpdateStoreTransactionForProcessingLotInput(_context, tranId++, processing, processingInput, processingLotInput);
-                        }
-                    }
-                    else
-                    {
-                        var processingLotInput = new ProcessingLotInput() { Id = lotInputId++, Input = inputId, Lot = detail.Lot, Year = detail.Year, Quantity = detail.Quantity, Note = detail.Note };
-                        _context.ProcessingLotInputs.Add(processingLotInput);
-                        _context.SaveChanges();
-                        DBProcessing.UpdateStoreTransactionForProcessingLotInput(_context, tranId++, processing, processingInput, processingLotInput);
-                    }
+                    _context.SaveChanges();
+                    DBProcessing.UpdateStoreTransactionForProcessingInput(_context, tranId++, processing, processingInput);
                 }
 
                 DBProcessing.UpdateStoreTransactionForProcessingOutput(_context, tranId, processing); // Call at the end to calculate correct price

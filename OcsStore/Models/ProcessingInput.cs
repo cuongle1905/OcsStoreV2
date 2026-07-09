@@ -21,8 +21,6 @@ public partial class ProcessingInput
 
     public virtual Item ItemNavigation { get; set; }
 
-    public virtual ICollection<ProcessingLotInput> ProcessingLotInputs { get; set; } = new List<ProcessingLotInput>();
-
     public virtual Processing ProcessingNavigation { get; set; }
 
     public virtual Store StoreNavigation { get; set; }

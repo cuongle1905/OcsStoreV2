@@ -11,10 +11,6 @@ public partial class LastStoreTransaction
 
     public short Unit { get; set; }
 
-    public sbyte Year { get; set; }
-
-    public string Lot { get; set; }
-
     public int LastTransaction { get; set; }
 
     public virtual Item ItemNavigation { get; set; }

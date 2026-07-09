@@ -23,10 +23,6 @@ public partial class StoreTransaction
 
     public short Unit { get; set; }
 
-    public string Lot { get; set; }
-
-    public sbyte Year { get; set; }
-
     public decimal Quantity { get; set; }
 
     public decimal Price { get; set; }
@@ -36,12 +32,6 @@ public partial class StoreTransaction
     public decimal? Value { get; set; }
 
     public decimal? Ave { get; set; }
-
-    public decimal? LotSoh { get; set; }
-
-    public decimal? LotValue { get; set; }
-
-    public decimal? LotAve { get; set; }
 
     public short User { get; set; }
 

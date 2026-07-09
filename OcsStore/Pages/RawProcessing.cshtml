@@ -21,7 +21,7 @@ Html.DevExtreme().DataGrid<ProcessingInputView>()
         columns.AddFor(m => m.Date).Caption("Ngày").Width(90).Alignment(HorizontalAlignment.Center).Format("dd/MM/yyyy")
             .GroupIndex(0).SortOrder(SortOrder.Desc).AutoExpandGroup(false).GroupCellTemplate(new JS("groupCellTemplateTextOnly"));
         columns.AddFor(m => m.Time).Caption("Giờ").Width(50).Alignment(HorizontalAlignment.Center).CellTemplate(new JS("editTimeCellTemplate"));
-        columns.AddFor(m => m.ItemLotName).Caption("Thành phẩm").Width(130).CellTemplate(new JS("itemCellTemplate"));
+        columns.AddFor(m => m.ItemName).Caption("Thành phẩm").Width(130).CellTemplate(new JS("itemCellTemplate"));
         columns.AddFor(m => m.MaterialQuantity).Caption("Số lượng nguyên liệu (kg)").Width(60).Format("#,##0.0");
         columns.AddFor(m => m.Quantity).Caption("Số lượng thành phẩm (kg)").Width(60).Format("#,##0.0");
         columns.AddFor(m => m.UserName).Caption("Người tạo").Width(50);

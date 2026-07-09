@@ -13,10 +13,6 @@ public partial class InventoryDetailView
 
     public int Item { get; set; }
 
-    public string Lot { get; set; }
-
-    public sbyte Year { get; set; }
-
     public short Unit { get; set; }
 
     public decimal Soh { get; set; }

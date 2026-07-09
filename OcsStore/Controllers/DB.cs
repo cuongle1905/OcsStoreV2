@@ -22,27 +22,15 @@ namespace OcsStore
             return 1;
         }
 
-        public static long GetNewStoreTransactionOrdinal(MyDbContext _context, sbyte yy, DateTime date, string time, int tranId)
+        public static long GetNewStoreTransactionOrdinal(MyDbContext _context, DateTime date, string time, int tranId)
         {
-            //  SET v_ordinal = (concat(yy * 10000 + month(v_date) * 100 + day(v_date), REPLACE(v_time, ':', '')) + 0) * 1000000 + tranId % 1000000;
-            long ordinal = long.Parse(((int)yy * 10000 + date.Month * 100 + date.Day).ToString() + time.Replace(":", "")) * 1000000 + tranId % 1000000;
+            long ordinal = long.Parse(date.ToString("yyMMdd") + time.Replace(":", "")) * 1000000 + tranId % 1000000;
             return ordinal;
         }
 
         // `calculate_strans_soh`(storeId smallint, itemId int, unitId smallint, p_lot varchar(10), yy tinyint, p_ordinal bigint)
-        public static void UpdateStoreTransactions(MyDbContext _context, short storeId, int itemId, short unitId, string lot, sbyte yy, long ordinal, bool ignoreError = false)
+        public static void UpdateStoreTransactions(MyDbContext _context, short storeId, int itemId, short unitId, long ordinal, bool ignoreError = false)
         {
-            if (!string.IsNullOrEmpty(lot))
-            {
-                try
-                {
-                    UpdateLotStoreTransactions(_context, storeId, itemId, unitId, lot, yy, ordinal, ignoreError);
-                }
-                catch
-                {
-                    throw;
-                }
-            }
             decimal soh = 0, value = 0, ave = 0;
             long fromOrdinal;
 
@@ -80,22 +68,29 @@ namespace OcsStore
 				        SET v_value = v_soh * v_ave;
 				        UPDATE store_transaction set quantity = v_quantity, price = v_price, soh = v_soh, `value` = v_value, ave = v_ave where id = tranId; */
                     var inventoryDetail = _context.InventoryDetails.FirstOrDefault(i => i.Id == tran.DetailId);
-                    decimal quantity = inventoryDetail.Soh - soh;
-                    decimal price;
-                    if (quantity != 0 && inventoryDetail.Ave > 0)
+                    if (inventoryDetail != null)
                     {
-                        price = (inventoryDetail.Soh * inventoryDetail.Ave - value) / quantity;
-                        ave = inventoryDetail.Ave;
+                        decimal quantity = inventoryDetail.Soh - soh;
+                        decimal price;
+                        if (quantity != 0 && inventoryDetail.Ave > 0)
+                        {
+                            price = (inventoryDetail.Soh * inventoryDetail.Ave - value) / quantity;
+                            ave = inventoryDetail.Ave;
+                        }
+                        else
+                        {
+                            price = ave;
+                        }
+                        soh = inventoryDetail.Soh;
+                        value = soh * ave;
+
+                        tran.Quantity = quantity;
+                        tran.Price = price;
                     }
                     else
                     {
-                        price = ave;
+                        _context.StoreTransactions.Remove(tran);
                     }
-                    soh = inventoryDetail.Soh;
-                    value = soh * ave;
-
-                    tran.Quantity = quantity;
-                    tran.Price = price;
                 }
                 else
                 {
@@ -115,10 +110,7 @@ namespace OcsStore
                         ELSE
                             UPDATE store_transaction set soh = v_soh, `value` = v_value, ave = v_ave where id = tranId;
                         END IF; */
-                        if (string.IsNullOrEmpty(lot))
-                        {
-                            tran.Price = ave;
-                        }
+                        tran.Price = ave;
                         value += tran.Quantity * tran.Price;
                     }
                     else
@@ -138,125 +130,12 @@ namespace OcsStore
                 lastTranId = tran.Id;
             }
             _context.SaveChanges();
-            UpdateLastStoreTransaction(_context, storeId, itemId, unitId, "", yy, lastTranId);
+            UpdateLastStoreTransaction(_context, storeId, itemId, unitId, lastTranId);
         }
 
-        public static void UpdateLotStoreTransactions(MyDbContext _context, short storeId, int itemId, short unitId, string lot, sbyte yy, long ordinal, bool ignoreError = false)
+        public static void UpdateLastStoreTransaction(MyDbContext _context, short storeId, int itemId, short unitId, int lastTranId)
         {
-            /*	SELECT id, lot_soh, lot_value, lot_ave, ordinal INTO tranId, v_soh, v_value, v_ave, v_ordinal
-                FROM store_transaction where store = storeId and item = itemId and unit = unitId and lot = p_lot and `year` = yy and ordinal < p_ordinal
-                order by ordinal desc limit 1; */
-            decimal soh = 0, value = 0, ave = 0;
-            long fromOrdinal;
-
-            var prevTran = _context.StoreTransactions.Where(i => i.Store == storeId && i.Item == itemId && i.Unit == unitId && i.Lot == lot && i.Year == yy && i.Ordinal < ordinal).OrderByDescending(i => i.Ordinal).FirstOrDefault();
-
-            if (prevTran != null)
-            {
-                fromOrdinal = prevTran.Ordinal;
-                soh = prevTran.LotSoh ?? 0;
-                value = prevTran.LotValue ?? 0;
-                ave = prevTran.LotAve ?? 0;
-            }
-            else
-                fromOrdinal = 0;
-
-            /*
-             * SELECT id, `type`, detail_id, quantity, price, ordinal
-              INTO tranId, v_type, detailId, v_quantity, v_price, v_ordinal
-              FROM store_transaction where store = storeId and item = itemId and unit = unitId and lot = p_lot and `year` = yy and ordinal > v_ordinal order by ordinal; */
-            var trans = _context.StoreTransactions.Where(i => i.Store == storeId && i.Item == itemId && i.Unit == unitId && i.Lot == lot && i.Year == yy && i.Ordinal > fromOrdinal).OrderBy(i => i.Ordinal).ToArray();
-            int lastTranId = 0;
-            foreach (var tran in trans)
-            {
-                if (tran.Type == 4)
-                {
-                    /* SELECT soh, ave INTO inventory_soh, inventory_ave from inventory_detail where id = detailId;
-					    SET v_quantity = inventory_soh - ifnull(v_soh, 0);
-                        SET v_price = ifnull(v_ave, 0);
-                        IF v_quantity != 0 AND inventory_ave > 0 THEN
-						    SET v_price = (inventory_soh * inventory_ave - v_value) / v_quantity;
-						    SET v_ave = inventory_ave;
-					    ELSE
-						    SET v_price = v_ave;
-                        END IF;
-                        SET v_soh = inventory_soh;
-                        SET v_value = v_soh * v_ave;
-					    UPDATE store_transaction set quantity = v_quantity, price = v_price, lot_soh = v_soh, `lot_value` = v_value, lot_ave = v_ave where id = tranId;
-                     */
-                    var inventoryDetail = _context.InventoryDetails.FirstOrDefault(i => i.Id == tran.DetailId);
-                    if (inventoryDetail == null)
-                    {
-                        _context.StoreTransactions.Remove(tran);
-                        continue;
-                    }
-
-                    decimal quantity = inventoryDetail.Soh - soh;
-                    decimal price;
-                    if (quantity != 0 && inventoryDetail.Ave > 0)
-                    {
-                        price = (inventoryDetail.Soh * inventoryDetail.Ave - value) / quantity;
-                        ave = inventoryDetail.Ave;
-                    }
-                    else
-                    {
-                        price = ave;
-                    }
-                    soh = inventoryDetail.Soh;
-                    value = soh * ave;
-
-                    tran.Quantity = quantity;
-                    tran.Price = price;
-                }
-                else
-                {
-                    soh += tran.Quantity;
-
-                    ////if (!ignoreError && soh < 0)
-                    ////{
-                    ////    var itemName = _context.Items.FirstOrDefault(i => i.Id == itemId).Name;
-                    ////    throw new InvalidOperationException($"Tồn kho < 0 '{itemName} {lot}' {tran.Date.ToString("dd/MM/yyyy")}");
-                    ////}
-
-                    if (tran.Quantity < 0)
-                    {
-                        /* SET v_value = v_value + v_quantity * v_ave, v_soh = v_soh + v_quantity;
-                            UPDATE store_transaction set price = v_ave, lot_soh = v_soh, `lot_value` = v_value, lot_ave = v_ave where id = tranId; */
-                        tran.Price = ave;
-                        value += tran.Quantity * tran.Price;
-                    }
-                    else
-                    {
-                        /* SET v_value = v_value + v_quantity * v_price, v_soh = v_soh + v_quantity;
-                        SET v_ave = v_value / v_soh;
-                        UPDATE store_transaction set lot_soh = v_soh, `lot_value` = v_value, lot_ave = v_ave where id = tranId; */
-                        value += tran.Quantity * tran.Price;
-                        if (soh != 0)
-                            ave = value / soh;
-                    }
-                }
-
-                tran.LotSoh = soh;
-                tran.LotValue = value;
-                tran.LotAve = ave;
-                _context.StoreTransactions.Update(tran);
-                lastTranId = tran.Id;
-            }
-            _context.SaveChanges();
-            UpdateLastStoreTransaction(_context, storeId, itemId, unitId, lot, yy, lastTranId);
-        }
-
-        public static void UpdateLastStoreTransaction(MyDbContext _context, short storeId, int itemId, short unitId, string lot, sbyte yy, int lastTranId)
-        {
-            /* IF lastTranId IS NULL THEN
-			        DELETE FROM last_store_transaction where store = storeId and item = itemId and unit = unitId and `year` = yy and lot = p_lot;
-                ELSEIF exists (SELECT * FROM last_store_transaction where store = storeId and item = itemId and unit = unitId and `year` = yy and lot = p_lot) THEN
-			        UPDATE last_store_transaction set last_transaction = lastTranId where store = storeId and item = itemId and unit = unitId and `year` = yy and lot = p_lot;
-		        ELSE
-			        insert into last_store_transaction (store, item, unit, `year`, lot, last_transaction) values (storeId, itemId, unitId, yy, p_lot, lastTranId);
-		        END IF;
-             */
-            var lastStoreTransaction = _context.LastStoreTransactions.FirstOrDefault(i => i.Store == storeId && i.Item == itemId && i.Unit == unitId && (string.IsNullOrEmpty(lot) ? i.Lot == "" : i.Lot == lot && i.Year == yy));
+            var lastStoreTransaction = _context.LastStoreTransactions.FirstOrDefault(i => i.Store == storeId && i.Item == itemId && i.Unit == unitId);
             if (lastStoreTransaction != null)
             {
                 if (lastTranId > 0)
@@ -271,13 +150,13 @@ namespace OcsStore
             }
             else if (lastTranId > 0)
             {
-                lastStoreTransaction = new LastStoreTransaction() { Store = storeId, Item = itemId, Unit = unitId, Year = yy, Lot = lot, LastTransaction = lastTranId };
+                lastStoreTransaction = new LastStoreTransaction() { Store = storeId, Item = itemId, Unit = unitId, LastTransaction = lastTranId };
                 _context.LastStoreTransactions.Add(lastStoreTransaction);
             }
             _context.SaveChanges();
         }
 
-        public static void DeleteStoreTransaction(MyDbContext _context, int tranId, short storeId, int itemId, short unitId, string lot, sbyte yy, long ordinal)
+        public static void DeleteStoreTransaction(MyDbContext _context, int tranId, short storeId, int itemId, short unitId, long ordinal)
         {
             /*  IF p_lot IS NULL THEN
 		            SELECT ordinal into v_ordinal from store_transaction
@@ -288,33 +167,33 @@ namespace OcsStore
                       order by ordinal asc LIMIT 1;
                 END IF; */
             long fromOrdinal = 0;
-            var nextTran = _context.StoreTransactions.Where(i => i.Store == storeId && i.Item == itemId && i.Unit == unitId && (string.IsNullOrEmpty(lot) ? true : i.Lot == lot && i.Year == yy)).OrderBy(i => i.Ordinal).First();
+            var nextTran = _context.StoreTransactions.Where(i => i.Store == storeId && i.Item == itemId && i.Unit == unitId).OrderBy(i => i.Ordinal).First();
             if (nextTran != null)
             {
                 fromOrdinal = nextTran.Ordinal;
             }
             else
             {
-                var prevTran = _context.StoreTransactions.Where(i => i.Store == storeId && i.Item == itemId && i.Unit == unitId && (string.IsNullOrEmpty(lot) ? true : i.Lot == lot && i.Year == yy)).OrderByDescending(i => i.Ordinal).First();
+                var prevTran = _context.StoreTransactions.Where(i => i.Store == storeId && i.Item == itemId && i.Unit == unitId).OrderByDescending(i => i.Ordinal).First();
                 if (prevTran != null)
                 {
                     fromOrdinal = prevTran.Ordinal;
                 }
             }
 
-            var tran = _context.StoreTransactions.FirstOrDefault(i => i.Store == storeId && i.Item == itemId && i.Unit == unitId && i.Ordinal == ordinal && (string.IsNullOrEmpty(lot) ? true : i.Lot == lot && i.Year == yy));
+            var tran = _context.StoreTransactions.FirstOrDefault(i => i.Store == storeId && i.Item == itemId && i.Unit == unitId && i.Ordinal == ordinal);
             var isNegativeQuantity = tran.Quantity <= 0;
             if (tran != null)
             {
                 _context.StoreTransactions.Remove(tran);
                 _context.SaveChanges();
             }
-            UpdateStoreTransactions(_context, storeId, itemId, unitId, lot, yy, fromOrdinal, isNegativeQuantity);
+            UpdateStoreTransactions(_context, storeId, itemId, unitId, fromOrdinal, isNegativeQuantity);
         }
 
         public static void DeleteStoreTransaction(MyDbContext _context, StoreTransaction fromStoreTransaction)
         {
-            DeleteStoreTransaction(_context, fromStoreTransaction.Id, fromStoreTransaction.Store, fromStoreTransaction.Item, fromStoreTransaction.Unit, fromStoreTransaction.Lot, fromStoreTransaction.Year, fromStoreTransaction.Ordinal);
+            DeleteStoreTransaction(_context, fromStoreTransaction.Id, fromStoreTransaction.Store, fromStoreTransaction.Item, fromStoreTransaction.Unit, fromStoreTransaction.Ordinal);
         }
 
         public static void DeleteStoreTransaction(MyDbContext _context, sbyte type, int mainId, int? detailId)
@@ -330,12 +209,12 @@ namespace OcsStore
             tran.Time = time;
 
             var oldOrdinal = tran.Ordinal;
-            tran.Ordinal = GetNewStoreTransactionOrdinal(_context, tran.Year, date, time, tran.Id);
+            tran.Ordinal = GetNewStoreTransactionOrdinal(_context, date, time, tran.Id);
 
             _context.StoreTransactions.Update(tran);
             _context.SaveChanges();
 
-            UpdateStoreTransactions(_context, tran.Store, tran.Item, tran.Unit, tran.Lot, tran.Year, Math.Min(oldOrdinal, tran.Ordinal), tran.Quantity <= 0);
+            UpdateStoreTransactions(_context, tran.Store, tran.Item, tran.Unit, Math.Min(oldOrdinal, tran.Ordinal), tran.Quantity <= 0);
         }
 
         public static void UpdateStoreTransactionDateTime(MyDbContext _context, sbyte type, int mainId, int? detailId, DateTime date, string time)
@@ -355,16 +234,16 @@ namespace OcsStore
 
         public static void UpdateAllStoreTransactions(MyDbContext _context)
         {
-            var data = _context.StoreTransactions.Select(i => new  { i.Store, i.Item, i.Unit, i.Lot, i.Year }).Distinct().ToArray();
+            var data = _context.StoreTransactions.Select(i => new  { i.Store, i.Item, i.Unit }).Distinct().ToArray();
             foreach(var r in data)
             {
-                UpdateItemAllStoreTransactions(_context, r.Store, r.Item, r.Unit, r.Lot, r.Year);
+                UpdateItemAllStoreTransactions(_context, r.Store, r.Item, r.Unit);
             }
         }
 
-        public static void UpdateItemAllStoreTransactions(MyDbContext _context, short storeId, int itemId, short unitId, string lot, sbyte year)
+        public static void UpdateItemAllStoreTransactions(MyDbContext _context, short storeId, int itemId, short unitId)
         {
-            UpdateStoreTransactions(_context, storeId, itemId, unitId, lot, year, 0, true);
+            UpdateStoreTransactions(_context, storeId, itemId, unitId, 0, true);
         }
     }
 }

@@ -20,7 +20,7 @@
 @(
 Html.DevExtreme().DataGrid<StockView>()
     .ID("main-grid")
-    .DataSource(d => d.Mvc().Controller("Stock").LoadAction("GetStocks").LoadMethod("POST").LoadParams(new { ItemGroupId = new JS("function() { return itemGroupId; }"), materialIds = new JS("function() { return selectedMaterialIds; }") }))
+    .DataSource(d => d.Mvc().Controller("Stock").LoadAction("GetStockDataSource").LoadMethod("POST").LoadParams(new { ItemGroupId = new JS("function() { return itemGroupId; }"), materialIds = new JS("function() { return selectedMaterialIds; }") }))
     .RemoteOperations(false)
     .ShowBorders(true)
     .ShowRowLines(true)
@@ -108,7 +108,7 @@ Html.DevExtreme().DataGrid<StockView>()
     }
 
     function stockCellTemplate(container, options) {
-        lotTableCellTemplate(container, options);
+        stockItemTableCellTemplate(container, options);
         
         if (options.column.dataField == "Soh") {
             if (options.data.SohWarning) {

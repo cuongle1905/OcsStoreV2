@@ -80,6 +80,7 @@ namespace OcsStore.Controllers
             _context.Bills.Add(bill);
 
             int detailId = DB.GetNewId(_context, "bill_detail");
+            var tranId = DB.GetNewId(_context, "store_transaction");
 
             for (int i = 0; i < details.Length; i++)
             {
@@ -93,7 +94,7 @@ namespace OcsStore.Controllers
 
                 try
                 {
-                    CreateBillLotDetails(bill, detail);
+                    DBBilling.UpdateStoreTransactionForBillDetail(_context, tranId++, bill, detail);
                 }
                 catch (Exception ex)
                 {
@@ -105,61 +106,6 @@ namespace OcsStore.Controllers
             _context.Database.CommitTransaction();
 
             return Ok();
-        }
-
-        private void CreateBillLotDetails(Bill bill, BillDetail billDetail)
-        {
-            StockView[] stocks;
-            var item = _context.Items.FirstOrDefault(i => i.Id == billDetail.Item);
-            if (item.UseLot)
-                stocks = _context.StockViews.Where(i => i.Soh > 0 && i.Item == billDetail.Item && !string.IsNullOrEmpty(i.Lot)).OrderBy(i => i.LotOrdinal).AsNoTracking().ToArray();
-            else
-                stocks = _context.StockViews.Where(i => i.Soh > 0 && i.Item == billDetail.Item && string.IsNullOrEmpty(i.Lot)).AsNoTracking().ToArray();
-
-            var remainQuantity = billDetail.Quantity;
-            if (billDetail.Unit != 1)
-            {
-                var buExchange = _context.Units.FirstOrDefault(i => i.Id == billDetail.Unit).BuExchange;
-                remainQuantity *= (decimal)buExchange;
-            }
-
-            var billLotDetailId = DB.GetNewId(_context, "bill_lot_detail");
-            var tranId = DB.GetNewId(_context, "store_transaction");
-
-            for (int i = 0; i < stocks.Length; i++)
-            {
-                var stock = stocks[i];
-                
-                BillLotDetail detail = new BillLotDetail() { Id = billLotDetailId++, BillDetail = billDetail.Id };
-
-                if (stock.Lot != null)
-                   detail.Lot = stock.Lot;
-
-                detail.Year = (sbyte)stock.Year;
-
-                detail.Quantity = Math.Min((decimal)stock.Soh, remainQuantity);
-
-                _context.BillLotDetails.Add(detail);
-                _context.SaveChanges();
-
-                try
-                {
-                    DBBilling.UpdateStoreTransactionForBillLotDetail(_context, tranId++, bill, billDetail, detail);
-                }
-                catch
-                {
-                    throw;
-                }
-
-                remainQuantity -= detail.Quantity;
-                if (remainQuantity == 0)
-                    break;
-            }
-            if (remainQuantity > 0)
-            {
-                throw new InvalidOperationException($"Không đủ số lượng tồn kho '{item.Name}'.");
-            }
-
         }
 
         public Customer[] GetCustomers()

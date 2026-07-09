@@ -9,7 +9,7 @@
 @(
 Html.DevExtreme().DataGrid<StockCardView>()
     .ID("main-grid")
-    .DataSource(d => d.Mvc().Controller("Stock").LoadAction("GetStockCard").LoadMethod("POST").Key("Id").LoadParams(new { ItemId = Model.ItemId, Lot = Model.Lot, Year = Model.Year }))
+    .DataSource(d => d.Mvc().Controller("Stock").LoadAction("GetStockCard").LoadMethod("POST").Key("Id").LoadParams(new { ItemId = Model.ItemId }))
     .RemoteOperations(false)
     .ShowBorders(true)
     .ShowRowLines(true)
@@ -23,10 +23,6 @@ Html.DevExtreme().DataGrid<StockCardView>()
         columns.AddFor(m => m.Date).Caption("Ngày").Width(80).Alignment(HorizontalAlignment.Center).Format("dd/MM/yyyy").GroupIndex(0);
         columns.AddFor(m => m.Time).Caption("Giờ").Width(50).Alignment(HorizontalAlignment.Center).CellTemplate(new JS("editTimeCellTemplate"));
         columns.AddFor(m => m.Description).Caption("Mô tả").Width(70).Alignment(HorizontalAlignment.Left);
-        if (Model.Item.UseLot)
-        {
-            columns.AddFor(m => m.Lot).Caption("Lô").Width(40).Alignment(HorizontalAlignment.Center);
-        }
         columns.AddFor(m => m.Quantity).Caption("Số lượng").Width(65).Alignment(HorizontalAlignment.Right).Format("#,##0.0").CellTemplate(new JS("stockCellTemplate"));
         columns.AddFor(m => m.Price).Caption("Giá").Width(64).Alignment(HorizontalAlignment.Right).Format("#,##0");
 
@@ -39,7 +35,7 @@ Html.DevExtreme().DataGrid<StockCardView>()
 )
 
 <script>
-    pageTitle = "Thẻ kho @(Model.Item.Name) @(Model.Lot ?? "")";
+    pageTitle = "Thẻ kho @(Model.Item.Name)";
     goBackUrl = "/stock?itemGroup=@(Model.Item.Group)";
     const itemId = @(Model.ItemId);
     editDateTimeUrl = '@Url.Action("EditDateTime", "Stock")';

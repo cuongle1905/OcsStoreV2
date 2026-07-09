@@ -11,13 +11,9 @@ public partial class StockView
 
     public short Unit { get; set; }
 
-    public sbyte? Year { get; set; }
-
-    public string Lot { get; set; }
-
     public int? LastTransaction { get; set; }
 
-    public decimal? Soh { get; set; }
+    public decimal Soh { get; set; }
 
     public decimal? Ave { get; set; }
 
@@ -35,10 +31,6 @@ public partial class StockView
 
     public bool? AllowSale { get; set; }
 
-    public bool? UseLot { get; set; }
-
-    public string LotOrdinal { get; set; }
-
     public int ItemOrdinal { get; set; }
 
     public string GroupName { get; set; }
@@ -53,5 +45,5 @@ public partial class StockView
 
     public bool? SohWarning { get; set; }
 
-    public sbyte? InvalidTran { get; set; }
+    public bool? InvalidTran { get; set; }
 }

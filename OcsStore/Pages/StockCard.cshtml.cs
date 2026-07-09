@@ -11,12 +11,6 @@ namespace OcsStore.Pages
         public int ItemId { get; set; }
         public ItemView Item;
 
-        [FromQuery(Name = "lot")]
-        public string Lot { get; set; }
-
-        [FromQuery(Name = "year")]
-        public int Year { get; set; }
-
         private readonly ItemController _itemController;
 
         public StockCardModel(ItemController controller)
@@ -26,9 +20,6 @@ namespace OcsStore.Pages
 
         public void OnGet()
         {
-            if (Lot == "null")
-                Lot = null;
-
             Item = _itemController.GetItemView(ItemId);
         }
     }

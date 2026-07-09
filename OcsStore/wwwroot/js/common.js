@@ -575,7 +575,7 @@ function save() {
 
 const detailArrowIcon = "bi bi-arrow-right-circle-fill";
 
-function lotTableCellTemplate(container, options) {
+function stockItemTableCellTemplate(container, options) {
     let itemType = options.data.ItemType;
     let cssColor = cssColorForItemType(itemType);
     let cssClass = "";
@@ -586,13 +586,7 @@ function lotTableCellTemplate(container, options) {
     }
 
     if (options.column.dataField == "ItemName" || options.column.dataField == "Name") {
-        let iconText = "";
-        if (lot != null && lot != "") {
-            cssClass = "ps-3";
-            text = text + " " + lot;
-        } else {
-            iconText = dotSymbolHtml(cssColor); // •
-        }
+        let iconText = dotSymbolHtml(cssColor); // •
         text = `${iconText}<a class='text-link' href='/stockcard?item=${options.data.Item}&lot=${options.data.Lot}&year=${options.data.Year}'>${text}</a>`;
     }
 

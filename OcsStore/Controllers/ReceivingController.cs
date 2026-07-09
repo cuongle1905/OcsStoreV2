@@ -85,7 +85,6 @@ namespace OcsStore.Controllers
 
             _context.SaveChanges();
 
-            //_context.Database.ExecuteSqlRaw("call calculate_strans_receiving(" + receivingId + ");");
             DBReceiving.UpdateStoreTransactionsForReceiving(_context, receiving, newDetails);
 
             dbTran.Commit();

@@ -19,17 +19,9 @@ public partial class ItemMaterialView
 
     public sbyte MaterialGroup { get; set; }
 
-    public bool UseLot { get; set; }
-
     public sbyte ItemType { get; set; }
 
     public string UnitName { get; set; }
-
-    public string Lot { get; set; }
-
-    public sbyte? Year { get; set; }
-
-    public string LotOrdinal { get; set; }
 
     public decimal? Soh { get; set; }
 

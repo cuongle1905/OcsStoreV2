@@ -23,7 +23,6 @@ Html.DevExtreme().DataGrid<InventoryDetailView>()
     {
         columns.AddFor(m => m.Selected).Caption("").Width(30).AllowEditing(true);
         columns.AddFor(m => m.ItemName).Caption("Hàng hóa").Width(140).AllowEditing(false).CellTemplate(new JS("itemCellTemplate"));
-        columns.AddFor(m => m.Lot).Caption("Lô").Width(40).AllowEditing(true);
         var col = columns.AddFor(m => m.Soh).Caption("Số lượng").Width(60);
         GridUI.FormatNumberColumn(col, true, null, false);
 

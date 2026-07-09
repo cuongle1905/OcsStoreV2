@@ -31,8 +31,6 @@ public partial class BillDetail
 
     public string Name { get; set; }
 
-    public virtual ICollection<BillLotDetail> BillLotDetails { get; set; } = new List<BillLotDetail>();
-
     public virtual Bill BillNavigation { get; set; }
 
     public virtual Item ItemNavigation { get; set; }
