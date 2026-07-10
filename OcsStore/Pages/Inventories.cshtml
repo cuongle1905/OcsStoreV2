@@ -28,7 +28,7 @@ Html.DevExtreme().DataGrid<InventoryDetailView>()
     })
     .OnCellPrepared("onCellPreparedGroupFixedRightColumn")
     .Editing(e => e.AllowUpdating(false))
-    .Paging(p => p.Enabled(false))
+    .Paging(p => p.Enabled(true).PageSize(15))
 )
 <script>
     pageTitle = "KIỂM KÊ";

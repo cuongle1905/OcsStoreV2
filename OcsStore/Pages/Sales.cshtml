@@ -8,7 +8,7 @@
         border-color: transparent;
     }
 </style>
-<div id="top-section" class="ms-auto me-auto pt-3" style="width: 100%;">
+<div id="top-section" class="ms-auto me-auto" style="width: 100%;">
 </div>
 @(
 Html.DevExtreme().DataGrid<BillView>()
@@ -19,22 +19,21 @@ Html.DevExtreme().DataGrid<BillView>()
     .ShowRowLines(true)
     .WordWrapEnabled(true)
     .Sorting(s => s.Mode(GridSortingMode.None))
-    .Paging(p => p.Enabled(false))
     .OnContentReady("defaultOnGridContentReady")
     .OnCellClick("onCellClick")
     .Columns(columns =>
     {
-        columns.AddFor(m => m.Date).Caption("Ngày").Width(90).Alignment(HorizontalAlignment.Center).Format("dd/MM/yyyy").GroupIndex(0).SortIndex(0).SortOrder(SortOrder.Desc);
-        columns.AddFor(m => m.Id).Caption("#").Width(30).Alignment(HorizontalAlignment.Center).CellTemplate(new JS("linkCellTemplate"));
-        columns.AddFor(m => m.Time).Caption("Giờ").Width(50).Alignment(HorizontalAlignment.Center).CellTemplate(new JS("linkCellTemplate"));
-        columns.AddFor(m => m.CustomerName).Caption("Khách hàng").Width(100).Alignment(HorizontalAlignment.Left).CellTemplate(new JS("linkCellTemplate"));
-        columns.AddFor(m => m.Desc).Caption("Nội dung").Width(140).Alignment(HorizontalAlignment.Left);
-        columns.AddFor(m => m.Note).Caption("Ghi chú").Width(140).Alignment(HorizontalAlignment.Left);
-        columns.AddFor(m => m.Paid).Caption("Đã thanh toán").Width(42).Alignment(HorizontalAlignment.Center).Fixed(true).FixedPosition(HorizontalEdge.Right).AllowEditing(false);
-        columns.AddFor(m => m.TotalValue).Caption("Tổng tiền").Width(80).Alignment(HorizontalAlignment.Right).Fixed(true).FixedPosition(HorizontalEdge.Right).Format("#,##0");
+        columns.AddFor(m => m.Date).Caption("Ngày").Width(90).Alignment(HorizontalAlignment.Center).Format("dd/MM/yyyy").GroupIndex(0).SortIndex(0).SortOrder(SortOrder.Desc).AllowEditing(false);
+        columns.AddFor(m => m.Id).Caption("#").Width(30).Alignment(HorizontalAlignment.Center).CellTemplate(new JS("linkCellTemplate")).AllowEditing(false);
+        columns.AddFor(m => m.Time).Caption("Giờ").Width(45).Alignment(HorizontalAlignment.Center).CellTemplate(new JS("linkCellTemplate")).AllowEditing(false);
+        columns.AddFor(m => m.CustomerName).Caption("Nội dung").Width(150).Alignment(HorizontalAlignment.Left).CellTemplate(new JS("customerCellTemplate")).AllowEditing(false);
+        columns.AddFor(m => m.Paid).Caption("Thanh toán").Width(42).Alignment(HorizontalAlignment.Center).AllowEditing(false).AllowEditing(false);
+        columns.AddFor(m => m.VatPercent).Caption("VAT").Width(34).Alignment(HorizontalAlignment.Right).CellTemplate(new JS("percentCellTemplate"));
+        columns.AddFor(m => m.TotalValue).Caption("Tổng tiền").Width(90).Alignment(HorizontalAlignment.Right).Format("#,##0").AllowEditing(false);
     })
-    .Editing(e => e.AllowUpdating(false))
-    .Paging(p => p.Enabled(false))
+    .Editing(e => e.AllowUpdating(true).Mode(GridEditMode.Batch).SelectTextOnEditStart(true))
+    .OnEditorPreparing("onEditorPreparing")
+    .Paging(p => p.Enabled(true).PageSize(14))
     .Summary(s => s
         .TotalItems(items =>
         {
@@ -50,12 +49,78 @@ Html.DevExtreme().DataGrid<BillView>()
 <script>
     pageTitle = "Bán hàng"
     cellLinkUrl = 'sales/new';
+    var mainGrid;
 
     $(function () {
+        mainGrid = $("#main-grid").dxDataGrid("instance");
+
         appendTopAddButtonToGrid({ onClick: function() {
             location.href = cellLinkUrl;
         }});
     });
+
+    function customerCellTemplate(container, options) {
+        options.text += `<div class="italic" style="font-size:0.9rem;">${options.data.Desc}</div>`;
+        linkCellTemplate(container, options);
+    }
+
+    function onEditorPreparing(e) {
+        if (e.parentType === "dataRow") {
+            // e.editorOptions.valueChangeEvent = "keyup";
+
+            if (e.dataField === "VatPercent") {
+                // Save the original onValueChanged handler (prevents breaking DataGrid save logic)
+                let originalOnValueChanged = e.editorOptions.onValueChanged;
+
+                // 3. Override the event
+                e.editorOptions.onClick = function(args) {
+                    console.log("onEditorPreparing onClick", e, args);
+                };
+
+                e.editorOptions.onValueChanged = function(args) {
+                    let newValue = args.value;
+                    let previousValue = args.previousValue;
+                    const rowIndex = e.row.rowIndex;
+
+                    // Trigger custom logic (e.g., calculating another column)
+                    // console.log("New value: ", newValue);
+
+                    // Update the DataGrid data using setValue
+                    e.setValue(newValue);
+
+                    // Call the original handler to complete the standard grid operation
+                    if (originalOnValueChanged) {
+                        originalOnValueChanged(args);
+                    }
+
+                    console.log("onEditorPreparing", e);
+
+                    if (newValue != previousValue) {
+                        const billId = e.row.data.Id;
+                        DevExpress.ui.dialog.confirm(`<i>Bạn có chắc chắn muốn thay đổi VAT thành ${newValue}% cho đơn hàng #${billId}?</i>`, "Xác nhận").then(function(dialogResult) {
+                            if (dialogResult) {
+                                $.ajax({
+                                    url: '@Url.Action("UpdateVatPercent", "Sales")',
+                                    method: "POST",
+                                    data: { billId: billId, vatPercent: newValue },
+                                    success: function (result) {
+                                        // reloadData();
+                                        mainGrid.refresh();
+                                    },
+                                    error: function (xhr, status, error) {
+                                        console.log("xhr", xhr, "status", status, "error", error);
+                                        DevExpress.ui.dialog.alert("Có lỗi xảy ra. Vui lòng thử lại sau.", "Cảnh báo");
+                                    }
+                                });
+                            } else {
+                                mainGrid.cellValue(rowIndex, "VatPercent", previousValue);
+                            }
+                        });
+                    }
+                };
+            }
+        }
+    }
 
     function onCellClick(e) {
         console.log("onCellClick", e);

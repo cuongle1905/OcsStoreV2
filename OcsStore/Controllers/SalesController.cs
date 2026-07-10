@@ -65,7 +65,7 @@ namespace OcsStore.Controllers
                 bill.Id = DB.GetNewId(_context, "bill");
             }
 
-            bill.TotalValue = details.Sum(i => i.Quantity * (i.Price - i.Discount));
+            bill.TotalValue = decimal.Round(details.Sum(i => i.Quantity * (i.Price - i.Discount)) * (100 + bill.VatPercent) / 100);
             bill.DateCreated = currentDate;
             bill.TimeCreated = currentTime;
             bill.UserCreated = currentUser;
@@ -105,6 +105,18 @@ namespace OcsStore.Controllers
 
             _context.Database.CommitTransaction();
 
+            return Ok();
+        }
+
+        [HttpPost]
+        public IActionResult UpdateVatPercent(int billId, decimal vatPercent)
+        {
+            var sum = _context.BillDetails.Where(i => i.Id == billId).Sum(i => i.Quantity * (i.Price - i.Discount));
+            var bill = _context.Bills.FirstOrDefault(i => i.Id == billId);
+            bill.VatPercent = vatPercent;
+            bill.TotalValue = decimal.Round(sum * (100 + vatPercent) / 100);
+            _context.Bills.Update(bill);
+            _context.SaveChanges();
             return Ok();
         }
 

@@ -208,6 +208,9 @@ public partial class MyDbContext : DbContext
                 .HasDefaultValueSql("'1'")
                 .HasColumnName("user_modified");
             entity.Property(e => e.UserPaid).HasColumnName("user_paid");
+            entity.Property(e => e.VatPercent)
+                .HasPrecision(4)
+                .HasColumnName("vat_percent");
 
             entity.HasOne(d => d.CustomerNavigation).WithMany(p => p.Bills)
                 .HasForeignKey(d => d.Customer)
@@ -426,9 +429,7 @@ public partial class MyDbContext : DbContext
                 .HasColumnName("date_paid");
             entity.Property(e => e.Deleted).HasColumnName("deleted");
             entity.Property(e => e.Desc)
-                .IsRequired()
                 .HasMaxLength(175)
-                .HasDefaultValueSql("''")
                 .HasColumnName("desc")
                 .UseCollation("utf8mb3_general_ci")
                 .HasCharSet("utf8mb3");
@@ -471,6 +472,9 @@ public partial class MyDbContext : DbContext
                 .HasDefaultValueSql("'1'")
                 .HasColumnName("user_modified");
             entity.Property(e => e.UserPaid).HasColumnName("user_paid");
+            entity.Property(e => e.VatPercent)
+                .HasPrecision(4)
+                .HasColumnName("vat_percent");
         });
 
         modelBuilder.Entity<Customer>(entity =>

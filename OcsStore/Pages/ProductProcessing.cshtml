@@ -13,7 +13,7 @@ Html.DevExtreme().DataGrid<ProcessingView>()
     .ShowRowLines(true)
     .WordWrapEnabled(true)
     .Sorting(s => s.Mode(GridSortingMode.None))
-    .Paging(p => p.Enabled(false))
+    .Paging(p => p.Enabled(true).PageSize(15))
     .OnContentReady("onGridContentReadyExpandFirstGroup")
     .Columns(columns =>
     {
@@ -27,7 +27,7 @@ Html.DevExtreme().DataGrid<ProcessingView>()
     })
     .OnCellPrepared("onCellPreparedGroupFixedRightColumn")
     .Editing(e => e.AllowUpdating(false))
-    .Paging(p => p.Enabled(false))
+    .Paging(p => p.Enabled(true).PageSize(15))
     .Summary(s => s
         .TotalItems(items => {
             items.AddFor(m => m.Quantity).SummaryType(SummaryType.Sum).DisplayFormat("{0}").ValueFormat("#,##0.0");

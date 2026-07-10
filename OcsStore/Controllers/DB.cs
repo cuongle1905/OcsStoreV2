@@ -129,7 +129,7 @@ namespace OcsStore
                 lastTranId = tran.Id;
             }
             _context.SaveChanges();
-            UpdateLastStoreTransaction(_context, storeId, itemId, unitId, lastTranId);
+            UpdateLastStoreTransaction(_context, storeId, itemId, 1, lastTranId);
         }
 
         static bool IsValidTransaction(MyDbContext _context, StoreTransaction tran)

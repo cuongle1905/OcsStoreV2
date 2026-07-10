@@ -29,7 +29,7 @@
     .ShowRowLines(true)
     .WordWrapEnabled(true)
     .Sorting(s => s.Mode(GridSortingMode.None))
-    .Paging(p => p.Enabled(false))
+    .Paging(p => p.Enabled(true).PageSize(15))
     .OnContentReady("defaultOnGridContentReady")
     .OnInitNewRow("onInitNewRow")
     .Columns(columns =>

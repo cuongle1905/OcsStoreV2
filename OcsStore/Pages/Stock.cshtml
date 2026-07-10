@@ -39,7 +39,7 @@ Html.DevExtreme().DataGrid<StockView>()
         @* columns.Add().Name("Action").Width(36).Alignment(HorizontalAlignment.Center).Fixed(true).FixedPosition(HorizontalEdge.Right).CellTemplate(new JS("addDataCellTemplate")); *@
     })
     .Editing(e => e.AllowUpdating(false))
-    .Paging(p => p.Enabled(false))
+    .Paging(p => p.Enabled(true).PageSize(15))
     .Summary(s => s
         .CalculateCustomSummary("calculateCustomSummary")
         .TotalItems(items =>

@@ -25,6 +25,8 @@ public partial class Bill
 
     public string Note { get; set; }
 
+    public decimal VatPercent { get; set; }
+
     public decimal TotalValue { get; set; }
 
     public bool? Paid { get; set; }

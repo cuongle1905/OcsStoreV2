@@ -31,7 +31,7 @@ Html.DevExtreme().DataGrid<StockCardView>()
         columns.AddFor(m => m.ValueK).Caption("Giá trị\n(x 1000đ)").Width(60).HeaderCellTemplate(new JS("subLineHeaderCellTemplate")).Alignment(HorizontalAlignment.Right).Format("#,##0");
     })
     .Editing(e => e.AllowUpdating(false))
-    .Paging(p => p.Enabled(false))
+    .Paging(p => p.Enabled(true).PageSize(15))
 )
 
 <script>

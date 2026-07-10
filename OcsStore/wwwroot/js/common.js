@@ -57,7 +57,7 @@ function sohCellTemplate(container, options) {
 }
 
 function percentCellTemplate(container, options) {
-    container.html(`${options.text}<span style='font-size:0.9rem; margin-left:0.2rem;'>%</span>`);
+    container.html(`${options.text}<span style='font-size:0.9rem; margin-left:0.1rem;'>%</span>`);
 }
 
 function onNumberBoxFocusIn(e) {
@@ -692,7 +692,7 @@ function appendFlexContainer(e) {
 
     const isVertical = (e.direction == "vertical" || e.direction == "column");
     const flexDirection = (isVertical ? " flex-column" : "");
-    const gap = (isVertical ? " gap-1" : " gap-3");
+    const gap = (e.gap != undefined ? ` gap-${e.gap}` : (isVertical ? " gap-1" : " gap-3"));
     const div = $(`<div class="d-flex${flexDirection}${gap}">`);
 
     normalizeContainerParam(e);
@@ -828,6 +828,7 @@ function appendCheckBox(e) {
     div.dxCheckBox({
         disabled: e.disabled,
         value: e.value ?? false,
+        width: e.width ?? "auto",
         text: e.text,
         onValueChanged: e.onValueChanged
     });
@@ -920,6 +921,17 @@ function appendIconField(e) {
     appendFieldTitle({ container: dataField, title: e.title });
 
     dataField.append($(`<i class="${e.icon}">`));
+}
+
+function appendLabelField(e) {
+    normalizeContainerParam(e);
+    const dataField = appendDataFieldContainer({ container: e.container });
+
+    appendFieldTitle({ container: dataField, title: e.title });
+
+    const div = $(`<div style='margin-top: 7px;'>`);
+    dataField.append(div);
+    return div;
 }
 
 function normalizeNumberFormatParam(e) {
