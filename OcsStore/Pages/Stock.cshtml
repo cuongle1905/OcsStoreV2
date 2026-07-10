@@ -20,7 +20,7 @@
 @(
 Html.DevExtreme().DataGrid<StockView>()
     .ID("main-grid")
-    .DataSource(d => d.Mvc().Controller("Stock").LoadAction("GetStockDataSource").LoadMethod("POST").LoadParams(new { ItemGroupId = new JS("function() { return itemGroupId; }"), materialIds = new JS("function() { return selectedMaterialIds; }") }))
+    .DataSource(d => d.Mvc().Controller("Stock").LoadAction("GetStockDataSource").LoadMethod("POST").LoadParams(new { Date = new JS("function() { return selectedDate.toISOString(); }"), ItemGroupId = new JS("function() { return itemGroupId; }"), materialIds = new JS("function() { return selectedMaterialIds; }") }))
     .RemoteOperations(false)
     .ShowBorders(true)
     .ShowRowLines(true)
@@ -32,7 +32,7 @@ Html.DevExtreme().DataGrid<StockView>()
         columns.AddFor(m => m.ItemName).Caption("Hàng hóa").Width(130).Alignment(HorizontalAlignment.Left).Fixed(true).FixedPosition(HorizontalEdge.Left).CellTemplate(new JS("stockCellTemplate"));
         columns.AddFor(m => m.Soh).Caption("Số lượng tồn\n(Kg)").Width(80).HeaderCellTemplate(new JS("subLineHeaderCellTemplate")).Alignment(HorizontalAlignment.Right).Format("#,##0.0").CellTemplate(new JS("stockCellTemplate"));
         columns.AddFor(m => m.Ave).Caption("Giá TB\n(đồng)").Width(70).HeaderCellTemplate(new JS("subLineHeaderCellTemplate")).Format("#,##0").CellTemplate(new JS("stockCellTemplate"));
-        columns.AddFor(m => m.ValueK).Caption("Giá trị\n(x 1000đ)").Width(80).HeaderCellTemplate(new JS("subLineHeaderCellTemplate")).Format("#,##0").CellTemplate(new JS("stockCellTemplate"));
+        columns.AddFor(m => m.ValueK).Caption("Giá trị\n(x 1000đ)").Width(70).HeaderCellTemplate(new JS("subLineHeaderCellTemplate")).Format("#,##0").CellTemplate(new JS("stockCellTemplate"));
         
         columns.AddFor(m => m.Date).Caption("Ngày").Width(90).Alignment(HorizontalAlignment.Center).Format("dd/MM/yyyy").CellTemplate(new JS("stockCellTemplate"));
         columns.AddFor(m => m.Time).Caption("Giờ").Width(50).Alignment(HorizontalAlignment.Center).CellTemplate(new JS("stockCellTemplate"));
@@ -73,7 +73,11 @@ Html.DevExtreme().DataGrid<StockView>()
 
     $(function () {
         $("#main-grid").first().prepend($("#tab-container"));
-        $("#main-grid").first().prepend($("#top-section"));
+
+        const topSection = $("#top-section");
+        $("#main-grid").first().prepend(topSection);
+        const dateContainer = appendFlexContainer({ container: topSection });
+        const dateBox = appendDateField({ container: dateContainer, value: selectedDate, onValueChanged: dateChanged });
 
         appendMaterialTagTabs({ id: "material-tabs", containerId: "tab-container", onSelectionChanged: materialTabSelectionChanged });
 
@@ -81,6 +85,12 @@ Html.DevExtreme().DataGrid<StockView>()
 
         appendButtonToGrid({ id: "calculate-soh", level: 2, text: "Tính toán lại tồn kho", width: "50%", icon: "bi bi-calculator", onClick: calculateSoh });
     });
+
+    function dateChanged(e) {
+        selectedDate = e.value;
+        console.log("selectedDate", selectedDate);
+        $("#main-grid").dxDataGrid("instance").refresh();
+    }
 
     function expandCollapseData() {
         let grid = $("#main-grid").dxDataGrid("instance");
@@ -119,11 +129,6 @@ Html.DevExtreme().DataGrid<StockView>()
                 container.html(html);
             }
         }
-
-        // if (options.data.Lot == null || options.data.Lot == "") {
-        //     container.css("padding-top", "0.8rem");
-        //     container.css("padding-bottom", "0.8rem");
-        // }
     }
 
     function addDataCellTemplate(container, options) {
@@ -189,9 +194,7 @@ Html.DevExtreme().DataGrid<StockView>()
                 options.totalValue = 0;
             }
             if (options.summaryProcess === "calculate") {
-                if (options.value.Lot == "") {
-                    options.totalValue += options.value.ValueK;
-                }
+                options.totalValue += options.value.ValueK;
             }
             if (options.summaryProcess === "finalize") {
                 //

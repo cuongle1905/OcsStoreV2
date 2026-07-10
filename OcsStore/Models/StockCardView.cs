@@ -31,6 +31,8 @@ public partial class StockCardView
 
     public decimal? Value { get; set; }
 
+    public decimal? ValueK { get; set; }
+
     public decimal? Ave { get; set; }
 
     public short User { get; set; }

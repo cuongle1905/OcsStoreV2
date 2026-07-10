@@ -6,10 +6,12 @@
 <style>
 </style>
 
+<div id="top-section" class="pb-2"></div>
+
 @(
 Html.DevExtreme().DataGrid<StockCardView>()
     .ID("main-grid")
-    .DataSource(d => d.Mvc().Controller("Stock").LoadAction("GetStockCard").LoadMethod("POST").Key("Id").LoadParams(new { ItemId = Model.ItemId }))
+    .DataSource(d => d.Mvc().Controller("Stock").LoadAction("GetStockCard").LoadMethod("POST").Key("Id").LoadParams(new { Date = new JS("function() { return selectedDate.toISOString(); }"), ItemId = Model.ItemId }))
     .RemoteOperations(false)
     .ShowBorders(true)
     .ShowRowLines(true)
@@ -19,14 +21,14 @@ Html.DevExtreme().DataGrid<StockCardView>()
     .Columns(columns =>
     {
         columns.AddFor(m => m.Date).Caption("Ngày").Width(80).Alignment(HorizontalAlignment.Center).Format("dd/MM/yyyy").GroupIndex(0);
-        columns.AddFor(m => m.Time).Caption("Giờ").Width(50).Alignment(HorizontalAlignment.Center).CellTemplate(new JS("editTimeCellTemplate"));
-        columns.AddFor(m => m.Description).Caption("Mô tả").Width(70).Alignment(HorizontalAlignment.Left);
-        columns.AddFor(m => m.Quantity).Caption("Số lượng").Width(65).Alignment(HorizontalAlignment.Right).Format("#,##0.0").CellTemplate(new JS("stockCellTemplate"));
-        columns.AddFor(m => m.Price).Caption("Giá").Width(64).Alignment(HorizontalAlignment.Right).Format("#,##0");
+        columns.AddFor(m => m.Time).Caption("Giờ").Width(42).Alignment(HorizontalAlignment.Center).CellTemplate(new JS("editTimeCellTemplate"));
+        columns.AddFor(m => m.Description).Caption("Mô tả").Width(64).Alignment(HorizontalAlignment.Left);
+        columns.AddFor(m => m.Quantity).Caption("Số lượng").Width(60).Alignment(HorizontalAlignment.Right).Format("#,##0.0").CellTemplate(new JS("stockCellTemplate"));
+        columns.AddFor(m => m.Price).Caption("Giá").Width(55).Alignment(HorizontalAlignment.Right).Format("#,##0").CssClass("gray");
 
-        columns.AddFor(m => m.Soh).Caption("SL tồn").Width(55).Alignment(HorizontalAlignment.Right).Format("#,##0.0").CellTemplate(new JS("negativeAlertCellTemplate"));
-        columns.AddFor(m => m.Ave).Caption("Giá TB").Width(64).Alignment(HorizontalAlignment.Right).Format("#,##0");
-        columns.AddFor(m => m.Value).Caption("Giá trị").Width(86).Alignment(HorizontalAlignment.Right).Format("#,##0");
+        columns.AddFor(m => m.Soh).Caption("SL tồn").Width(50).Alignment(HorizontalAlignment.Right).Format("#,##0.0").CellTemplate(new JS("negativeAlertCellTemplate"));
+        columns.AddFor(m => m.Ave).Caption("Giá TB").Width(55).Alignment(HorizontalAlignment.Right).Format("#,##0");
+        columns.AddFor(m => m.ValueK).Caption("Giá trị\n(x 1000đ)").Width(60).HeaderCellTemplate(new JS("subLineHeaderCellTemplate")).Alignment(HorizontalAlignment.Right).Format("#,##0");
     })
     .Editing(e => e.AllowUpdating(false))
     .Paging(p => p.Enabled(false))
@@ -34,13 +36,25 @@ Html.DevExtreme().DataGrid<StockCardView>()
 
 <script>
     pageTitle = "Thẻ kho @(Model.Item.Name)";
-    goBackUrl = "/stock?itemGroup=@(Model.Item.Group)";
+    goBackUrl = `/stock?itemGroup=@(Model.Item.Group)&date=${selectedDate.getTime()}`;
     const itemId = @(Model.ItemId);
     editDateTimeUrl = '@Url.Action("EditDateTime", "Stock")';
 
     $(function () {
+        console.log("selectedDate", selectedDate);
+
+        const topSection = $("#top-section");
+        $("#main-grid").first().prepend(topSection);
+        const dateContainer = appendFlexContainer({ container: topSection });
+        const dateBox = appendDateField({ container: dateContainer, value: selectedDate, onValueChanged: dateChanged });
+
         appendButtonToGrid({ id: "calculate-soh", level: 2, text: "Tính toán lại tồn kho", width: "50%", icon: "bi bi-calculator", onClick: calculateSoh });
     });
+
+    function dateChanged(e) {
+        selectedDate = e.value;
+        $("#main-grid").dxDataGrid("instance").refresh();
+    }
 
     function calculateSoh() {
         $.ajax({

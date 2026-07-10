@@ -576,18 +576,14 @@ function save() {
 const detailArrowIcon = "bi bi-arrow-right-circle-fill";
 
 function stockItemTableCellTemplate(container, options) {
-    let itemType = options.data.ItemType;
+    let itemType = options.data.ItemGroup;
     let cssColor = cssColorForItemType(itemType);
     let cssClass = "";
     let text = options.text;
-    let lot = options.data.Lot;
-    if (lot != null && lot != "") {
-        container.addClass("gray");
-    }
 
     if (options.column.dataField == "ItemName" || options.column.dataField == "Name") {
         let iconText = dotSymbolHtml(cssColor); // •
-        text = `${iconText}<a class='text-link' href='/stockcard?item=${options.data.Item}&lot=${options.data.Lot}&year=${options.data.Year}'>${text}</a>`;
+        text = `${iconText}<a class='text-link' href='/stockcard?item=${options.data.Item}&date=${selectedDate.getTime()}'>${text}</a>`;
     }
 
     let html = `<div class='${cssClass}'>${text}</div>`
@@ -714,7 +710,7 @@ function appendDateField(e) {
 
     appendFieldTitle({ container: dataField, title: e.title });
 
-    return appendDateBox({ container: dataField, idPrefix: e.idPrefix, idPostfix: "date-box", width: e.width, height: e.height, disabled: e.disabled, onValueChanged: e.onValueChanged })
+    return appendDateBox({ container: dataField, idPrefix: e.idPrefix, idPostfix: "date-box", width: e.width, height: e.height, disabled: e.disabled, value: e.value, onValueChanged: e.onValueChanged })
 }
 
 function appendTimeField(e) {
@@ -751,7 +747,7 @@ function appendDateBox(e) {
         height: e.height,
         inputAttr: { "aria-label": "Date" },
         type: "date",
-        value: new Date(),
+        value: e.value ?? new Date(),
         displayFormat: "dd/MM/yyyy",
         dropDownOptions: {
             position: { of: `#${e.id}`, at: "left bottom", my: "left top", offset: "0 2" }

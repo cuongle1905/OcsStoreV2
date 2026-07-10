@@ -1,6 +1,7 @@
 ﻿<!DOCTYPE html>
 <html>
 @using Microsoft.AspNetCore.Http.Extensions
+@using System.Globalization
 @{
     bool hasToken = !string.IsNullOrEmpty(Session.Token(Context.Request));
     bool isAdmin = Session.IsAdmin(Context.Request);
@@ -9,6 +10,10 @@
     string itemGroupId = Context.Request.Query["ItemGroup"].ToString();
     if (string.IsNullOrEmpty(itemGroupId) || itemGroupId == "null")
         itemGroupId = "1";
+
+    long selectedDate = 0;
+    if (long.TryParse(Context.Request.Query["Date"], out long result))
+        selectedDate = result;
 
     int loginSession = Session.LoginSession(Context.Request);
     if (!hasToken && (Context.Request.Path != "/" && Context.Request.Path != "/index"))
@@ -71,6 +76,8 @@
         var itemGroupId = @(itemGroupId);
         var isDataExpanded = false;
         goBackAfterSaving = false;
+        var selectedDateValue = @Html.Raw(selectedDate);
+        var selectedDate = (selectedDateValue > 100000 ? new Date(selectedDateValue) : new Date());
         
         function menuContainerOnClick() {
             console.log("menuContainerOnClick");

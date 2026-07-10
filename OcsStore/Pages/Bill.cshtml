@@ -106,12 +106,12 @@ Html.DevExtreme().DataGrid<SaleItemView>()
         const topSection = $("#top-section");
         $("#main-grid").first().prepend(topSection);
 
-        const dateTimeBoxes = appendDateTimeFields({ container: topSection, dateWidth: "12rem", disabled: !isNewBill });
+        const dateTimeBoxes = appendDateTimeFields({ container: topSection, dateWidth: "16rem", timeWidth: "8rem", disabled: !isNewBill });
         dateBox = dateTimeBoxes.dateBox;
         timeBox = dateTimeBoxes.timeBox;
 
         const customerContainer = appendFlexContainer({ container: topSection });
-        customerSelectBox = appendSelectField({ id: "customer-select-box", container: customerContainer, width: "12rem", title: "Chọn khách hàng", dataSource: customers, onValueChanged: customerChanged, acceptCustomValue: true, disabled: !isNewBill });
+        customerSelectBox = appendSelectField({ id: "customer-select-box", container: customerContainer, width: "16rem", title: "Chọn khách hàng", dataSource: customers, onValueChanged: customerChanged, acceptCustomValue: true, disabled: !isNewBill });
 
         debitCheckBox = appendCheckField( { id: "debit-check-box", container: customerContainer, text: "Ghi nợ", disabled: !isNewBill } );
 

@@ -1859,6 +1859,9 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.Value)
                 .HasPrecision(15, 2)
                 .HasColumnName("value");
+            entity.Property(e => e.ValueK)
+                .HasPrecision(19, 6)
+                .HasColumnName("value_k");
         });
 
         modelBuilder.Entity<StockView>(entity =>
@@ -1875,7 +1878,9 @@ public partial class MyDbContext : DbContext
                 .HasColumnType("datetime")
                 .HasColumnName("date");
             entity.Property(e => e.GroupName)
+                .IsRequired()
                 .HasMaxLength(51)
+                .HasDefaultValueSql("''")
                 .HasColumnName("group_name")
                 .UseCollation("utf8mb3_general_ci")
                 .HasCharSet("utf8mb3");
