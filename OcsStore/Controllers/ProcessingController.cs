@@ -65,7 +65,7 @@ namespace OcsStore.Controllers
             List<ProcessingInputView> details = new List<ProcessingInputView>();
             foreach (var m in materials)
             {
-                var detail = new ProcessingInputView() { Item = m.Material, ItemName = m.Name, Unit = m.Unit, UnitName = m.UnitName, MaterialQuantity = m.Quantity };
+                var detail = new ProcessingInputView() { Item = m.Material, ItemName = m.Name, Unit = m.Unit, UnitName = m.UnitName, MaterialQuantity = m.Quantity, Soh = m.Soh };
                 details.Add(detail);
             }
             return Ok(details);

@@ -34,7 +34,7 @@ namespace OcsStore
             decimal soh = 0, value = 0, ave = 0;
             long fromOrdinal;
 
-            var prevTran = _context.StoreTransactions.Where(i => i.Store == storeId && i.Item == itemId && i.Unit == unitId && i.Ordinal < ordinal).OrderByDescending(i => i.Ordinal).FirstOrDefault();
+            var prevTran = _context.StoreTransactions.Where(i => i.Store == storeId && i.Item == itemId && i.Unit == 1 && i.Ordinal < ordinal).OrderByDescending(i => i.Ordinal).FirstOrDefault();
 
             if (prevTran != null)
             {
@@ -49,7 +49,7 @@ namespace OcsStore
             /* 	SELECT id, `type`, detail_id, quantity, price, ordinal
 		          INTO tranId, v_type, detailId, v_quantity, v_price, v_ordinal
 		          FROM store_transaction where store = storeId and item = itemId and unit = unitId and ordinal > v_ordinal order by ordinal LIMIT 1;*/
-            var trans = _context.StoreTransactions.Where(i => i.Store == storeId && i.Item == itemId && i.Unit == unitId && i.Ordinal > fromOrdinal).OrderBy(i => i.Ordinal).ToArray();
+            var trans = _context.StoreTransactions.Where(i => i.Store == storeId && i.Item == itemId && i.Unit == 1 && i.Ordinal > fromOrdinal).OrderBy(i => i.Ordinal).ToArray();
             int lastTranId = 0;
             foreach (var tran in trans)
             {

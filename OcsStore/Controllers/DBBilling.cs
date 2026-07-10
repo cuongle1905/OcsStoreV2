@@ -19,7 +19,9 @@ namespace OcsStore
         public static void UpdateStoreTransactionForBillDetail(MyDbContext _context, int tranId, Bill b, BillDetail d)
         {
             var ordinal = DB.GetNewStoreTransactionOrdinal(_context, b.Date, b.Time, tranId);
-            var tran = new StoreTransaction() { Id = tranId, Date = b.Date, Time = b.Time, Type = StoreTransactionType.Billing, Store = b.Store, MainId = b.Id, DetailId = d.Id, Item = d.Item, Unit = 1, Quantity = -d.Quantity, User = b.UserCreated, Ordinal = ordinal };
+            var buExchange = (decimal)_context.Units.FirstOrDefault(i => i.Id == d.Unit).BuExchange;
+
+            var tran = new StoreTransaction() { Id = tranId, Date = b.Date, Time = b.Time, Type = StoreTransactionType.Billing, Store = b.Store, MainId = b.Id, DetailId = d.Id, Item = d.Item, Unit = 1, Quantity = -d.Quantity * buExchange, Price = d.Price / buExchange, User = b.UserCreated, Ordinal = ordinal };
 
             _context.StoreTransactions.Add(tran);
             _context.SaveChanges();
