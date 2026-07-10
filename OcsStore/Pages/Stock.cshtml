@@ -26,8 +26,7 @@ Html.DevExtreme().DataGrid<StockView>()
     .ShowRowLines(true)
     .WordWrapEnabled(true)
     .Sorting(s => s.Mode(GridSortingMode.None))
-    .Paging(p => p.PageSize(12).Enabled(true))
-    @* .Pager(p => p.Visible(false)) *@
+    .Paging(p => p.Enabled(false))
     .OnContentReady("defaultOnGridContentReady")
     .Columns(columns =>
     {

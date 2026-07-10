@@ -1,5 +1,6 @@
 ﻿using DevExtreme.AspNet.Mvc;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using OcsStore.Models;
@@ -53,7 +54,7 @@ namespace OcsStore
             int lastTranId = 0;
             foreach (var tran in trans)
             {
-                if (tran.Type == 4)
+                if (tran.Type == StoreTransactionType.Inventory)
                 {
                     /* SELECT soh, ave INTO inventory_soh, inventory_ave from inventory_detail where id = detailId;
 				        SET v_quantity = inventory_soh - v_soh;
@@ -94,33 +95,31 @@ namespace OcsStore
                 }
                 else
                 {
-                    soh += tran.Quantity;
-
-                    ////if (!ignoreError && soh < 0)
-                    ////{
-                    ////    var itemName = _context.Items.FirstOrDefault(i => i.Id == itemId).Name;
-                    ////    throw new InvalidOperationException($"Tồn kho < 0 '{itemName}' {tran.Date.ToString("dd/MM/yyyy")}");
-                    ////}
-
-                    if (tran.Quantity < 0)
+                    if (IsValidTransaction(_context, tran))
                     {
-                        /* SET v_value = v_value + v_quantity * v_ave, v_soh = v_soh + v_quantity;
-                        IF p_lot is null THEN
-                            UPDATE store_transaction set price = v_ave, soh = v_soh, `value` = v_value, ave = v_ave where id = tranId;
-                        ELSE
-                            UPDATE store_transaction set soh = v_soh, `value` = v_value, ave = v_ave where id = tranId;
-                        END IF; */
-                        tran.Price = ave;
-                        value += tran.Quantity * tran.Price;
+                        soh += tran.Quantity;
+
+                        ////if (!ignoreError && soh < 0)
+                        ////{
+                        ////    var itemName = _context.Items.FirstOrDefault(i => i.Id == itemId).Name;
+                        ////    throw new InvalidOperationException($"Tồn kho < 0 '{itemName}' {tran.Date.ToString("dd/MM/yyyy")}");
+                        ////}
+
+                        if (tran.Quantity < 0)
+                        {
+                            tran.Price = ave;
+                            value += tran.Quantity * tran.Price;
+                        }
+                        else
+                        {
+                            value += tran.Quantity * tran.Price;
+                            if (soh != 0)
+                                ave = value / soh;
+                        }
                     }
                     else
                     {
-                        /* SET v_value = v_value + v_quantity * v_price, v_soh = v_soh + v_quantity;
-                            SET v_ave = if(v_soh != 0, v_value / v_soh, 0);
-                            UPDATE store_transaction set soh = v_soh, `value` = v_value, ave = v_ave where id = tranId; */
-                        value += tran.Quantity * tran.Price;
-                        if (soh != 0)
-                            ave = value / soh;
+                        _context.StoreTransactions.Remove(tran);
                     }
                 }
                 tran.Soh = soh;
@@ -131,6 +130,14 @@ namespace OcsStore
             }
             _context.SaveChanges();
             UpdateLastStoreTransaction(_context, storeId, itemId, unitId, lastTranId);
+        }
+
+        static bool IsValidTransaction(MyDbContext _context, StoreTransaction tran)
+        {
+            if (tran.DetailId == null)
+                return (tran.Type == StoreTransactionType.Receiving && _context.Receivings.Count(i => i.Id == tran.MainId) > 0) || (tran.Type == StoreTransactionType.Processing && _context.Processings.Count(i => i.Id == tran.MainId) > 0) || (tran.Type == StoreTransactionType.Billing && _context.Bills.Count(i => i.Id == tran.MainId) > 0);
+
+            return (tran.Type == StoreTransactionType.Receiving && _context.ReceivingDetails.Count(i => i.Id == tran.DetailId) > 0) || (tran.Type == StoreTransactionType.Processing && _context.ProcessingInputs.Count(i => i.Id == tran.DetailId) > 0) || (tran.Type == StoreTransactionType.Billing && _context.BillDetails.Count(i => i.Id == tran.DetailId) > 0);
         }
 
         public static void UpdateLastStoreTransaction(MyDbContext _context, short storeId, int itemId, short unitId, int lastTranId)
