@@ -18,8 +18,7 @@
     .ShowRowLines(true)
     .WordWrapEnabled(true)
     .Sorting(s => s.Mode(GridSortingMode.None))
-    .Paging(p => p.PageSize(12))
-    @* .Pager(p => p.Visible(true)) *@
+    .Paging(p => p.Enabled(false))
     .OnContentReady("defaultOnGridContentReady")
     .OnRowPrepared("onRowPreparedInactive")
     .OnInitNewRow("onInitNewRow")

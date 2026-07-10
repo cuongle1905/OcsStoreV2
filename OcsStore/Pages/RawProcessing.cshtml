@@ -28,7 +28,7 @@ Html.DevExtreme().DataGrid<ProcessingInputView>()
     })
     .OnCellPrepared("onCellPreparedGroupFixedRightColumn")
     .Editing(e => e.AllowUpdating(false))
-    .Paging(p => p.Enabled(true).PageSize(100))
+    .Paging(p => p.Enabled(false))
     .Summary(s => s
         .TotalItems(items =>
         {

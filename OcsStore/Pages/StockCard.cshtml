@@ -15,7 +15,6 @@ Html.DevExtreme().DataGrid<StockCardView>()
     .ShowRowLines(true)
     .WordWrapEnabled(true)
     .Sorting(s => s.Mode(GridSortingMode.None))
-    .Paging(p => p.Enabled(false))
     .OnContentReady("defaultOnGridContentReady")
     .Columns(columns =>
     {
@@ -30,7 +29,7 @@ Html.DevExtreme().DataGrid<StockCardView>()
         columns.AddFor(m => m.Value).Caption("Giá trị").Width(86).Alignment(HorizontalAlignment.Right).Format("#,##0");
     })
     .Editing(e => e.AllowUpdating(false))
-    .Paging(p => p.Enabled(true).PageSize(100))
+    .Paging(p => p.Enabled(false))
 )
 
 <script>

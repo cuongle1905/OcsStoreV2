@@ -19,8 +19,7 @@ Html.DevExtreme().DataGrid<BillDetailView>()
     .ShowRowLines(true)
     .WordWrapEnabled(true)
     .Sorting(s => s.Mode(GridSortingMode.None))
-    .Paging(p => p.PageSize(100))
-    .Pager(p => p.Visible(false))
+    .Paging(p => p.Enabled(false))
     .OnContentReady("defaultOnGridContentReady")
     .Columns(columns =>
     {
@@ -67,8 +66,7 @@ Html.DevExtreme().DataGrid<SaleItemView>()
     .ShowRowLines(true)
     .WordWrapEnabled(true)
     .Sorting(s => s.Mode(GridSortingMode.None))
-    .Paging(p => p.PageSize(100))
-    .Pager(p => p.Visible(false))
+    .Paging(p => p.Enabled(false))
     .OnContentReady("defaultOnGridContentReady")
     .Columns(columns =>
     {

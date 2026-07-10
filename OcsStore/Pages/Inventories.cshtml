@@ -15,7 +15,6 @@ Html.DevExtreme().DataGrid<InventoryDetailView>()
     .ShowRowLines(true)
     .WordWrapEnabled(true)
     .Sorting(s => s.Mode(GridSortingMode.None))
-    .Paging(p => p.Enabled(false))
     .OnContentReady("onGridContentReadyExpandFirstGroup")
     .Columns(columns =>
     {
@@ -29,7 +28,7 @@ Html.DevExtreme().DataGrid<InventoryDetailView>()
     })
     .OnCellPrepared("onCellPreparedGroupFixedRightColumn")
     .Editing(e => e.AllowUpdating(false))
-    .Paging(p => p.Enabled(true).PageSize(100))
+    .Paging(p => p.Enabled(false))
 )
 <script>
     pageTitle = "KIỂM KÊ";

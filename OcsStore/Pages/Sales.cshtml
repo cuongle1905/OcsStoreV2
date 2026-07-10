@@ -19,8 +19,7 @@ Html.DevExtreme().DataGrid<BillView>()
     .ShowRowLines(true)
     .WordWrapEnabled(true)
     .Sorting(s => s.Mode(GridSortingMode.None))
-    .Paging(p => p.PageSize(100))
-    .Pager(p => p.Visible(false))
+    .Paging(p => p.Enabled(false))
     .OnContentReady("defaultOnGridContentReady")
     .OnCellClick("onCellClick")
     .Columns(columns =>
@@ -35,7 +34,7 @@ Html.DevExtreme().DataGrid<BillView>()
         columns.AddFor(m => m.TotalValue).Caption("Tổng tiền").Width(80).Alignment(HorizontalAlignment.Right).Fixed(true).FixedPosition(HorizontalEdge.Right).Format("#,##0");
     })
     .Editing(e => e.AllowUpdating(false))
-    .Paging(p => p.Enabled(true).PageSize(100))
+    .Paging(p => p.Enabled(false))
     .Summary(s => s
         .TotalItems(items =>
         {
