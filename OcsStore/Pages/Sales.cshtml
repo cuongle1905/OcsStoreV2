@@ -8,12 +8,15 @@
         border-color: transparent;
     }
 </style>
+<script>
+    dateRangeControl.fromDate = dateRangeControl.toDate.firstDateOfMonth();
+</script>
 <div id="top-section" class="ms-auto me-auto" style="width: 100%;">
 </div>
 @(
 Html.DevExtreme().DataGrid<BillView>()
     .ID("main-grid")
-    .DataSource(d => d.Mvc().Controller("Sales").LoadAction("GetBills").LoadMethod("POST").Key("Id"))
+    .DataSource(d => d.Mvc().Controller("Sales").LoadAction("GetBills").LoadMethod("POST").LoadParams(new { CustomerId = new JS("function() { return customerId; }"), FromDate = new JS("function() { return dateRangeControl.fromDate.toISOString(); }"), ToDate = new JS("function() { return dateRangeControl.toDate.toISOString(); }") }).Key("Id"))
     .RemoteOperations(false)
     .ShowBorders(true)
     .ShowRowLines(true)
@@ -33,7 +36,7 @@ Html.DevExtreme().DataGrid<BillView>()
     })
     .Editing(e => e.AllowUpdating(true).Mode(GridEditMode.Batch).SelectTextOnEditStart(true))
     .OnEditorPreparing("onEditorPreparing")
-    .Paging(p => p.Enabled(true).PageSize(14))
+    .Paging(p => p.Enabled(true).PageSize(12))
     .Summary(s => s
         .TotalItems(items =>
         {
@@ -49,7 +52,9 @@ Html.DevExtreme().DataGrid<BillView>()
 <script>
     pageTitle = "Bán hàng"
     cellLinkUrl = 'sales/new';
+    var customers = @Html.Raw(Json.Serialize(Model.Customers));
     var mainGrid;
+    var customerId = 0;
 
     $(function () {
         mainGrid = $("#main-grid").dxDataGrid("instance");
@@ -57,7 +62,24 @@ Html.DevExtreme().DataGrid<BillView>()
         appendTopAddButtonToGrid({ onClick: function() {
             location.href = cellLinkUrl;
         }});
+
+        const topSection = $("#top-section");
+        $("#main-grid").first().prepend(topSection);
+        
+        const flexContainer = appendFlexContainer({ container: topSection, gap: 2 });
+        customerSelectBox = appendSelectField({ id: "customer-select-box", container: flexContainer, width: "10.4rem", title: "Khách hàng", dataSource: customers, onValueChanged: customerChanged });
+
+        appendDateRangeControl({ container: flexContainer, gap: 2, onValueChanged: onDateRangeChanged });
     });
+
+    function customerChanged(e) {
+        customerId = e.value;
+        mainGrid.refresh();
+    }
+
+    function onDateRangeChanged() {
+        mainGrid.refresh();
+    }
 
     function customerCellTemplate(container, options) {
         options.text += `<div class="italic" style="font-size:0.9rem;">${options.data.Desc}</div>`;
@@ -136,7 +158,7 @@ Html.DevExtreme().DataGrid<BillView>()
                         $.ajax({
                             url: '@Url.Action("UpdatePaid", "Sales")',
                             method: "POST",
-                            data: { id: billId, paid: paid },
+                            data: { Id: billId, paid: paid },
                             success: function (result) {
                                 // reloadData();
                                 $("#main-grid").dxDataGrid("instance").cellValue(rowIndex, "Paid", paid);

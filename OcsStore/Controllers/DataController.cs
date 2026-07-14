@@ -71,9 +71,9 @@ namespace OcsStore.Controllers
         }
 
         [HttpPost]
-        public IActionResult GetExpenses(DataSourceLoadOptions loadOptions)
+        public IActionResult GetExpenses(DateTime fromDate, DateTime toDate, DataSourceLoadOptions loadOptions)
         {
-            var result = DataSourceLoader.Load(_context.Expenses.OrderByDescending(i => i.Id).OrderByDescending(i => i.Date), loadOptions);
+            var result = DataSourceLoader.Load(_context.Expenses.Where(i => i.Date >= fromDate && i.Date <= toDate).OrderByDescending(i => i.Id).OrderByDescending(i => i.Date), loadOptions);
             return Ok(result);
         }
 

@@ -425,3 +425,11 @@
 .dx-list:not(.dx-list-select-decorator-enabled) .dx-list-item.dx-state-focused {
     background-color: var(--common-color-main-light);
 }
+
+.dx-selectbox.hide-editor-selectbox {
+    background-color: #fefefe;
+}
+.dx-selectbox.hide-editor-selectbox .dx-placeholder {
+    width: 100%;
+    text-align: center;
+}

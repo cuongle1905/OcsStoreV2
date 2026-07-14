@@ -25,9 +25,12 @@ namespace OcsStore.Controllers
         }
 
         [HttpPost]
-        public IActionResult GetBills(DataSourceLoadOptions loadOptions)
+        public IActionResult GetBills(int customerId, DateTime fromDate, DateTime toDate, DataSourceLoadOptions loadOptions)
         {
-            var result = DataSourceLoader.Load(_context.BillViews, loadOptions);
+            fromDate = Common.GetLocalDateWithoutTime(fromDate); // Remove hour, minute...
+            toDate = Common.GetLocalDateWithoutTime(toDate); // Remove hour, minute...
+            var data = _context.BillViews.Where(i => i.Date >= fromDate && i.Date <= toDate && (customerId <= 0 || i.Customer == customerId));
+            var result = DataSourceLoader.Load(data, loadOptions);
             return Ok(result);
         }
 
@@ -123,6 +126,10 @@ namespace OcsStore.Controllers
         public Customer[] GetCustomers()
         {
             return _context.Customers.AsNoTracking().ToArray();
+        }
+        public List<Customer> GetCustomerList()
+        {
+            return _context.Customers.AsNoTracking().ToList();
         }
 
         [HttpPost]

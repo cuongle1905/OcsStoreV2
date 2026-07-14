@@ -5,10 +5,15 @@
     bool isAdmin = Session.IsAdmin(Request);
 }
 
+<script>
+    dateRangeControl.fromDate = dateRangeControl.toDate.firstDateOfMonth();
+</script>
+<div id="top-section" class="ms-auto me-auto" style="width: 100%;">
+</div>
 @(
 Html.DevExtreme().DataGrid<ReceivingDetailView>()
     .ID("main-grid")
-    .DataSource(d => d.Mvc().Controller("Receiving").LoadAction("GetReceivings").LoadMethod("POST").Key("Id"))
+    .DataSource(d => d.Mvc().Controller("Receiving").LoadAction("GetReceivings").LoadMethod("POST").LoadParams(new { FromDate = new JS("function() { return dateRangeControl.fromDate.toISOString(); }"), ToDate = new JS("function() { return dateRangeControl.toDate.toISOString(); }") }).Key("Id"))
     .RemoteOperations(false)
     .ShowBorders(true)
     .ShowRowLines(true)
@@ -53,10 +58,21 @@ Html.DevExtreme().DataGrid<ReceivingDetailView>()
     editDateTimeUrl = '@Url.Action("EditDateTime", "Receiving")';
 
     $(function () {
+        mainGrid = $("#main-grid").dxDataGrid("instance");
+
         appendTopAddButtonToGrid({ onClick: function() {
             location.href = "receiving/new?sourceurl=receiving";
         }});
+
+        const topSection = $("#top-section");
+        $("#main-grid").first().prepend(topSection);
+
+        appendDateRangeControl({ container: topSection, onValueChanged: onDateRangeChanged })
     });
+    
+    function onDateRangeChanged() {
+        mainGrid.refresh();
+    }
 
     function itemCellTemplate(container, options) {
         container.html(dotSymbolHtml("green") + options.text);

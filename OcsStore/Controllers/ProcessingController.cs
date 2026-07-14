@@ -26,9 +26,11 @@ namespace OcsStore.Controllers
         }
 
         [HttpPost]
-        public IActionResult GetProcessingInputViews(sbyte itemGroup, DataSourceLoadOptions loadOptions)
+        public IActionResult GetProcessingInputViews(sbyte itemGroup, DateTime fromDate, DateTime toDate, DataSourceLoadOptions loadOptions)
         {
-            var data = _context.ProcessingInputViews.Where(i => i.ItemGroup == itemGroup).ToArray();
+            fromDate = Common.GetLocalDateWithoutTime(fromDate); // Remove hour, minute...
+            toDate = Common.GetLocalDateWithoutTime(toDate); // Remove hour, minute...
+            var data = _context.ProcessingInputViews.Where(i => i.ItemGroup == itemGroup && i.Date >= fromDate && i.Date <= toDate).ToArray();
             var isAdmin = Session.IsAdmin(Request);
             var userId = Session.UserId(Request);
             foreach (var record in data)
@@ -40,9 +42,11 @@ namespace OcsStore.Controllers
         }
 
         [HttpPost]
-        public IActionResult GetProcessingViews(sbyte itemGroup, DataSourceLoadOptions loadOptions)
+        public IActionResult GetProcessingViews(sbyte itemGroup, DateTime fromDate, DateTime toDate, DataSourceLoadOptions loadOptions)
         {
-            var data = _context.ProcessingViews.Where(i => i.ItemGroup == itemGroup).ToArray();
+            fromDate = Common.GetLocalDateWithoutTime(fromDate); // Remove hour, minute...
+            toDate = Common.GetLocalDateWithoutTime(toDate); // Remove hour, minute...
+            var data = _context.ProcessingViews.Where(i => i.ItemGroup == itemGroup && i.Date >= fromDate && i.Date <= toDate).ToArray();
             var isAdmin = Session.IsAdmin(Request);
             var userId = Session.UserId(Request);
             foreach (var record in data)

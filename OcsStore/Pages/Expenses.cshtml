@@ -4,9 +4,15 @@
 @{
 }
 
+<script>
+    dateRangeControl.fromDate = dateRangeControl.toDate.firstDateOfMonth();
+</script>
+<div id="top-section" class="ms-auto me-auto" style="width: 100%;">
+</div>
+
 @(Html.DevExtreme().DataGrid<Expense>()
     .ID("main-grid")
-    .DataSource(d => d.Mvc().Controller("Data").LoadAction("GetExpenses").LoadMethod("POST"))
+    .DataSource(d => d.Mvc().Controller("Data").LoadAction("GetExpenses").LoadMethod("POST").LoadParams(new { FromDate = new JS("function() { return dateRangeControl.fromDate.toISOString(); }"), ToDate = new JS("function() { return dateRangeControl.toDate.toISOString(); }") }))
     .RemoteOperations(false)
     .ShowBorders(true)
     .ShowRowLines(true)
@@ -55,9 +61,20 @@
     dataRowDateFields = ["Date"];
 
     $(function () {
+        mainGrid = $("#main-grid").dxDataGrid("instance");
+
         appendBottomAddButtonToGrid();
         appendUndoSaveButtonsToGrid();
+        
+        const topSection = $("#top-section");
+        $("#main-grid").first().prepend(topSection);
+
+        appendDateRangeControl({ container: topSection, onValueChanged: onDateRangeChanged })
     });
+    
+    function onDateRangeChanged() {
+        mainGrid.refresh();
+    }
 
     function onInitNewRow(e) {
         e.data.Id = 0;

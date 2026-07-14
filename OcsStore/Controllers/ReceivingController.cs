@@ -24,9 +24,11 @@ namespace OcsStore.Controllers
         }
 
         [HttpPost]
-        public IActionResult GetReceivings(DataSourceLoadOptions loadOptions)
+        public IActionResult GetReceivings(DateTime fromDate, DateTime toDate, DataSourceLoadOptions loadOptions)
         {
-            var data = _context.ReceivingDetailViews.ToArray();
+            fromDate = Common.GetLocalDateWithoutTime(fromDate); // Remove hour, minute...
+            toDate = Common.GetLocalDateWithoutTime(toDate); // Remove hour, minute...
+            var data = _context.ReceivingDetailViews.Where(i => i.Date >= fromDate && i.Date <= toDate).ToArray();
             var isAdmin = Session.IsAdmin(Request);
             var userId = Session.UserId(Request);
             foreach (var record in data)

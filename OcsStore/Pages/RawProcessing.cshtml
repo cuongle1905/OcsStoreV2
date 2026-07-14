@@ -4,10 +4,16 @@
 @{
 }
 
+<script>
+    dateRangeControl.fromDate = dateRangeControl.toDate.firstDateOfMonth();
+</script>
+<div id="top-section" class="ms-auto me-auto" style="width: 100%;">
+</div>
+
 @(
 Html.DevExtreme().DataGrid<ProcessingInputView>()
     .ID("main-grid")
-    .DataSource(d => d.Mvc().Controller("Processing").LoadAction("GetProcessingInputViews").LoadMethod("POST").Key("Id").LoadParams(new { ItemGroup = 2 }))
+    .DataSource(d => d.Mvc().Controller("Processing").LoadAction("GetProcessingInputViews").LoadMethod("POST").Key("Id").LoadParams(new { ItemGroup = 2, FromDate = new JS("function() { return dateRangeControl.fromDate.toISOString(); }"), ToDate = new JS("function() { return dateRangeControl.toDate.toISOString(); }") }))
     .RemoteOperations(false)
     .ShowBorders(true)
     .ShowRowLines(true)
@@ -46,10 +52,21 @@ Html.DevExtreme().DataGrid<ProcessingInputView>()
     var itemGroupId = 2;
 
     $(function () {
+        mainGrid = $("#main-grid").dxDataGrid("instance");
+
         appendTopAddButtonToGrid({ onClick: function() {
             location.href = "/rawprocessing/new";
         }});
+        
+        const topSection = $("#top-section");
+        $("#main-grid").first().prepend(topSection);
+
+        appendDateRangeControl({ container: topSection, onValueChanged: onDateRangeChanged })
     });
+    
+    function onDateRangeChanged() {
+        mainGrid.refresh();
+    }
 
     function itemCellTemplate(container, options) {
         const cssColor = cssColorForItemType(options.data.ItemGroup);

@@ -744,7 +744,7 @@ function appendDateBox(e) {
     div.dxDateBox({
         disabled: e.disabled,
         width: e.width,
-        height: e.height,
+        height: e.height ?? "24px",
         inputAttr: { "aria-label": "Date" },
         type: "date",
         value: e.value ?? new Date(),
@@ -764,7 +764,7 @@ function appendTimeBox(e) {
     div.dxDateBox({
         disabled: e.disabled,
         width: e.width,
-        height: e.height,
+        height: e.height ?? "24px",
         type: "time",
         value: new Date(),
         displayFormat: "HH:mm"
@@ -787,11 +787,12 @@ function appendSelectBox(e) {
     normalizeDataParam(e);
     normalizeSelectBoxParam(e);
     const div = appendControlDiv(e);
-    div.dxSelectBox({
+
+    let options = {
         dataSource: e.dataSource,
         disabled: e.disabled,
         width: e.width,
-        height: e.height,
+        height: e.height ?? "24px",
         displayExpr: e.nameField,
         valueExpr: e.idField,
         value: e.value,
@@ -800,6 +801,7 @@ function appendSelectBox(e) {
         onValueChanged: (e.acceptCustomValue ? function (ee) { selectControlInputText(ee.element); if (typeof e.onValueChanged === "function") e.onValueChanged(ee); } : e.onValueChanged),
         placeholder: "Chọn...",
         dropDownOptions: {
+            width: "200px",
             position: {
                 of: `#${e.id}`,
                 at: "left bottom",
@@ -807,7 +809,23 @@ function appendSelectBox(e) {
                 offset: "0 2"
             }
         }
-    });
+    };
+    if (e.hideEditor) {
+        options.elementAttr = {
+            class: "hide-editor-selectbox" // Custom class for CSS removal of input
+        }
+        options.showDropDownButton = false;
+        options.placeholder = "...";
+        options.dropDownOptions.width = "120px";
+        options.dropDownOptions.position.at = "right bottom";
+        options.dropDownOptions.position.my = "right top";
+        // options.fieldTemplate = function(data, container) {
+        //     // Create an invisible input or a dummy container for layout
+        //     $('<div class="hidden-input">').appendTo(container);
+        // }
+    }
+
+    div.dxSelectBox(options);
     const selectBox = div.dxSelectBox("instance");
     return selectBox;
 }
@@ -898,7 +916,7 @@ function appendNumberBox(e) {
     const div = appendControlDiv(e);
     div.dxNumberBox({
         width: e.width,
-        height: e.height,
+        height: e.height ?? "24px",
         format: e.format,
         min: e.min,
         max: e.max,
@@ -974,7 +992,7 @@ function normalizeWidthHeightParam(e) {
         e.width = "auto";
 
     if (e.height == undefined)
-        e.height = "auto";
+        e.height = "24px";
 }
 
 function normalizeSelectBoxParam(e) {
@@ -1045,6 +1063,37 @@ Date.prototype.getDateWithoutTime = function () {
     return new Date(this.getFullYear(), this.getMonth(), this.getDate());
 };
 
+Date.prototype.firstDateOfMonth = function () {
+    return new Date(this.getFullYear(), this.getMonth(), 1);
+};
+
+Date.prototype.firstDateOfYear = function () {
+    return new Date(this.getFullYear(), 0, 1);
+};
+
+Date.prototype.endDateOfYear = function () {
+    return new Date(this.getFullYear(), 11, 31);
+};
+
+Date.prototype.endDateOfMonth = function () {
+    let year = this.getFullYear();
+    let month = this.getMonth();
+    if (month == 12) {
+        month = 1;
+        year += 1;
+    } else
+        month += 1;
+
+    let date = new Date(year, month, 1);
+    return date.addDays(-1);
+};
+
+Date.prototype.addDays = function (days) {
+    const date = this.getDateWithoutTime();
+    date.setDate(this.getDate() + days);
+    return date;
+};
+
 function today() {
     const now = new Date();
     return now.getDateWithoutTime();
@@ -1082,4 +1131,118 @@ function handleAjaxError (xhr, status, error) {
     console.log("xhr", xhr, "responseText", xhr.responseText, "status", status, "error", error);
     const errorMessage = (xhr.responseText != undefined ? xhr.responseText : "Có lỗi xảy ra. Vui lòng thử lại sau.");
     DevExpress.ui.dialog.alert(errorMessage, "Cảnh báo");
+}
+
+// ===== Date Range Control ================================================
+
+var dateRangeControl = {
+    fromDate: new Date(),
+    toDate: new Date(),
+    dateChanging: false,
+    options: [{ Id: 0, Name: "Hôm nay" }, { Id: 1, Name: "<< Ngày trước" }, { Id: 2, Name: ">> Ngày sau" }, { Id: 3, Name: "Tuần hiện tại" }, { Id: 4, Name: "<< Tuần trước" }, { Id: 5, Name: ">> Tuần sau" }, { Id: 6, Name: "Tháng hiện tại" }, { Id: 7, Name: "<< Tháng trước" }, { Id: 8, Name: ">> Tháng sau" }, { Id: 9, Name: "Năm hiện tại" }, { Id: 10, Name: "<< Năm trước" }, { Id: 11, Name: ">> Năm sau" }],
+    setValues: function (date1, date2) {
+        console.log("dateRangeControl setValues", date1, date2);
+        this.dateChanging = true;
+        this.fromDateBox.option("value", date1);
+        this.dateChanging = false;
+        this.toDateBox.option("value", date2);
+    }
+};
+
+function appendDateRangeControl(e) {
+    const div = appendFlexContainer(e);
+
+    dateRangeControl.fromDateBox = appendDateField({ container: div, idPrefix: "date-range-from", title: "Từ ngày", width: (e.dateWidth ?? e.width), height: e.height, disabled: e.disabled, value: dateRangeControl.fromDate, onValueChanged: onDateRangeFromValueChanged });
+
+    dateRangeControl.toDateBox = appendDateField({ container: div, idPrefix: "date-range-to", title: "Đến ngày", width: (e.dateWidth ?? e.width), height: e.height, disabled: e.disabled, value: dateRangeControl.toDate, onValueChanged: onDateRangeToValueChanged });
+
+    dateRangeControl.optionsSelectBox = appendSelectField({ Id: "date-range-options-select-box", container: div, width: "30px", height: e.height, hideEditor: true, dataSource: dateRangeControl.options, onValueChanged: onDateRangeOptionChanged });
+
+    dateRangeControl.onValueChanged = e.onValueChanged;
+}
+
+function onDateRangeFromValueChanged(e) {
+    // console.log("onDateRangeFromValueChanged", e);
+    dateRangeControl.fromDate = e.value;
+
+    if (e.value > dateRangeControl.toDate)
+        dateRangeControl.toDateBox.option("value", e.value);
+    else
+        dateRangeControl.onValueChanged();
+}
+
+function onDateRangeToValueChanged(e) {
+    // console.log("onDateRangeToValueChanged", e);
+    dateRangeControl.toDate = e.value;
+
+    if (e.value < dateRangeControl.fromDate)
+        dateRangeControl.fromDateBox.option("value", e.value);
+    else if (!dateRangeControl.dateChanging);
+    dateRangeControl.onValueChanged();
+}
+
+function onDateRangeOptionChanged(e) {
+    // console.log("onDateRangeOptionChanged", e);
+    if (e.value == 0) {
+        const date = new Date();
+        dateRangeControl.setValues(date, date);
+    } if (e.value == 1) {
+        const date = dateRangeControl.fromDate.addDays(-1);
+        dateRangeControl.toDateBox.option("value", date);
+    } else if (e.value == 2) {
+        dateRangeControl.fromDateBox.option("value", dateRangeControl.toDate.addDays(1));
+
+    } else if (e.value == 3) { // Current week
+        let fromDate = new Date();
+        let dayOfWeek = fromDate.getDay(); // 0 (Sunday) to 6 (Saturday)
+        fromDate = fromDate.addDays(-dayOfWeek);
+        const toDate = fromDate.addDays(6);
+        dateRangeControl.setValues(fromDate, toDate);
+
+    } else if (e.value == 4) { // Previous week
+        let toDate = dateRangeControl.fromDate;
+        let dayOfWeek = toDate.getDay(); // 0 (Sunday) to 6 (Saturday)
+        toDate = toDate.addDays(-dayOfWeek - 1);
+        const fromDate = toDate.addDays(-6);
+        dateRangeControl.setValues(fromDate, toDate);
+
+    } else if (e.value == 5) { // Next week
+        let toDate = dateRangeControl.toDate;
+        let dayOfWeek = toDate.getDay(); // 0 (Sunday) to 6 (Saturday)
+        toDate = toDate.addDays(-dayOfWeek + 13);
+        const fromDate = toDate.addDays(-6);
+        dateRangeControl.setValues(fromDate, toDate);
+
+    } else if (e.value == 6) { // Current month
+        const fromDate = (new Date()).firstDateOfMonth();
+        const toDate = fromDate.endDateOfMonth();
+        dateRangeControl.setValues(fromDate, toDate);
+
+    } else if (e.value == 7) { // Previous month
+        const toDate = dateRangeControl.fromDate.firstDateOfMonth().addDays(-1);
+        const fromDate = toDate.firstDateOfMonth();
+        dateRangeControl.setValues(fromDate, toDate);
+
+    } else if (e.value == 8) { // Next month
+        const fromDate = dateRangeControl.toDate.endDateOfMonth().addDays(1);
+        const toDate = fromDate.endDateOfMonth();
+        dateRangeControl.setValues(fromDate, toDate);
+
+    } else if (e.value == 9) { // Current year
+        const fromDate = (new Date()).firstDateOfYear();
+        const toDate = fromDate.endDateOfYear();
+        dateRangeControl.setValues(fromDate, toDate);
+
+    } else if (e.value == 10) { // Previous year
+        const toDate = dateRangeControl.fromDate.firstDateOfYear().addDays(-1);
+        const fromDate = toDate.firstDateOfYear();
+        dateRangeControl.setValues(fromDate, toDate);
+
+    } else if (e.value == 11) { // Next year
+        const fromDate = dateRangeControl.toDate.endDateOfYear().addDays(1);
+        const toDate = fromDate.endDateOfYear();
+        dateRangeControl.setValues(fromDate, toDate);
+
+    }
+    dateRangeControl.optionsSelectBox.option("value", null);
 }
