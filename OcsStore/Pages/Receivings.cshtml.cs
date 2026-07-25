@@ -7,8 +7,20 @@ namespace OcsStore.Pages
 {
     public class ReceivingsModel : PageModel
     {
+        private readonly ItemController _itemController;
+        public List<Item> Items = new List<Item>();
+
+        public ReceivingsModel(ItemController controller)
+        {
+            _itemController = controller;
+        }
+
         public void OnGet()
         {
+            Items = _itemController.GetItems(Item.Receving);
+
+            var allItem = new Item() { Id = 0, Name = "   " };
+            Items.Insert(0, allItem);
         }
     }
 }

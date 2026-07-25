@@ -13,13 +13,14 @@
 @(
 Html.DevExtreme().DataGrid<ProcessingInputView>()
     .ID("main-grid")
-    .DataSource(d => d.Mvc().Controller("Processing").LoadAction("GetProcessingInputViews").LoadMethod("POST").Key("Id").LoadParams(new { ItemGroup = 2, FromDate = new JS("function() { return dateRangeControl.fromDate.toISOString(); }"), ToDate = new JS("function() { return dateRangeControl.toDate.toISOString(); }") }))
+    .DataSource(d => d.Mvc().Controller("Processing").LoadAction("GetProcessingInputViews").LoadMethod("POST").Key("Id").LoadParams(new { ItemGroup = 2, ItemId = new JS("function() { return itemId; }"), FromDate = new JS("function() { return dateRangeControl.fromDate.toISOString(); }"), ToDate = new JS("function() { return dateRangeControl.toDate.toISOString(); }") }))
     .RemoteOperations(false)
     .ShowBorders(true)
     .ShowRowLines(true)
     .WordWrapEnabled(true)
     .Sorting(s => s.Mode(GridSortingMode.None))
-    .Paging(p => p.Enabled(true).PageSize(15))
+    .Paging(p => p.Enabled(true).PageSize(20))
+    .Pager(p => p.ShowPageSizeSelector(true).AllowedPageSizes([20, 30, 50]))
     .OnContentReady("onGridContentReadyExpandFirstGroup")
     .Columns(columns =>
     {
@@ -50,6 +51,8 @@ Html.DevExtreme().DataGrid<ProcessingInputView>()
     deleteUrl = '@Url.Action("DeleteProcessing", "Processing")';
     editDateTimeUrl = '@Url.Action("EditDateTime", "Processing")';
     var itemGroupId = 2;
+    var items = @Html.Raw(Json.Serialize(Model.Items));
+    var itemId = 0;
 
     $(function () {
         mainGrid = $("#main-grid").dxDataGrid("instance");
@@ -61,8 +64,16 @@ Html.DevExtreme().DataGrid<ProcessingInputView>()
         const topSection = $("#top-section");
         $("#main-grid").first().prepend(topSection);
 
-        appendDateRangeControl({ container: topSection, onValueChanged: onDateRangeChanged })
+        const flexContainer = appendFlexContainer({ container: topSection, gap: 2 });
+        appendSelectField({ id: "item-select-box", container: flexContainer, width: "10.4rem", title: "Thành phẩm", dataSource: items, onValueChanged: itemChanged });
+
+        appendDateRangeControl({ container: flexContainer, onValueChanged: onDateRangeChanged })
     });
+
+    function itemChanged(e) {
+        itemId = e.value;
+        mainGrid.refresh();
+    }
     
     function onDateRangeChanged() {
         mainGrid.refresh();

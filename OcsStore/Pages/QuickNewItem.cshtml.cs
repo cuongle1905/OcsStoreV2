@@ -8,7 +8,7 @@ namespace OcsStore.Pages
     public class QuickNewItemModel : PageModel
     {
         private ItemController _itemController;
-        public Item[] Materials;
+        public List<Item> Materials = new List<Item>();
         public int DefaultMaterial1, DefaultMaterial2;
         public ItemForm[] ItemForms = [];
 

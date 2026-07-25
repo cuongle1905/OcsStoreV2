@@ -58,6 +58,7 @@ namespace OcsStore.Controllers
 
             return data.ToArray();
         }
+
         public StockView[] GetStocks(sbyte itemGroupId, string materialIds)
         {
             if (itemGroupId == 3 && !string.IsNullOrEmpty(materialIds))

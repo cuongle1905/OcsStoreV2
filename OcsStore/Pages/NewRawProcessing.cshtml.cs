@@ -11,7 +11,7 @@ namespace OcsStore.Pages
     {
         private readonly ItemController _itemController;
 
-        public Item[] Items;
+        public List<Item> Items = new List<Item>();
 
         public NewRawProcessingModel(ItemController controller)
         {

@@ -279,9 +279,9 @@
     position: absolute;
     background-color: white;
     left: 2px;
-    top: 1px;
+    top: 0px;
     right: 2.8rem;
-    bottom: 1px;
+    bottom: 0px;
     z-index: 99;
     text-align: center;
 }

@@ -22,8 +22,9 @@ Html.DevExtreme().DataGrid<InventoryDetailView>()
             .GroupIndex(0).SortOrder(SortOrder.Desc).AutoExpandGroup(false).GroupCellTemplate(new JS("groupCellTemplateTextOnly"));
         columns.AddFor(m => m.Time).Caption("Giờ").Width(50).Alignment(HorizontalAlignment.Center);
         columns.AddFor(m => m.ItemName).Caption("Hàng hóa").Width(120).Alignment(HorizontalAlignment.Left).CellTemplate(new JS("itemCellTemplate"));
-        columns.AddFor(m => m.Soh).Caption("Số lượng").Width(60).Alignment(HorizontalAlignment.Right).Format("#,##0.0");
         columns.AddFor(m => m.Ave).Caption("Giá TB").Width(60).Alignment(HorizontalAlignment.Right).Format("#,##0");
+        columns.AddFor(m => m.Soh).Caption("Số lượng").Width(60).Alignment(HorizontalAlignment.Right).Format("#,##0.0");
+        columns.AddFor(m => m.Variance).Caption("Chênh lệch").Width(60).Alignment(HorizontalAlignment.Right).Format("#,##0.0");
         columns.Add().Name("Action").Width(30).Alignment(HorizontalAlignment.Center).Fixed(true).FixedPosition(HorizontalEdge.Right).CellTemplate(new JS("deleteActionCellTemplate"));
     })
     .OnCellPrepared("onCellPreparedGroupFixedRightColumn")

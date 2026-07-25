@@ -28,9 +28,9 @@ namespace OcsStore.Controllers
             return Ok(result);
         }
 
-        public Item[] GetItems(short groupId)
+        public List<Item> GetItems(short groupId)
         {
-            return _context.Items.Where(i => i.Group == groupId).AsNoTracking().ToArray();
+            return _context.Items.Where(i => i.Group == groupId).AsNoTracking().ToList();
         }
 
         [HttpPost]

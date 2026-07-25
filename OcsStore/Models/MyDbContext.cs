@@ -429,7 +429,9 @@ public partial class MyDbContext : DbContext
                 .HasColumnName("date_paid");
             entity.Property(e => e.Deleted).HasColumnName("deleted");
             entity.Property(e => e.Desc)
+                .IsRequired()
                 .HasMaxLength(175)
+                .HasDefaultValueSql("''")
                 .HasColumnName("desc")
                 .UseCollation("utf8mb3_general_ci")
                 .HasCharSet("utf8mb3");
@@ -756,6 +758,10 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.UserCreated)
                 .HasDefaultValueSql("'1'")
                 .HasColumnName("user_created");
+            entity.Property(e => e.Variance)
+                .HasPrecision(10, 2)
+                .HasDefaultValueSql("'0.00'")
+                .HasColumnName("variance");
         });
 
         modelBuilder.Entity<Item>(entity =>

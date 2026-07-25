@@ -13,13 +13,14 @@
 @(
 Html.DevExtreme().DataGrid<ReceivingDetailView>()
     .ID("main-grid")
-    .DataSource(d => d.Mvc().Controller("Receiving").LoadAction("GetReceivings").LoadMethod("POST").LoadParams(new { FromDate = new JS("function() { return dateRangeControl.fromDate.toISOString(); }"), ToDate = new JS("function() { return dateRangeControl.toDate.toISOString(); }") }).Key("Id"))
+    .DataSource(d => d.Mvc().Controller("Receiving").LoadAction("GetReceivings").LoadMethod("POST").LoadParams(new { ItemId = new JS("function() { return itemId; }"), FromDate = new JS("function() { return dateRangeControl.fromDate.toISOString(); }"), ToDate = new JS("function() { return dateRangeControl.toDate.toISOString(); }") }).Key("Id"))
     .RemoteOperations(false)
     .ShowBorders(true)
     .ShowRowLines(true)
     .WordWrapEnabled(true)
     .Sorting(s => s.Mode(GridSortingMode.None))
-    .Paging(p => p.Enabled(true).PageSize(15))
+    .Paging(p => p.Enabled(true).PageSize(20))
+    .Pager(p => p.ShowPageSizeSelector(true).AllowedPageSizes([20, 30, 50]))
     .OnContentReady("onGridContentReadyExpandFirstGroup")
     .Columns(columns =>
     {
@@ -48,6 +49,10 @@ Html.DevExtreme().DataGrid<ReceivingDetailView>()
                  .SummaryType(SummaryType.Sum)
                  .DisplayFormat("{0}")
                  .ValueFormat("#,##0");
+            items.AddFor(m => m.Quantity)
+                 .SummaryType(SummaryType.Sum)
+                 .DisplayFormat("{0}")
+                 .ValueFormat("#,##0");
         })
     )
 )
@@ -56,6 +61,8 @@ Html.DevExtreme().DataGrid<ReceivingDetailView>()
     pageTitle = "NHẬP KHO";
     deleteUrl = '@Url.Action("DeleteDetail", "Receiving")';
     editDateTimeUrl = '@Url.Action("EditDateTime", "Receiving")';
+    var items = @Html.Raw(Json.Serialize(Model.Items));
+    var itemId = 0;
 
     $(function () {
         mainGrid = $("#main-grid").dxDataGrid("instance");
@@ -66,10 +73,18 @@ Html.DevExtreme().DataGrid<ReceivingDetailView>()
 
         const topSection = $("#top-section");
         $("#main-grid").first().prepend(topSection);
+        
+        const flexContainer = appendFlexContainer({ container: topSection, gap: 2 });
+        appendSelectField({ id: "item-select-box", container: flexContainer, width: "10.4rem", title: "Hàng hóa", dataSource: items, onValueChanged: itemChanged });
 
-        appendDateRangeControl({ container: topSection, onValueChanged: onDateRangeChanged })
+        appendDateRangeControl({ container: flexContainer, onValueChanged: onDateRangeChanged })
     });
-    
+
+    function itemChanged(e) {
+        itemId = e.value;
+        mainGrid.refresh();
+    }
+
     function onDateRangeChanged() {
         mainGrid.refresh();
     }

@@ -30,4 +30,6 @@ public partial class InventoryDetailView
     public string Time { get; set; }
 
     public short UserCreated { get; set; }
+
+    public decimal? Variance { get; set; }
 }

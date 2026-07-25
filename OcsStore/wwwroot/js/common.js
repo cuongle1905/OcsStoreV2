@@ -1150,11 +1150,16 @@ var dateRangeControl = {
 };
 
 function appendDateRangeControl(e) {
+    if (e.gap == undefined)
+        e.gap = 1;
+
     const div = appendFlexContainer(e);
 
-    dateRangeControl.fromDateBox = appendDateField({ container: div, idPrefix: "date-range-from", title: "Từ ngày", width: (e.dateWidth ?? e.width), height: e.height, disabled: e.disabled, value: dateRangeControl.fromDate, onValueChanged: onDateRangeFromValueChanged });
+    const dateWidth = (e.dateWidth ?? e.width) ?? "9rem";
 
-    dateRangeControl.toDateBox = appendDateField({ container: div, idPrefix: "date-range-to", title: "Đến ngày", width: (e.dateWidth ?? e.width), height: e.height, disabled: e.disabled, value: dateRangeControl.toDate, onValueChanged: onDateRangeToValueChanged });
+    dateRangeControl.fromDateBox = appendDateField({ container: div, idPrefix: "date-range-from", title: "Từ ngày", width: dateWidth, height: e.height, disabled: e.disabled, value: dateRangeControl.fromDate, onValueChanged: onDateRangeFromValueChanged });
+
+    dateRangeControl.toDateBox = appendDateField({ container: div, idPrefix: "date-range-to", title: "Đến ngày", width: dateWidth, height: e.height, disabled: e.disabled, value: dateRangeControl.toDate, onValueChanged: onDateRangeToValueChanged });
 
     dateRangeControl.optionsSelectBox = appendSelectField({ Id: "date-range-options-select-box", container: div, width: "30px", height: e.height, hideEditor: true, dataSource: dateRangeControl.options, onValueChanged: onDateRangeOptionChanged });
 

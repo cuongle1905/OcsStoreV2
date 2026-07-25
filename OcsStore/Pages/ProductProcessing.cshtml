@@ -13,22 +13,23 @@
 @(
 Html.DevExtreme().DataGrid<ProcessingView>()
     .ID("main-grid")
-    .DataSource(d => d.Mvc().Controller("Processing").LoadAction("GetProcessingViews").LoadMethod("POST").Key("Id").LoadParams(new { ItemGroup = 3, FromDate = new JS("function() { return dateRangeControl.fromDate.toISOString(); }"), ToDate = new JS("function() { return dateRangeControl.toDate.toISOString(); }") }))
+    .DataSource(d => d.Mvc().Controller("Processing").LoadAction("GetProcessingViews").LoadMethod("POST").Key("Id").LoadParams(new { ItemGroup = 3, ItemId = new JS("function() { return itemId; }"), FromDate = new JS("function() { return dateRangeControl.fromDate.toISOString(); }"), ToDate = new JS("function() { return dateRangeControl.toDate.toISOString(); }") }))
     .RemoteOperations(false)
     .ShowBorders(true)
     .ShowRowLines(true)
     .WordWrapEnabled(true)
     .Sorting(s => s.Mode(GridSortingMode.None))
-    .Paging(p => p.Enabled(true).PageSize(15))
+    .Paging(p => p.Enabled(true).PageSize(20))
+    .Pager(p => p.ShowPageSizeSelector(true).AllowedPageSizes([20, 30, 50]))
     .OnContentReady("onGridContentReadyExpandFirstGroup")
     .Columns(columns =>
     {
         columns.AddFor(m => m.Date).Caption("Ngày").Width(90).Alignment(HorizontalAlignment.Center).Format("dd/MM/yyyy")
             .GroupIndex(0).SortOrder(SortOrder.Desc).AutoExpandGroup(false).GroupCellTemplate(new JS("groupCellTemplateTextOnly"));
         columns.AddFor(m => m.Time).Caption("Giờ").Width(50).Alignment(HorizontalAlignment.Center).CellTemplate(new JS("editTimeCellTemplate"));
-        columns.AddFor(m => m.ItemName).Caption("Thành phẩm").Width(130).CellTemplate(new JS("itemCellTemplate"));
+        columns.AddFor(m => m.ItemName).Caption("Thành phẩm").Width(150).CellTemplate(new JS("itemCellTemplate"));
         columns.AddFor(m => m.Quantity).Caption("Số lượng thành phẩm (kg)").Width(60).Format("#,##0.0");
-        columns.AddFor(m => m.UserName).Caption("Người tạo").Width(50);
+        columns.AddFor(m => m.UserName).Caption("Người tạo").Width(70);
         columns.Add().Name("Action").Width(36).Alignment(HorizontalAlignment.Center).Fixed(true).FixedPosition(HorizontalEdge.Right).CellTemplate(new JS("deleteActionCellTemplate"));
     })
     .OnCellPrepared("onCellPreparedGroupFixedRightColumn")
@@ -47,6 +48,8 @@ Html.DevExtreme().DataGrid<ProcessingView>()
     deleteUrl = '@Url.Action("DeleteProcessing", "Processing")';
     editDateTimeUrl = '@Url.Action("EditDateTime", "Processing")';
     var itemGroupId = 2;
+    var items = @Html.Raw(Json.Serialize(Model.Items));
+    var itemId = 0;
 
     $(function () {
         mainGrid = $("#main-grid").dxDataGrid("instance");
@@ -57,10 +60,18 @@ Html.DevExtreme().DataGrid<ProcessingView>()
         
         const topSection = $("#top-section");
         $("#main-grid").first().prepend(topSection);
+        
+        const flexContainer = appendFlexContainer({ container: topSection, gap: 2 });
+        appendSelectField({ id: "item-select-box", container: flexContainer, width: "10.4rem", title: "Thành phẩm", dataSource: items, onValueChanged: itemChanged });
 
-        appendDateRangeControl({ container: topSection, onValueChanged: onDateRangeChanged })
+        appendDateRangeControl({ container: flexContainer, onValueChanged: onDateRangeChanged })
     });
-    
+
+    function itemChanged(e) {
+        itemId = e.value;
+        mainGrid.refresh();
+    }
+
     function onDateRangeChanged() {
         mainGrid.refresh();
     }

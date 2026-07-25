@@ -36,7 +36,8 @@ Html.DevExtreme().DataGrid<BillView>()
     })
     .Editing(e => e.AllowUpdating(true).Mode(GridEditMode.Batch).SelectTextOnEditStart(true))
     .OnEditorPreparing("onEditorPreparing")
-    .Paging(p => p.Enabled(true).PageSize(12))
+    .Paging(p => p.Enabled(true).PageSize(15))
+    .Pager(p => p.ShowPageSizeSelector(true).AllowedPageSizes([15, 30, 50]))
     .Summary(s => s
         .TotalItems(items =>
         {
@@ -67,7 +68,7 @@ Html.DevExtreme().DataGrid<BillView>()
         $("#main-grid").first().prepend(topSection);
         
         const flexContainer = appendFlexContainer({ container: topSection, gap: 2 });
-        customerSelectBox = appendSelectField({ id: "customer-select-box", container: flexContainer, width: "10.4rem", title: "Khách hàng", dataSource: customers, onValueChanged: customerChanged });
+        appendSelectField({ id: "customer-select-box", container: flexContainer, width: "10.4rem", title: "Khách hàng", dataSource: customers, onValueChanged: customerChanged });
 
         appendDateRangeControl({ container: flexContainer, gap: 2, onValueChanged: onDateRangeChanged });
     });

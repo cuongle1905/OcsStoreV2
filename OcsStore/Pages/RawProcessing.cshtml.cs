@@ -7,15 +7,20 @@ namespace OcsStore.Pages
 {
     public class RawProcessingModel : PageModel
     {
-        private readonly ProcessingController _processingController;
+        private readonly ItemController _itemController;
+        public List<Item> Items = new List<Item>();
 
-        public RawProcessingModel(ProcessingController controller)
+        public RawProcessingModel(ItemController controller)
         {
-            _processingController = controller;
+            _itemController = controller;
         }
 
         public void OnGet()
         {
+            Items = _itemController.GetItems(Item.Intermediate);
+
+            var allItem = new Item() { Id = 0, Name = "   " };
+            Items.Insert(0, allItem);
         }
     }
 }
