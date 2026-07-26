@@ -26,7 +26,7 @@ namespace OcsStore
 
         public static void UpdateStoreTransactionForProcessingOutput(MyDbContext _context, int tranId, Processing p)
         {
-            var ordinal = DB.GetNewStoreTransactionOrdinal(_context, p.Date, p.Time, tranId);
+            var ordinal = DB.GetNewTransactionOrdinal(_context, p.Date, p.Time, tranId);
 
             var totalValue = _context.StoreTransactions.Where(i => i.Type == StoreTransactionType.Processing && i.MainId == p.Id).Sum(i => i.Price * i.Quantity);
             var price = -totalValue / p.Quantity;
@@ -41,7 +41,7 @@ namespace OcsStore
 
         public static void UpdateStoreTransactionForProcessingInput(MyDbContext _context, int tranId, Processing p, ProcessingInput pi)
         {
-            var ordinal = DB.GetNewStoreTransactionOrdinal(_context, p.Date, p.Time, tranId);
+            var ordinal = DB.GetNewTransactionOrdinal(_context, p.Date, p.Time, tranId);
             var tran = new StoreTransaction() { Id = tranId, Date = p.Date, Time = p.Time, Type = StoreTransactionType.Processing, Store = p.Store, MainId = p.Id, DetailId = pi.Id, Item = pi.Item, Unit = pi.Unit, Quantity = -pi.Quantity, User = p.User, Ordinal = ordinal };
 
             _context.StoreTransactions.Add(tran);

@@ -28,6 +28,8 @@ public partial class MyDbContext : DbContext
 
     public virtual DbSet<CustomerManagementView> CustomerManagementViews { get; set; }
 
+    public virtual DbSet<CustomerTransaction> CustomerTransactions { get; set; }
+
     public virtual DbSet<CustomerView> CustomerViews { get; set; }
 
     public virtual DbSet<Expense> Expenses { get; set; }
@@ -70,7 +72,17 @@ public partial class MyDbContext : DbContext
 
     public virtual DbSet<MaterialView> MaterialViews { get; set; }
 
+    public virtual DbSet<MissingTransactionBillView> MissingTransactionBillViews { get; set; }
+
+    public virtual DbSet<MissingTransactionPaymentView> MissingTransactionPaymentViews { get; set; }
+
+    public virtual DbSet<PaidBillWithoutPaymentView> PaidBillWithoutPaymentViews { get; set; }
+
     public virtual DbSet<Param> Params { get; set; }
+
+    public virtual DbSet<Payment> Payments { get; set; }
+
+    public virtual DbSet<PaymentDetail> PaymentDetails { get; set; }
 
     public virtual DbSet<Processing> Processings { get; set; }
 
@@ -493,6 +505,9 @@ public partial class MyDbContext : DbContext
                 .HasColumnName("address")
                 .UseCollation("utf8mb3_general_ci")
                 .HasCharSet("utf8mb3");
+            entity.Property(e => e.Debt)
+                .HasPrecision(15)
+                .HasColumnName("debt");
             entity.Property(e => e.Email)
                 .HasMaxLength(50)
                 .HasColumnName("email")
@@ -563,6 +578,35 @@ public partial class MyDbContext : DbContext
                 .HasMaxLength(15)
                 .HasColumnName("phone");
             entity.Property(e => e.Used).HasColumnName("used");
+        });
+
+        modelBuilder.Entity<CustomerTransaction>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+
+            entity.ToTable("customer_transaction");
+
+            entity.Property(e => e.Id)
+                .ValueGeneratedNever()
+                .HasColumnName("id");
+            entity.Property(e => e.Amount)
+                .HasPrecision(15)
+                .HasColumnName("amount");
+            entity.Property(e => e.Customer).HasColumnName("customer");
+            entity.Property(e => e.Date).HasColumnName("date");
+            entity.Property(e => e.Debt)
+                .HasPrecision(15)
+                .HasColumnName("debt");
+            entity.Property(e => e.IsCompleted).HasColumnName("is_completed");
+            entity.Property(e => e.MainId).HasColumnName("main_id");
+            entity.Property(e => e.Ordinal).HasColumnName("ordinal");
+            entity.Property(e => e.Time)
+                .IsRequired()
+                .HasMaxLength(5)
+                .IsFixedLength()
+                .HasColumnName("time");
+            entity.Property(e => e.Type).HasColumnName("type");
+            entity.Property(e => e.User).HasColumnName("user");
         });
 
         modelBuilder.Entity<CustomerView>(entity =>
@@ -1311,6 +1355,81 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.UseLot).HasColumnName("use_lot");
         });
 
+        modelBuilder.Entity<MissingTransactionBillView>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToView("missing_transaction_bill_view");
+
+            entity.Property(e => e.Customer)
+                .HasDefaultValueSql("'1'")
+                .HasColumnName("customer");
+            entity.Property(e => e.Date)
+                .HasColumnType("datetime")
+                .HasColumnName("date");
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Time)
+                .IsRequired()
+                .HasMaxLength(5)
+                .IsFixedLength()
+                .HasColumnName("time");
+            entity.Property(e => e.TotalValue)
+                .HasPrecision(14, 2)
+                .HasColumnName("total_value");
+            entity.Property(e => e.UserCreated).HasColumnName("user_created");
+        });
+
+        modelBuilder.Entity<MissingTransactionPaymentView>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToView("missing_transaction_payment_view");
+
+            entity.Property(e => e.Amount)
+                .HasPrecision(15)
+                .HasColumnName("amount");
+            entity.Property(e => e.Customer).HasColumnName("customer");
+            entity.Property(e => e.Date).HasColumnName("date");
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.IsCompleted)
+                .IsRequired()
+                .HasDefaultValueSql("'1'")
+                .HasColumnName("is_completed");
+            entity.Property(e => e.Time)
+                .IsRequired()
+                .HasMaxLength(5)
+                .IsFixedLength()
+                .HasColumnName("time");
+            entity.Property(e => e.UserCreated).HasColumnName("user_created");
+        });
+
+        modelBuilder.Entity<PaidBillWithoutPaymentView>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToView("paid_bill_without_payment_view");
+
+            entity.Property(e => e.Customer)
+                .HasDefaultValueSql("'1'")
+                .HasColumnName("customer");
+            entity.Property(e => e.DatePaid)
+                .HasColumnType("datetime")
+                .HasColumnName("date_paid");
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Paid)
+                .IsRequired()
+                .HasDefaultValueSql("'1'")
+                .HasColumnName("paid");
+            entity.Property(e => e.TimePaid)
+                .HasMaxLength(5)
+                .IsFixedLength()
+                .HasColumnName("time_paid");
+            entity.Property(e => e.TotalValue)
+                .HasPrecision(14, 2)
+                .HasColumnName("total_value");
+            entity.Property(e => e.UserPaid).HasColumnName("user_paid");
+        });
+
         modelBuilder.Entity<Param>(entity =>
         {
             entity.HasKey(e => e.Name).HasName("PRIMARY");
@@ -1325,6 +1444,78 @@ public partial class MyDbContext : DbContext
                 .HasColumnName("value")
                 .UseCollation("utf8mb3_general_ci")
                 .HasCharSet("utf8mb3");
+        });
+
+        modelBuilder.Entity<Payment>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+
+            entity.ToTable("payment");
+
+            entity.HasIndex(e => e.Customer, "fk_payment_customer_idx");
+
+            entity.HasIndex(e => e.UserCreated, "fk_payment_user_idx");
+
+            entity.Property(e => e.Id)
+                .ValueGeneratedNever()
+                .HasColumnName("id");
+            entity.Property(e => e.Amount)
+                .HasPrecision(15)
+                .HasColumnName("amount");
+            entity.Property(e => e.Customer).HasColumnName("customer");
+            entity.Property(e => e.Date).HasColumnName("date");
+            entity.Property(e => e.DateCreated).HasColumnName("date_created");
+            entity.Property(e => e.IsCompleted)
+                .IsRequired()
+                .HasDefaultValueSql("'1'")
+                .HasColumnName("is_completed");
+            entity.Property(e => e.Time)
+                .IsRequired()
+                .HasMaxLength(5)
+                .IsFixedLength()
+                .HasColumnName("time");
+            entity.Property(e => e.TimeCreated)
+                .HasMaxLength(5)
+                .IsFixedLength()
+                .HasColumnName("time_created");
+            entity.Property(e => e.UserCreated).HasColumnName("user_created");
+
+            entity.HasOne(d => d.CustomerNavigation).WithMany(p => p.Payments)
+                .HasForeignKey(d => d.Customer)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_payment_customer");
+
+            entity.HasOne(d => d.UserCreatedNavigation).WithMany(p => p.Payments)
+                .HasForeignKey(d => d.UserCreated)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_payment_user");
+        });
+
+        modelBuilder.Entity<PaymentDetail>(entity =>
+        {
+            entity.HasKey(e => new { e.Payment, e.Bill })
+                .HasName("PRIMARY")
+                .HasAnnotation("MySql:IndexPrefixLength", new[] { 0, 0 });
+
+            entity.ToTable("payment_detail");
+
+            entity.HasIndex(e => e.Bill, "fk_payment_detail_bill_idx");
+
+            entity.Property(e => e.Payment).HasColumnName("payment");
+            entity.Property(e => e.Bill).HasColumnName("bill");
+            entity.Property(e => e.Amount)
+                .HasPrecision(14)
+                .HasColumnName("amount");
+            entity.Property(e => e.PaidFullBill).HasColumnName("paid_full_bill");
+
+            entity.HasOne(d => d.BillNavigation).WithMany(p => p.PaymentDetails)
+                .HasForeignKey(d => d.Bill)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_payment_detail_bill");
+
+            entity.HasOne(d => d.PaymentNavigation).WithMany(p => p.PaymentDetails)
+                .HasForeignKey(d => d.Payment)
+                .HasConstraintName("fk_payment_detail_payment");
         });
 
         modelBuilder.Entity<Processing>(entity =>

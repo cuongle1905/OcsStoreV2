@@ -240,5 +240,11 @@ namespace OcsStore.Controllers
             }
             return Ok();
         }
+
+        public void UpdateMissingCustomerTransactions()
+        {
+            DBBilling.UpdateMissingPayments(_context);
+            DBBilling.UpdateMissingCustomerTransactions(_context);
+        }
     }
 }

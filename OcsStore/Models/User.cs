@@ -27,6 +27,8 @@ public partial class User
 
     public virtual UserGroup GroupNavigation { get; set; }
 
+    public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();
+
     public virtual ICollection<Processing> Processings { get; set; } = new List<Processing>();
 
     public virtual ICollection<Receiving> Receivings { get; set; } = new List<Receiving>();

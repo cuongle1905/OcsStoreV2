@@ -55,6 +55,8 @@ public partial class Bill
 
     public virtual Customer CustomerNavigation { get; set; }
 
+    public virtual ICollection<PaymentDetail> PaymentDetails { get; set; } = new List<PaymentDetail>();
+
     public virtual Store StoreNavigation { get; set; }
 
     public virtual User UserCreatedNavigation { get; set; }

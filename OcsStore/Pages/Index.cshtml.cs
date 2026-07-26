@@ -12,6 +12,7 @@ namespace OcsStore.Pages
     {
         private readonly ReportController _reportController;
         private readonly StockController _stockController;
+        private readonly SalesController _salesController;
         public decimal BillTotal { get; set; }
         public decimal CustomerDebtTotal { get; set; }
         public decimal Stock1Value { get; set; }
@@ -20,10 +21,11 @@ namespace OcsStore.Pages
         public decimal TotalExpense { get; set; }
         public decimal TotalProfit { get; set; }
 
-        public IndexModel(ReportController controller, StockController stockController  )
+        public IndexModel(ReportController controller, StockController stockController, SalesController salesController)
         {
             _reportController = controller;
             _stockController = stockController;
+            _salesController = salesController;
         }
 
         public void OnGet()
@@ -38,6 +40,7 @@ namespace OcsStore.Pages
                 catch
                 {
                 }
+                _salesController.UpdateMissingCustomerTransactions();
 
                 BillTotal = _reportController.GetBillTotal();
                 CustomerDebtTotal = _reportController.GetCustomerDebtTotal();

@@ -23,7 +23,7 @@ namespace OcsStore
             return 1;
         }
 
-        public static long GetNewStoreTransactionOrdinal(MyDbContext _context, DateTime date, string time, int tranId)
+        public static long GetNewTransactionOrdinal(MyDbContext _context, DateTime date, string time, int tranId)
         {
             long ordinal = long.Parse(date.ToString("yyMMdd") + time.Replace(":", "")) * 1000000 + tranId % 1000000;
             return ordinal;
@@ -216,7 +216,7 @@ namespace OcsStore
             tran.Time = time;
 
             var oldOrdinal = tran.Ordinal;
-            tran.Ordinal = GetNewStoreTransactionOrdinal(_context, date, time, tran.Id);
+            tran.Ordinal = GetNewTransactionOrdinal(_context, date, time, tran.Id);
 
             _context.StoreTransactions.Update(tran);
             _context.SaveChanges();

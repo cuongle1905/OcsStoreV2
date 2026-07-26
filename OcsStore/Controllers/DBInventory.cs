@@ -29,7 +29,7 @@ namespace OcsStore
 
         public static void UpdateStoreTransactionForInventoryDetail(MyDbContext _context, int tranId, Inventory r, InventoryDetail d)
         {
-            var ordinal = DB.GetNewStoreTransactionOrdinal(_context, r.Date, r.Time, tranId);
+            var ordinal = DB.GetNewTransactionOrdinal(_context, r.Date, r.Time, tranId);
             var tran = new StoreTransaction() { Id = tranId, Date = r.Date, Time = r.Time, Type = StoreTransactionType.Inventory, Store = r.Store, MainId = r.Id, DetailId = d.Id, Item = d.Item, Unit = d.Unit, Soh = d.Soh, Ave = d.Ave, User = r.UserCreated, Ordinal = ordinal };
 
             _context.StoreTransactions.Add(tran);

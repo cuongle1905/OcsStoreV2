@@ -19,5 +19,9 @@ public partial class Customer
 
     public bool Inactive { get; set; }
 
+    public decimal Debt { get; set; }
+
     public virtual ICollection<Bill> Bills { get; set; } = new List<Bill>();
+
+    public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();
 }

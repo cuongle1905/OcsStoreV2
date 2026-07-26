@@ -31,7 +31,7 @@ namespace OcsStore
             /* insert into store_transaction (id, date, time, type, store, main_id, detail_id, item, unit, `year`, quantity, price, `user`, ordinal)
                 values (tranId, v_date, v_time, 1, storeId, receivingId, detailId, itemId, unitId, yy, v_quantity, v_price, userId, v_ordinal); */
 
-            var ordinal = DB.GetNewStoreTransactionOrdinal(_context, r.Date, r.Time, tranId);
+            var ordinal = DB.GetNewTransactionOrdinal(_context, r.Date, r.Time, tranId);
             var tran = new StoreTransaction() { Id = tranId, Date = r.Date, Time = r.Time, Type = 1, Store = r.Store, MainId = r.Id, DetailId = d.Id, Item = d.Item, Unit = d.Unit, Quantity = d.Quantity, Price = d.Price, User = r.User, Ordinal = ordinal };
 
             _context.StoreTransactions.Add(tran);

@@ -18,7 +18,7 @@ namespace OcsStore
 
         public static void UpdateStoreTransactionForBillDetail(MyDbContext _context, int tranId, Bill b, BillDetail d)
         {
-            var ordinal = DB.GetNewStoreTransactionOrdinal(_context, b.Date, b.Time, tranId);
+            var ordinal = DB.GetNewTransactionOrdinal(_context, b.Date, b.Time, tranId);
             var buExchange = (decimal)_context.Units.FirstOrDefault(i => i.Id == d.Unit).BuExchange;
 
             var tran = new StoreTransaction() { Id = tranId, Date = b.Date, Time = b.Time, Type = StoreTransactionType.Billing, Store = b.Store, MainId = b.Id, DetailId = d.Id, Item = d.Item, Unit = 1, Quantity = -d.Quantity * buExchange, Price = d.Price / buExchange, User = b.UserCreated, Ordinal = ordinal };
@@ -72,6 +72,78 @@ namespace OcsStore
             }
             errorMessage = null;
             return true;
+        }
+
+        public static void UpdateMissingPayments(MyDbContext _context)
+        {
+            var bills = _context.PaidBillWithoutPaymentViews.ToArray();
+            var id = DB.GetNewId(_context, "payment");
+            foreach (var b in bills)
+            {
+                var payment = new Payment() { Id = id, Customer = b.Customer, Date = DateOnly.FromDateTime(b.DatePaid ?? DateTime.Today), Time = b.TimePaid, Amount = b.TotalValue, UserCreated = b.UserPaid ?? 1 };
+                payment.DateCreated = payment.Date;
+                payment.TimeCreated = payment.Time;
+
+                _context.Payments.Add(payment);
+
+                var paymentDetail = new PaymentDetail() { Payment = payment.Id, Bill = b.Id, Amount = b.TotalValue, PaidFullBill = true };
+                _context.PaymentDetails.Add(paymentDetail);
+                id++;
+            }
+            _context.SaveChanges();
+        }
+
+        public static void UpdateMissingCustomerTransactions(MyDbContext _context)
+        {
+            var id = DB.GetNewId(_context, "customer_transaction");
+            var bills = _context.MissingTransactionBillViews.ToArray();
+            foreach (var b in bills)
+            {
+                var ordinal = DB.GetNewTransactionOrdinal(_context, b.Date, b.Time, id);
+                var tran = new CustomerTransaction() { Id = id++, Ordinal = ordinal, Customer = b.Customer, MainId = b.Id, Type = CustomerTransactionType.Bill, Date = DateOnly.FromDateTime(b.Date), Time = b.Time, Amount = b.TotalValue, User = b.UserCreated };
+
+                var paymentDetail = _context.PaymentDetails.FirstOrDefault(i => i.Bill == b.Id);
+                if (paymentDetail != null)
+                    tran.IsCompleted = paymentDetail.PaidFullBill;
+
+                _context.CustomerTransactions.Add(tran);
+                _context.SaveChanges();
+                UpdateCustomerTransactionDebt(_context, b.Customer, ordinal);
+            }
+
+            var payments = _context.MissingTransactionPaymentViews.ToArray();
+            foreach (var p in payments)
+            {
+                var ordinal = DB.GetNewTransactionOrdinal(_context, p.Date.ToDateTime(TimeOnly.MinValue), p.Time, id);
+                var tran = new CustomerTransaction() { Id = id++, Ordinal = ordinal, Customer = p.Customer, MainId = p.Id, Type = CustomerTransactionType.Payment, Date = p.Date, Time = p.Time, Amount = p.Amount, User = p.UserCreated, IsCompleted = p.IsCompleted ?? true };
+                _context.CustomerTransactions.Add(tran);
+                _context.SaveChanges();
+                UpdateCustomerTransactionDebt(_context, p.Customer, ordinal);
+            }
+        }
+
+        public static void UpdateCustomerTransactionDebt(MyDbContext _context, short customerId, long ordinal)
+        {
+            decimal debt = 0;
+            var tran = _context.CustomerTransactions.Where(i => i.Customer == customerId && i.Ordinal < ordinal).OrderByDescending(i => i.Ordinal).FirstOrDefault();
+            if (tran != null)
+                debt = tran.Debt;
+
+            var trans = _context.CustomerTransactions.OrderBy(i => i.Ordinal).Where(i => i.Customer == customerId && i.Ordinal >= ordinal).ToArray();
+            foreach (var t in trans)
+            {
+                if (t.Type == CustomerTransactionType.Bill)
+                    debt += t.Amount;
+                else
+                    debt -= t.Amount;
+
+                t.Debt = debt;
+                _context.CustomerTransactions.Update(t);
+            }
+            var customer = _context.Customers.FirstOrDefault(i => i.Id == customerId);
+            customer.Debt = debt;
+            _context.Customers.Update(customer);
+            _context.SaveChanges();
         }
     }
 }
