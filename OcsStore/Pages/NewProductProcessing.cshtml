@@ -148,7 +148,7 @@ Html.DevExtreme().DataGrid<ProcessingInputView>()
                     data: { processing: processing, details: details },
                     success: function (result) {
                         if (goToSale) {
-                            location.href = `/bill?processing=${result}`; 
+                            location.href = `/bill?sourceUrl=sales&processing=${result}`; 
                         } else {
                             DevExpress.ui.dialog.alert("Đã lưu dữ liệu.", "Thông báo").then(function(dialogResult) {
                                 location.href = goBackUrl;

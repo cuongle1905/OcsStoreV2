@@ -40,6 +40,8 @@ public partial class MyDbContext : DbContext
 
     public virtual DbSet<ExpenseType> ExpenseTypes { get; set; }
 
+    public virtual DbSet<InvalidCustomerTransactionIdView> InvalidCustomerTransactionIdViews { get; set; }
+
     public virtual DbSet<InvalidStoreTransactionSohView> InvalidStoreTransactionSohViews { get; set; }
 
     public virtual DbSet<Inventory> Inventories { get; set; }
@@ -752,6 +754,15 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.Ordinal)
                 .HasDefaultValueSql("'1'")
                 .HasColumnName("ordinal");
+        });
+
+        modelBuilder.Entity<InvalidCustomerTransactionIdView>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToView("invalid_customer_transaction_id_view");
+
+            entity.Property(e => e.Id).HasColumnName("id");
         });
 
         modelBuilder.Entity<InvalidStoreTransactionSohView>(entity =>

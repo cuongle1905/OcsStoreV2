@@ -25,6 +25,7 @@ Html.DevExtreme().DataGrid<CustomerTransactionView>()
         columns.AddFor(m => m.Date).Caption("Ngày").Width(80).Alignment(HorizontalAlignment.Center).Format("dd/MM/yyyy").CellTemplate(new JS("billingCellTemplate"));
         columns.AddFor(m => m.Time).Caption("Giờ").Width(42).Alignment(HorizontalAlignment.Center).CellTemplate(new JS("billingCellTemplate"));
         columns.AddFor(m => m.Description).Caption("Mô tả").Width(90).Alignment(HorizontalAlignment.Left).CellTemplate(new JS("billingCellTemplate"));
+        columns.AddFor(m => m.MainId).Caption("Mã").Width(50).Alignment(HorizontalAlignment.Center).CellTemplate(new JS("billingCellTemplate"));
         columns.AddFor(m => m.Amount).Caption("Số tiền").Width(90).Alignment(HorizontalAlignment.Right).Format("#,##0").CellTemplate(new JS("billingCellTemplate"));
         columns.AddFor(m => m.Debt).Caption("Công nợ").Width(100).Alignment(HorizontalAlignment.Right).Format("#,##0").CellTemplate(new JS("billingCellTemplate"));
     })

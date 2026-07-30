@@ -11,7 +11,7 @@ public partial class CustomerTransaction
 
     public int MainId { get; set; }
 
-    public int Customer { get; set; }
+    public short Customer { get; set; }
 
     public decimal Amount { get; set; }
 

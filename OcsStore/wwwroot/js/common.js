@@ -118,7 +118,7 @@ function cellLinkClicked(rowIndex) {
     let grid = $("#main-grid").dxDataGrid("instance");
     const visibleRows = grid.getVisibleRows();
     const rowData = visibleRows[rowIndex].data;
-    location.href = cellLinkUrl + (cellLinkUrl.endsWith("?") ? "&" : "?" ) + `id=${rowData.Id}`;
+    location.href = cellLinkUrl + (cellLinkUrl.includes("?") ? "&" : "?" ) + `id=${rowData.Id}`;
 }
 
 String.prototype.lowercaseFirstLetter = function () {

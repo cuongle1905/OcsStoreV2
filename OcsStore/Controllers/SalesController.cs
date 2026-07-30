@@ -108,6 +108,16 @@ namespace OcsStore.Controllers
 
             _context.Database.CommitTransaction();
 
+            if (isNewBill)
+            {
+                DBBilling.CreateCustomerTransactionsForBill(_context, bill);
+
+                if (bill.Paid ?? false)
+                {
+                    DBBilling.CreatePayment(_context, bill, currentUser);
+                }
+            }
+
             return Ok();
         }
 
@@ -127,6 +137,7 @@ namespace OcsStore.Controllers
         {
             return _context.Customers.AsNoTracking().ToArray();
         }
+
         public List<Customer> GetCustomerList()
         {
             return _context.Customers.AsNoTracking().ToList();
@@ -203,6 +214,11 @@ namespace OcsStore.Controllers
                 try
                 {
                     DBBilling.DeleteStoreTransactionsForBill(_context, bill);
+
+                    DBBilling.DeletePaymentForBill(_context, bill.Id);
+
+                    DBBilling.DeleteCustomerTransactionForBill(_context, bill.Id);
+
                     _context.Bills.Remove(bill);
                     _context.SaveChanges();
                 }
@@ -222,29 +238,30 @@ namespace OcsStore.Controllers
             var bill = _context.Bills.FirstOrDefault(i => i.Id == id);
             if (bill != null)
             {
-                bill.Paid = paid;
+                DBBilling.DeletePaymentForBill(_context, bill.Id);
                 if (paid)
                 {
-                    bill.DatePaid = DateTime.Today;
-                    bill.TimePaid = DateTime.Now.ToString("HH:mm");
-                    bill.UserPaid = Session.UserId(Request);
+                    DBBilling.CreatePayment(_context, bill, Session.UserId(Request));
                 }
                 else
                 {
+                    bill.Paid = false;
                     bill.DatePaid = null;
                     bill.TimePaid = null;
                     bill.UserPaid = null;
+                    _context.Bills.Update(bill);
+                    _context.SaveChanges();
                 }
-                _context.Bills.Update(bill);
-                _context.SaveChanges();
             }
             return Ok();
         }
 
         public void UpdateMissingCustomerTransactions()
         {
+            DBBilling.RemoveInvalidCustomerTransactions(_context);
             DBBilling.UpdateMissingPayments(_context);
             DBBilling.UpdateMissingCustomerTransactions(_context);
+            DBBilling.UpdateCustomerTransactionsStatus(_context);
         }
     }
 }

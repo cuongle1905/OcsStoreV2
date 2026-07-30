@@ -302,7 +302,7 @@ Html.DevExtreme().DataGrid<SaleItemView>()
                     data: { bill: bill, details: details },
                     success: function (result) {
                         DevExpress.ui.dialog.alert("Đã lưu dữ liệu.", "Thông báo").then(function(dialogResult) {
-                            location.href = "/sales";
+                            location.href = goBackUrl;
                         });
                     },
                     error: handleAjaxError
@@ -320,7 +320,7 @@ Html.DevExtreme().DataGrid<SaleItemView>()
                     data: { id: bill.Id },
                     success: function (result) {
                         DevExpress.ui.dialog.alert("Đã hủy đơn hàng.", "Thông báo").then(function(dialogResult) {
-                            location.href = "/sales";
+                            location.href = goBackUrl;
                         });
                     },
                     error: handleAjaxError
