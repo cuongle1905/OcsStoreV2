@@ -18,7 +18,7 @@
     .Columns(columns =>
     {
         columns.AddFor(m => m.Id).Caption("Mã KH").Width(60).Alignment(HorizontalAlignment.Center);
-        columns.AddFor(m => m.Name).Caption("Tên khách hàng").Width(220);
+        columns.AddFor(m => m.Name).Caption("Tên khách hàng").Width(200);
         columns.AddFor(m => m.Debt).Caption("Công nợ").Width(100).Format("#,##0");
     })
     .Summary(s => s
