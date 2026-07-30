@@ -129,6 +129,14 @@ h6, .h6, h5, .h5, h4, .h4, h3, .h3, h2, .h2, h1, .h1 {
     color: var(--gray);
 }
 
+.bg-payment {
+    background-color: #DDEEFF;
+}
+
+.bg-bill-completed {
+    background-color: #CCFFE5;
+}
+
 .font-weight-600 {
     font-weight: 600;
 }

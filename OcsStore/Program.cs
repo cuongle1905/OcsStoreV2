@@ -33,6 +33,7 @@ builder.Services.AddControllers()
 builder.Services.AddTransient<ItemController>();
 builder.Services.AddTransient<ProcessingController>();
 builder.Services.AddTransient<SalesController>();
+builder.Services.AddTransient<BillingController>();
 builder.Services.AddTransient<StockController>();
 builder.Services.AddTransient<ReportController>();
 

@@ -52,7 +52,7 @@ Html.DevExtreme().DataGrid<BillView>()
 
 <script>
     pageTitle = "Bán hàng"
-    cellLinkUrl = 'sales/new';
+    cellLinkUrl = 'bill?sourceUrl=sales';
     var customers = @Html.Raw(Json.Serialize(Model.Customers));
     var mainGrid;
     var customerId = 0;

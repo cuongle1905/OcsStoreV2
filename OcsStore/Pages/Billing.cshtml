@@ -1,0 +1,44 @@
+﻿@page
+@using OcsStore.Models
+@model OcsStore.Pages.BillingModel
+@{
+}
+
+@(Html.DevExtreme().DataGrid<CustomerBillingView>()
+    .ID("main-grid")
+    .DataSource(d => d.Mvc().Controller("Billing").LoadAction("GetCustomerBillings").LoadMethod("POST").Key("Id"))
+    .RemoteOperations(false)
+    .ShowBorders(true)
+    .ShowRowLines(true)
+    .WordWrapEnabled(true)
+    @* .Sorting(s => s.Mode(GridSortingMode.None)) *@
+    .OnContentReady("defaultOnGridContentReady")
+    .FocusedRowEnabled(true)
+    .OnFocusedRowChanged("focusedRowChanged")
+    .Columns(columns =>
+    {
+        columns.AddFor(m => m.Id).Caption("Mã KH").Width(60).Alignment(HorizontalAlignment.Center);
+        columns.AddFor(m => m.Name).Caption("Tên khách hàng").Width(220);
+        columns.AddFor(m => m.Debt).Caption("Công nợ").Width(100).Format("#,##0");
+    })
+    .Summary(s => s
+        .TotalItems(items =>
+        {
+            items.AddFor(m => m.Debt)
+                 .SummaryType(SummaryType.Sum)
+                 .DisplayFormat("{0}")
+                 .ValueFormat("#,##0");
+        })
+    )
+)
+<script>
+    pageTitle = "Công nợ khách hàng";
+
+    $(function () {
+    });
+
+    function focusedRowChanged(e) {
+        var customerId = e.row.data.Id;
+        location.href = "/billingdetail?customer=" + customerId;
+    }
+</script>

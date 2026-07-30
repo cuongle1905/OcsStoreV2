@@ -11,6 +11,10 @@
     if (string.IsNullOrEmpty(itemGroupId) || itemGroupId == "null")
         itemGroupId = "1";
 
+    string customerId = Context.Request.Query["Customer"].ToString();
+    if (string.IsNullOrEmpty(customerId) || customerId == "null")
+        customerId = "0";
+
     long selectedDate = 0;
     if (long.TryParse(Context.Request.Query["Date"], out long result))
         selectedDate = result;
@@ -74,6 +78,7 @@
         var pageTitle = "";
         var goBackUrl = "/@(sourceUrl)";
         var itemGroupId = @(itemGroupId);
+        var customerId = @(customerId);
         var isDataExpanded = false;
         goBackAfterSaving = false;
         var selectedDateValue = @Html.Raw(selectedDate);
@@ -295,14 +300,14 @@
                         </div>
                     </a>
                     @if (isAdmin) {
-@*                         <a class="menu-link" href='~/customer'>
+                        <a class="menu-link" href='~/billing'>
                             <div class="home-left-item">
                                 <i class="dx-icon-box"></i>
                                 <div class="home-left-item-text">
-                                    <span>Khách hàng - Công nợ</span>
+                                    <span>Công nợ khách hàng</span>
                                 </div>
                             </div>
-                        </a> *@
+                        </a>
                         <a class="menu-link" href='~/expenses'>
                             <div class="home-left-item">
                                 <i class="bi bi-coin"></i>

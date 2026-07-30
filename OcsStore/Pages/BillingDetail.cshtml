@@ -1,0 +1,97 @@
+﻿@page
+@using OcsStore.Models
+@model OcsStore.Pages.BillingDetailModel
+@{
+}
+<style>
+</style>
+
+<div id="top-section" class="pb-2"></div>
+
+@(
+Html.DevExtreme().DataGrid<CustomerTransactionView>()
+    .ID("main-grid")
+    .DataSource(d => d.Mvc().Controller("Billing").LoadAction("GetCustomerTransactionViews").LoadMethod("POST").Key("Id").LoadParams(new { CustomerId = new JS("function() { return customerId; }") }))
+    .RemoteOperations(false)
+    .ShowBorders(true)
+    .ShowRowLines(true)
+    .WordWrapEnabled(true)
+    .Sorting(s => s.Mode(GridSortingMode.None))
+    .OnContentReady("defaultOnGridContentReady")
+    .FocusedRowEnabled(true)
+    .OnFocusedRowChanged("focusedRowChanged")
+    .Columns(columns =>
+    {
+        columns.AddFor(m => m.Date).Caption("Ngày").Width(80).Alignment(HorizontalAlignment.Center).Format("dd/MM/yyyy").CellTemplate(new JS("billingCellTemplate"));
+        columns.AddFor(m => m.Time).Caption("Giờ").Width(42).Alignment(HorizontalAlignment.Center).CellTemplate(new JS("billingCellTemplate"));
+        columns.AddFor(m => m.Description).Caption("Mô tả").Width(90).Alignment(HorizontalAlignment.Left).CellTemplate(new JS("billingCellTemplate"));
+        columns.AddFor(m => m.Amount).Caption("Số tiền").Width(90).Alignment(HorizontalAlignment.Right).Format("#,##0").CellTemplate(new JS("billingCellTemplate"));
+        columns.AddFor(m => m.Debt).Caption("Công nợ").Width(100).Alignment(HorizontalAlignment.Right).Format("#,##0").CellTemplate(new JS("billingCellTemplate"));
+    })
+    .Editing(e => e.AllowUpdating(false))
+    .Paging(p => p.Enabled(true).PageSize(15))
+)
+
+<script>
+    pageTitle = "Công nợ khách hàng";
+    goBackUrl = `/billing`;
+    var customers = @Html.Raw(Json.Serialize(Model.Customers));
+    var mainGrid;
+    var customerSelectBox;
+    var debtDiv;
+
+    $(function () {
+        const topSection = $("#top-section");
+        mainGrid = $("#main-grid").dxDataGrid("instance");
+        $("#main-grid").first().prepend(topSection);
+
+        const flexContainer = appendFlexContainer({ container: topSection, gap: 3 });
+        customerSelectBox = appendSelectField({ id: "customer-select-box", container: flexContainer, width: "15rem", title: "Khách hàng", dataSource: customers, onValueChanged: customerChanged });
+        
+        debtDiv = appendLabelField({ container: flexContainer, title: "Công nợ" });
+        debtDiv.addClass("bold");
+
+        console.log(customerId);
+        if (customerId > 0) {
+            customerSelectBox.option("value", customerId);
+        }
+
+        // appendButtonToGrid({ id: "calculate-soh", level: 2, text: "Tính toán lại tồn kho", width: "50%", icon: "bi bi-calculator", onClick: calculateSoh });
+    });
+
+    function customerChanged(e) {
+        console.log(e);
+        customerId = e.value;
+
+        var customer = e.component.option("selectedItem");
+        debtDiv.html(customer.Debt.toLocaleString())
+        mainGrid.refresh();
+    }
+
+    function billingCellTemplate(container, options) {
+        container.html(options.text);
+        let isPayment = (options.data.Type == 2);
+        let isCompleted = options.data.IsCompleted;
+        if (isPayment) {
+            container.addClass("bg-payment");
+        } else if (isCompleted) {
+            container.addClass("bg-bill-completed");
+        }
+    }
+
+    function focusedRowChanged(e) {
+        var isBill = (e.row.data.Type == 1);
+        if (isBill) {
+            const mainId = e.row.data.MainId;
+            const paramsData = {
+                sourceUrl: "billingdetail?customer=" + customerId,
+                id: mainId
+            };
+
+            // 2. Pass it to URLSearchParams
+            const queryString = new URLSearchParams(paramsData).toString();
+
+            location.href = "/bill?" + queryString;
+        }
+    }
+</script>

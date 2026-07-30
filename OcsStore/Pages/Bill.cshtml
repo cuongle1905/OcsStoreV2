@@ -1,4 +1,4 @@
-﻿@page "/sales/new"
+﻿@page "/bill"
 @using OcsStore.Models
 @model OcsStore.Pages.BillModel
 @{
@@ -86,7 +86,6 @@ Html.DevExtreme().DataGrid<SaleItemView>()
 )
 
 <script>
-    goBackUrl = "/sales";
     var customerSelectBox;
     var debitCheckBox;
     var bill = @Html.Raw(Json.Serialize(Model.Bill));

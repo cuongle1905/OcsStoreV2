@@ -24,11 +24,15 @@ public partial class MyDbContext : DbContext
 
     public virtual DbSet<Customer> Customers { get; set; }
 
+    public virtual DbSet<CustomerBillingView> CustomerBillingViews { get; set; }
+
     public virtual DbSet<CustomerDebtView> CustomerDebtViews { get; set; }
 
     public virtual DbSet<CustomerManagementView> CustomerManagementViews { get; set; }
 
     public virtual DbSet<CustomerTransaction> CustomerTransactions { get; set; }
+
+    public virtual DbSet<CustomerTransactionView> CustomerTransactionViews { get; set; }
 
     public virtual DbSet<CustomerView> CustomerViews { get; set; }
 
@@ -530,6 +534,24 @@ public partial class MyDbContext : DbContext
                 .HasColumnName("phone");
         });
 
+        modelBuilder.Entity<CustomerBillingView>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToView("customer_billing_view");
+
+            entity.Property(e => e.Debt)
+                .HasPrecision(15)
+                .HasColumnName("debt");
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Name)
+                .IsRequired()
+                .HasMaxLength(100)
+                .HasColumnName("name")
+                .UseCollation("utf8mb3_general_ci")
+                .HasCharSet("utf8mb3");
+        });
+
         modelBuilder.Entity<CustomerDebtView>(entity =>
         {
             entity
@@ -597,6 +619,38 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.Debt)
                 .HasPrecision(15)
                 .HasColumnName("debt");
+            entity.Property(e => e.IsCompleted).HasColumnName("is_completed");
+            entity.Property(e => e.MainId).HasColumnName("main_id");
+            entity.Property(e => e.Ordinal).HasColumnName("ordinal");
+            entity.Property(e => e.Time)
+                .IsRequired()
+                .HasMaxLength(5)
+                .IsFixedLength()
+                .HasColumnName("time");
+            entity.Property(e => e.Type).HasColumnName("type");
+            entity.Property(e => e.User).HasColumnName("user");
+        });
+
+        modelBuilder.Entity<CustomerTransactionView>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToView("customer_transaction_view");
+
+            entity.Property(e => e.Amount)
+                .HasPrecision(15)
+                .HasColumnName("amount");
+            entity.Property(e => e.Customer).HasColumnName("customer");
+            entity.Property(e => e.Date).HasColumnName("date");
+            entity.Property(e => e.Debt)
+                .HasPrecision(15)
+                .HasColumnName("debt");
+            entity.Property(e => e.Description)
+                .IsRequired()
+                .HasMaxLength(10)
+                .HasDefaultValueSql("''")
+                .HasColumnName("description");
+            entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.IsCompleted).HasColumnName("is_completed");
             entity.Property(e => e.MainId).HasColumnName("main_id");
             entity.Property(e => e.Ordinal).HasColumnName("ordinal");
