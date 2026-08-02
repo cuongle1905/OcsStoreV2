@@ -169,7 +169,7 @@ namespace OcsStore
             var id = (tranId > 0 ? tranId : DB.GetNewId(_context, "customer_transaction"));
 
             var ordinal = DB.GetNewTransactionOrdinal(_context, p.Date.ToDateTime(TimeOnly.MinValue), p.Time, id);
-            var tran = new CustomerTransaction() { Id = id, Ordinal = ordinal, Customer = p.Customer, MainId = p.Id, Type = CustomerTransactionType.Payment, Date = p.Date, Time = p.Time, Amount = p.Amount, User = p.UserCreated, IsCompleted = p.IsCompleted ?? true };
+            var tran = new CustomerTransaction() { Id = id, Ordinal = ordinal, Customer = p.Customer, MainId = p.Id, Type = CustomerTransactionType.Payment, Date = p.Date, Time = p.Time, Amount = p.Amount, User = (short)p.UserCreated, IsCompleted = p.IsCompleted ?? true };
             _context.CustomerTransactions.Add(tran);
             _context.SaveChanges();
             UpdateCustomerTransactionDebt(_context, p.Customer, ordinal);

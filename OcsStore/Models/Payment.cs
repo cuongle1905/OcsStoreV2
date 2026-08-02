@@ -17,7 +17,7 @@ public partial class Payment
 
     public bool? IsCompleted { get; set; }
 
-    public short UserCreated { get; set; }
+    public short? UserCreated { get; set; }
 
     public DateOnly? DateCreated { get; set; }
 

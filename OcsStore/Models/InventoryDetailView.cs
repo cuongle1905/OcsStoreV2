@@ -32,4 +32,6 @@ public partial class InventoryDetailView
     public short UserCreated { get; set; }
 
     public decimal? Variance { get; set; }
+
+    public decimal? SysSoh { get; set; }
 }

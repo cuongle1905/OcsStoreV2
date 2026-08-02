@@ -26,13 +26,12 @@ Html.DevExtreme().DataGrid<BillView>()
     .OnCellClick("onCellClick")
     .Columns(columns =>
     {
-        columns.AddFor(m => m.Date).Caption("Ngày").Width(90).Alignment(HorizontalAlignment.Center).Format("dd/MM/yyyy").GroupIndex(0).SortIndex(0).SortOrder(SortOrder.Desc).AllowEditing(false);
+        columns.AddFor(m => m.Date).Caption("Ngày").Width(78).Alignment(HorizontalAlignment.Center).Format("dd/MM/yyyy").AllowEditing(false).CellTemplate(new JS("dateTimeCellTemplate"));
         columns.AddFor(m => m.Id).Caption("#").Width(30).Alignment(HorizontalAlignment.Center).CellTemplate(new JS("linkCellTemplate")).AllowEditing(false);
-        columns.AddFor(m => m.Time).Caption("Giờ").Width(45).Alignment(HorizontalAlignment.Center).CellTemplate(new JS("linkCellTemplate")).AllowEditing(false);
-        columns.AddFor(m => m.CustomerName).Caption("Nội dung").Width(150).Alignment(HorizontalAlignment.Left).CellTemplate(new JS("customerCellTemplate")).AllowEditing(false);
+        columns.AddFor(m => m.TotalQtyPerBu).Caption("Nội dung").Width(140).Alignment(HorizontalAlignment.Left).CellTemplate(new JS("customerCellTemplate")).AllowEditing(false);
         columns.AddFor(m => m.Paid).Caption("Thanh toán").Width(42).Alignment(HorizontalAlignment.Center).AllowEditing(false).AllowEditing(false);
-        columns.AddFor(m => m.VatPercent).Caption("VAT").Width(34).Alignment(HorizontalAlignment.Right).CellTemplate(new JS("percentCellTemplate"));
-        columns.AddFor(m => m.TotalValue).Caption("Tổng tiền").Width(90).Alignment(HorizontalAlignment.Right).Format("#,##0").AllowEditing(false);
+        columns.AddFor(m => m.VatPercent).Caption("VAT").Width(30).Alignment(HorizontalAlignment.Right).CellTemplate(new JS("percentCellTemplate"));
+        columns.AddFor(m => m.TotalValue).Caption("Tổng tiền").Width(82).Alignment(HorizontalAlignment.Right).Format("#,##0").AllowEditing(false);
     })
     .Editing(e => e.AllowUpdating(true).Mode(GridEditMode.Batch).SelectTextOnEditStart(true))
     .OnEditorPreparing("onEditorPreparing")
@@ -41,6 +40,10 @@ Html.DevExtreme().DataGrid<BillView>()
     .Summary(s => s
         .TotalItems(items =>
         {
+            items.AddFor(m => m.TotalQtyPerBu)
+                 .SummaryType(SummaryType.Sum)
+                 .DisplayFormat("{0} Kg")
+                 .ValueFormat("#,##0.0");
             items.AddFor(m => m.TotalValue)
                  .SummaryType(SummaryType.Sum)
                  .DisplayFormat("{0}")
@@ -82,8 +85,13 @@ Html.DevExtreme().DataGrid<BillView>()
         mainGrid.refresh();
     }
 
+    function dateTimeCellTemplate(container, options) {
+        options.text = options.text + `<div class="italic" style="font-size:0.9rem;">${options.data.Time}</div>`;
+        linkCellTemplate(container, options);
+    }
+
     function customerCellTemplate(container, options) {
-        options.text += `<div class="italic" style="font-size:0.9rem;">${options.data.Desc}</div>`;
+        options.text = options.data.CustomerName + `<div class="italic" style="font-size:0.9rem;">${options.data.Desc}</div>`;
         linkCellTemplate(container, options);
     }
 

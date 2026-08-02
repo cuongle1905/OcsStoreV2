@@ -51,5 +51,7 @@ public partial class BillView
 
     public bool Deleted { get; set; }
 
+    public double? TotalQtyPerBu { get; set; }
+
     public string Desc { get; set; }
 }

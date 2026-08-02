@@ -24,17 +24,16 @@ Html.DevExtreme().DataGrid<ProcessingView>()
     .OnContentReady("onGridContentReadyExpandFirstGroup")
     .Columns(columns =>
     {
-        columns.AddFor(m => m.Date).Caption("Ngày").Width(90).Alignment(HorizontalAlignment.Center).Format("dd/MM/yyyy")
-            .GroupIndex(0).SortOrder(SortOrder.Desc).AutoExpandGroup(false).GroupCellTemplate(new JS("groupCellTemplateTextOnly"));
-        columns.AddFor(m => m.Time).Caption("Giờ").Width(50).Alignment(HorizontalAlignment.Center).CellTemplate(new JS("editTimeCellTemplate"));
-        columns.AddFor(m => m.ItemName).Caption("Thành phẩm").Width(150).CellTemplate(new JS("itemCellTemplate"));
-        columns.AddFor(m => m.Quantity).Caption("Số lượng thành phẩm (kg)").Width(60).Format("#,##0.0");
+        columns.AddFor(m => m.Date).Caption("Ngày").Width(76).Alignment(HorizontalAlignment.Center).Format("dd/MM/yyyy");
+        columns.AddFor(m => m.Time).Caption("Giờ").Width(42).Alignment(HorizontalAlignment.Center).CellTemplate(new JS("editTimeCellTemplate"));
+        columns.AddFor(m => m.ItemName).Caption("Thành phẩm").Width(110).CellTemplate(new JS("itemCellTemplate"));
+        columns.AddFor(m => m.Quantity).Caption("Thành phẩm (kg)").Width(55).Format("#,##0.0");
         columns.AddFor(m => m.UserName).Caption("Người tạo").Width(70);
         columns.Add().Name("Action").Width(36).Alignment(HorizontalAlignment.Center).Fixed(true).FixedPosition(HorizontalEdge.Right).CellTemplate(new JS("deleteActionCellTemplate"));
     })
     .OnCellPrepared("onCellPreparedGroupFixedRightColumn")
     .Editing(e => e.AllowUpdating(false))
-    .Paging(p => p.Enabled(true).PageSize(15))
+    .Paging(p => p.Enabled(true).PageSize(20))
     .Summary(s => s
         .TotalItems(items => {
             items.AddFor(m => m.Quantity).SummaryType(SummaryType.Sum).DisplayFormat("{0}").ValueFormat("#,##0.0");

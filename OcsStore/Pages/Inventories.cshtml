@@ -18,13 +18,13 @@ Html.DevExtreme().DataGrid<InventoryDetailView>()
     .OnContentReady("onGridContentReadyExpandFirstGroup")
     .Columns(columns =>
     {
-        columns.AddFor(m => m.Date).Caption("Ngày").Width(80).Alignment(HorizontalAlignment.Center).Format("dd/MM/yyyy")
-            .GroupIndex(0).SortOrder(SortOrder.Desc).AutoExpandGroup(false).GroupCellTemplate(new JS("groupCellTemplateTextOnly"));
-        columns.AddFor(m => m.Time).Caption("Giờ").Width(50).Alignment(HorizontalAlignment.Center);
-        columns.AddFor(m => m.ItemName).Caption("Hàng hóa").Width(120).Alignment(HorizontalAlignment.Left).CellTemplate(new JS("itemCellTemplate"));
-        columns.AddFor(m => m.Ave).Caption("Giá TB").Width(60).Alignment(HorizontalAlignment.Right).Format("#,##0");
-        columns.AddFor(m => m.Soh).Caption("Số lượng").Width(60).Alignment(HorizontalAlignment.Right).Format("#,##0.0");
-        columns.AddFor(m => m.Variance).Caption("Chênh lệch").Width(60).Alignment(HorizontalAlignment.Right).Format("#,##0.0");
+        columns.AddFor(m => m.Date).Caption("Ngày").Width(77).Alignment(HorizontalAlignment.Center).Format("dd/MM/yyyy");
+        columns.AddFor(m => m.Time).Caption("Giờ").Width(42).Alignment(HorizontalAlignment.Center);
+        columns.AddFor(m => m.ItemName).Caption("Hàng hóa").Width(100).Alignment(HorizontalAlignment.Left).CellTemplate(new JS("itemCellTemplate"));
+        columns.AddFor(m => m.Ave).Caption("Giá TB").Width(55).Alignment(HorizontalAlignment.Right).Format("#,##0");
+        columns.AddFor(m => m.Soh).Caption("Chốt kho thực tế").Width(45).Alignment(HorizontalAlignment.Right).Format("#,##0.0");
+        columns.AddFor(m => m.SysSoh).Caption("Nhập liệu").Width(45).Alignment(HorizontalAlignment.Right).Format("#,##0.0");
+        columns.AddFor(m => m.Variance).Caption("Chênh lệch").Width(45).Alignment(HorizontalAlignment.Right).Format("#,##0.0");
         columns.Add().Name("Action").Width(30).Alignment(HorizontalAlignment.Center).Fixed(true).FixedPosition(HorizontalEdge.Right).CellTemplate(new JS("deleteActionCellTemplate"));
     })
     .OnCellPrepared("onCellPreparedGroupFixedRightColumn")
@@ -42,6 +42,11 @@ Html.DevExtreme().DataGrid<InventoryDetailView>()
         $("#main-grid").first().prepend($("#top-section"));
         addTabList("top-section", "groups-tab", ["Nhân xanh", "Hạt rang", "Cafe"], itemGroupId - 1, tabClicked);
     });
+
+    function expandCollapseData() {
+        let grid = $("#main-grid").dxDataGrid("instance");
+        grid.columnOption("Ave", "visible", isDataExpanded);
+    }
 
     function tabClicked(tabIndex) {
         console.log("tabClicked", tabIndex);

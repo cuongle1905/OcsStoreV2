@@ -24,13 +24,12 @@ Html.DevExtreme().DataGrid<ReceivingDetailView>()
     .OnContentReady("onGridContentReadyExpandFirstGroup")
     .Columns(columns =>
     {
-        columns.AddFor(m => m.Date).Caption("Ngày").Width(80).Alignment(HorizontalAlignment.Center).Format("dd/MM/yyyy")
-            .GroupIndex(0).SortOrder(SortOrder.Desc).AutoExpandGroup(false).GroupCellTemplate(new JS("groupCellTemplateTextOnly"));
-        columns.AddFor(m => m.Time).Caption("Giờ").Width(45).Alignment(HorizontalAlignment.Center).CellTemplate(new JS("editTimeCellTemplate"));
-        columns.AddFor(m => m.ItemName).Caption("Hàng hóa").Width(110).Alignment(HorizontalAlignment.Left).CellTemplate(new JS("itemCellTemplate"));
-        columns.AddFor(m => m.Quantity).Caption("Số lượng").Width(50).Alignment(HorizontalAlignment.Right).Format("#,##0");
-        columns.AddFor(m => m.Price).Caption("Giá\n(đồng)").Width(65).HeaderCellTemplate(new JS("subLineHeaderCellTemplate")).Format("#,##0");
-        columns.AddFor(m => m.Value).Caption("Thành tiền\n(x 1000đ)").Width(70).HeaderCellTemplate(new JS("subLineHeaderCellTemplate")).Fixed(true).FixedPosition(HorizontalEdge.Right).Format("#,##0");
+        columns.AddFor(m => m.Date).Caption("Ngày").Width(76).Alignment(HorizontalAlignment.Center).Format("dd/MM/yyyy");
+        columns.AddFor(m => m.Time).Caption("Giờ").Width(42).Alignment(HorizontalAlignment.Center).CellTemplate(new JS("editTimeCellTemplate"));
+        columns.AddFor(m => m.ItemName).Caption("Hàng hóa").Width(90).Alignment(HorizontalAlignment.Left).CellTemplate(new JS("itemCellTemplate"));
+        columns.AddFor(m => m.Quantity).Caption("Số lượng").Width(45).Alignment(HorizontalAlignment.Right).Format("#,##0");
+        columns.AddFor(m => m.Price).Caption("Giá\n(đồng)").Width(55).HeaderCellTemplate(new JS("subLineHeaderCellTemplate")).Format("#,##0");
+        columns.AddFor(m => m.Value).Caption("Thành tiền\n(x 1000đ)").Width(65).HeaderCellTemplate(new JS("subLineHeaderCellTemplate")).Fixed(true).FixedPosition(HorizontalEdge.Right).Format("#,##0");
         columns.Add().Name("Action").Width(30).Alignment(HorizontalAlignment.Center).Fixed(true).FixedPosition(HorizontalEdge.Right).CellTemplate(new JS("deleteActionCellTemplate"));
     })
     .OnCellPrepared("onCellPreparedGroupFixedRightColumn")

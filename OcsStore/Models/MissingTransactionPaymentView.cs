@@ -17,5 +17,5 @@ public partial class MissingTransactionPaymentView
 
     public bool? IsCompleted { get; set; }
 
-    public short UserCreated { get; set; }
+    public short? UserCreated { get; set; }
 }

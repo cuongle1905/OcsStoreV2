@@ -8,6 +8,6 @@
         int Id { get; set; }
         bool? IsCompleted { get; set; }
         string Time { get; set; }
-        short UserCreated { get; set; }
+        short? UserCreated { get; set; }
     }
 }

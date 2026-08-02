@@ -18,7 +18,7 @@ public partial class MyDbContext : DbContext
 
     public virtual DbSet<BillDetailView> BillDetailViews { get; set; }
 
-    public virtual DbSet<BillMinDetailIdView> BillMinDetailIdViews { get; set; }
+    public virtual DbSet<BillSummaryView> BillSummaryViews { get; set; }
 
     public virtual DbSet<BillView> BillViews { get; set; }
 
@@ -394,15 +394,16 @@ public partial class MyDbContext : DbContext
                 .HasColumnName("value");
         });
 
-        modelBuilder.Entity<BillMinDetailIdView>(entity =>
+        modelBuilder.Entity<BillSummaryView>(entity =>
         {
             entity
                 .HasNoKey()
-                .ToView("bill_min_detail_id_view");
+                .ToView("bill_summary_view");
 
             entity.Property(e => e.Bill).HasColumnName("bill");
             entity.Property(e => e.Count).HasColumnName("count");
             entity.Property(e => e.MinId).HasColumnName("min_id");
+            entity.Property(e => e.TotalQtyPerBu).HasColumnName("total_qty_per_bu");
         });
 
         modelBuilder.Entity<BillView>(entity =>
@@ -447,9 +448,7 @@ public partial class MyDbContext : DbContext
                 .HasColumnName("date_paid");
             entity.Property(e => e.Deleted).HasColumnName("deleted");
             entity.Property(e => e.Desc)
-                .IsRequired()
-                .HasMaxLength(175)
-                .HasDefaultValueSql("''")
+                .HasMaxLength(226)
                 .HasColumnName("desc")
                 .UseCollation("utf8mb3_general_ci")
                 .HasCharSet("utf8mb3");
@@ -484,6 +483,7 @@ public partial class MyDbContext : DbContext
                 .HasMaxLength(5)
                 .IsFixedLength()
                 .HasColumnName("time_paid");
+            entity.Property(e => e.TotalQtyPerBu).HasColumnName("total_qty_per_bu");
             entity.Property(e => e.TotalValue)
                 .HasPrecision(14, 2)
                 .HasColumnName("total_value");
@@ -855,6 +855,9 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.Soh)
                 .HasPrecision(10, 2)
                 .HasColumnName("soh");
+            entity.Property(e => e.SysSoh)
+                .HasPrecision(11, 2)
+                .HasColumnName("sys_soh");
             entity.Property(e => e.Time)
                 .IsRequired()
                 .HasMaxLength(5)
@@ -1492,6 +1495,7 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.TotalValue)
                 .HasPrecision(14, 2)
                 .HasColumnName("total_value");
+            entity.Property(e => e.UserCreated).HasColumnName("user_created");
             entity.Property(e => e.UserPaid).HasColumnName("user_paid");
         });
 
@@ -1552,7 +1556,6 @@ public partial class MyDbContext : DbContext
 
             entity.HasOne(d => d.UserCreatedNavigation).WithMany(p => p.Payments)
                 .HasForeignKey(d => d.UserCreated)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_payment_user");
         });
 

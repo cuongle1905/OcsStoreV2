@@ -11,6 +11,8 @@ public partial class PaidBillWithoutPaymentView
 
     public decimal TotalValue { get; set; }
 
+    public short UserCreated { get; set; }
+
     public bool? Paid { get; set; }
 
     public DateTime? DatePaid { get; set; }
