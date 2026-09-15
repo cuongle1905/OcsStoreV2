@@ -2,6 +2,11 @@
 @using OcsStore.Models
 @model OcsStore.Pages.SalesModel
 @{
+    if (!Session.HasPermission(Request, Permission.ViewSales))
+    {
+        Response.Redirect("/");
+    }
+    bool canManageSales = Session.HasPermission(Request, Permission.ManageSales);
 }
 <style>
     .dx-datagrid-rowsview .dx-data-row .dx-cell-modified.dx-cell-modified::after, .dx-datagrid-rowsview .dx-data-row .dx-cell-modified.dx-datagrid-invalid::after {
@@ -59,14 +64,17 @@ Html.DevExtreme().DataGrid<BillView>()
     var customers = @Html.Raw(Json.Serialize(Model.Customers));
     var mainGrid;
     var customerId = 0;
+    var canManageSales = @(canManageSales);
 
     $(function () {
         mainGrid = $("#main-grid").dxDataGrid("instance");
 
-        appendTopAddButtonToGrid({ onClick: function() {
-            location.href = cellLinkUrl;
-        }});
-
+        if (canManageSales) {
+            appendTopAddButtonToGrid({ onClick: function() {
+                location.href = cellLinkUrl;
+            }});
+        }
+        
         const topSection = $("#top-section");
         $("#main-grid").first().prepend(topSection);
         

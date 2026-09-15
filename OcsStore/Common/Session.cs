@@ -95,5 +95,24 @@ namespace OcsStore
             request.HttpContext.Session.Remove("Token");
         }
 
+        public static void SetPermissionIds(HttpRequest request, short[] permissionIds)
+        {
+            var permissionIdsString = string.Join(',', permissionIds);
+            request.HttpContext.Session.SetString("PermissionIds", permissionIdsString);
+        }
+
+        public static short[] PermissionIds(HttpRequest request)
+        {
+            var permissionIdsString = request.HttpContext.Session.GetString("PermissionIds");
+            if (string.IsNullOrEmpty(permissionIdsString))
+                return [];
+
+            return Array.ConvertAll(permissionIdsString.Split(','), short.Parse);
+        }
+
+        public static bool HasPermission(HttpRequest request, short permissionId)
+        {
+            return IsAdmin(request) || PermissionIds(request).Contains(permissionId);
+        }
     }
 }

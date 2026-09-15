@@ -2,6 +2,10 @@
 @using OcsStore.Models
 @model OcsStore.Pages.CustomersModel
 @{
+    if (!Session.HasPermission(Request, Permission.DataManagement))
+    {
+        Response.Redirect("/");
+    }
 }
 
 @(Html.DevExtreme().DataGrid<CustomerManagementView>()

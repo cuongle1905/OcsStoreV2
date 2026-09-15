@@ -2,6 +2,11 @@
 @using OcsStore.Models
 @model OcsStore.Pages.RawProcessingModel
 @{
+    if (!Session.HasPermission(Request, Permission.ViewRawProcessings))
+    {
+        Response.Redirect("/");
+    }
+    bool canManageRawProcessing = Session.HasPermission(Request, Permission.ManageRawProcessings);
 }
 
 <script>
@@ -52,14 +57,17 @@ Html.DevExtreme().DataGrid<ProcessingInputView>()
     var itemGroupId = 2;
     var items = @Html.Raw(Json.Serialize(Model.Items));
     var itemId = 0;
+    var canManageRawProcessing = @(canManageRawProcessing);
 
     $(function () {
         mainGrid = $("#main-grid").dxDataGrid("instance");
 
-        appendTopAddButtonToGrid({ onClick: function() {
-            location.href = "/rawprocessing/new";
-        }});
-        
+        if (canManageRawProcessing) {
+            appendTopAddButtonToGrid({ onClick: function() {
+                location.href = "/rawprocessing/new";
+            }});
+        }
+
         const topSection = $("#top-section");
         $("#main-grid").first().prepend(topSection);
 

@@ -2,8 +2,11 @@
 @using OcsStore.Models
 @model OcsStore.Pages.BillingModel
 @{
+    if (!Session.HasPermission(Request, Permission.BillingManagement))
+    {
+        Response.Redirect("/");
+    }
 }
-
 @(Html.DevExtreme().DataGrid<CustomerBillingView>()
     .ID("main-grid")
     .DataSource(d => d.Mvc().Controller("Billing").LoadAction("GetCustomerBillings").LoadMethod("POST").Key("Id"))

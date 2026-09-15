@@ -2,8 +2,11 @@
 @using OcsStore.Models
 @model OcsStore.Pages.MaterialModel
 @{
+    if (!Session.HasPermission(Request, Permission.DataManagement))
+    {
+        Response.Redirect("/");
+    }
 }
-
 <div id="top-section" style="position: relative; margin-left: auto; margin-right: auto; width: 20rem; margin-bottom: 1.5rem;">
     <div class="data-field">
         <div class="field-title">Hàng hóa:</div>

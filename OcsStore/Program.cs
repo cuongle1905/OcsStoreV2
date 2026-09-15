@@ -36,6 +36,7 @@ builder.Services.AddTransient<SalesController>();
 builder.Services.AddTransient<BillingController>();
 builder.Services.AddTransient<StockController>();
 builder.Services.AddTransient<ReportController>();
+builder.Services.AddTransient<UserController>();
 
 builder.Services.AddSession(options =>
 {

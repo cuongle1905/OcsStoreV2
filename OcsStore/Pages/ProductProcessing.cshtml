@@ -2,6 +2,11 @@
 @using OcsStore.Models
 @model OcsStore.Pages.ProductProcessingModel
 @{
+    if (!Session.HasPermission(Request, Permission.ViewProductProcessings))
+    {
+        Response.Redirect("/");
+    }
+    bool canManageProductProcessing = Session.HasPermission(Request, Permission.ManageProductProcessings);
 }
 
 <script>
@@ -49,13 +54,16 @@ Html.DevExtreme().DataGrid<ProcessingView>()
     var itemGroupId = 2;
     var items = @Html.Raw(Json.Serialize(Model.Items));
     var itemId = 0;
+    var canManageProductProcessing = @(canManageProductProcessing);
 
     $(function () {
         mainGrid = $("#main-grid").dxDataGrid("instance");
 
-        appendTopAddButtonToGrid({ onClick: function() {
-            location.href = "productprocessing/new";
-        }});
+        if (canManageProductProcessing) {
+            appendTopAddButtonToGrid({ onClick: function() {
+                location.href = "productprocessing/new";
+            }});
+        }
         
         const topSection = $("#top-section");
         $("#main-grid").first().prepend(topSection);

@@ -2,6 +2,10 @@
 @using OcsStore.Models
 @model OcsStore.Pages.ExpensesModel
 @{
+    if (!Session.HasPermission(Request, Permission.ManageExpenses))
+    {
+        Response.Redirect("/");
+    }
 }
 
 <script>

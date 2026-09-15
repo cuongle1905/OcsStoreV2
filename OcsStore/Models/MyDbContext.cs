@@ -90,6 +90,8 @@ public partial class MyDbContext : DbContext
 
     public virtual DbSet<PaymentDetail> PaymentDetails { get; set; }
 
+    public virtual DbSet<Permission> Permissions { get; set; }
+
     public virtual DbSet<Processing> Processings { get; set; }
 
     public virtual DbSet<ProcessingInput> ProcessingInputs { get; set; }
@@ -124,7 +126,11 @@ public partial class MyDbContext : DbContext
 
     public virtual DbSet<UserGroup> UserGroups { get; set; }
 
+    public virtual DbSet<UserGroupPermission> UserGroupPermissions { get; set; }
+
     public virtual DbSet<UserManagementView> UserManagementViews { get; set; }
+
+    public virtual DbSet<UserPermissionView> UserPermissionViews { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder.UseMySql("name=MySqlConnection", Microsoft.EntityFrameworkCore.ServerVersion.Parse("9.3.0-mysql"));
@@ -448,7 +454,9 @@ public partial class MyDbContext : DbContext
                 .HasColumnName("date_paid");
             entity.Property(e => e.Deleted).HasColumnName("deleted");
             entity.Property(e => e.Desc)
+                .IsRequired()
                 .HasMaxLength(226)
+                .HasDefaultValueSql("''")
                 .HasColumnName("desc")
                 .UseCollation("utf8mb3_general_ci")
                 .HasCharSet("utf8mb3");
@@ -1586,6 +1594,24 @@ public partial class MyDbContext : DbContext
                 .HasConstraintName("fk_payment_detail_payment");
         });
 
+        modelBuilder.Entity<Permission>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+
+            entity.ToTable("permission");
+
+            entity.Property(e => e.Id)
+                .ValueGeneratedNever()
+                .HasColumnName("id");
+            entity.Property(e => e.Name)
+                .IsRequired()
+                .HasMaxLength(100)
+                .HasColumnName("name");
+            entity.Property(e => e.Page)
+                .HasMaxLength(45)
+                .HasColumnName("page");
+        });
+
         modelBuilder.Entity<Processing>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PRIMARY");
@@ -2147,9 +2173,7 @@ public partial class MyDbContext : DbContext
                 .HasColumnType("datetime")
                 .HasColumnName("date");
             entity.Property(e => e.GroupName)
-                .IsRequired()
                 .HasMaxLength(51)
-                .HasDefaultValueSql("''")
                 .HasColumnName("group_name")
                 .UseCollation("utf8mb3_general_ci")
                 .HasCharSet("utf8mb3");
@@ -2423,6 +2447,18 @@ public partial class MyDbContext : DbContext
                 .HasColumnName("name");
         });
 
+        modelBuilder.Entity<UserGroupPermission>(entity =>
+        {
+            entity.HasKey(e => new { e.UserGroup, e.Permission })
+                .HasName("PRIMARY")
+                .HasAnnotation("MySql:IndexPrefixLength", new[] { 0, 0 });
+
+            entity.ToTable("user_group_permission");
+
+            entity.Property(e => e.UserGroup).HasColumnName("user_group");
+            entity.Property(e => e.Permission).HasColumnName("permission");
+        });
+
         modelBuilder.Entity<UserManagementView>(entity =>
         {
             entity
@@ -2451,6 +2487,26 @@ public partial class MyDbContext : DbContext
                 .IsRequired()
                 .HasMaxLength(20)
                 .HasColumnName("username");
+        });
+
+        modelBuilder.Entity<UserPermissionView>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToView("user_permission_view");
+
+            entity.Property(e => e.Name)
+                .IsRequired()
+                .HasMaxLength(100)
+                .HasColumnName("name");
+            entity.Property(e => e.Page)
+                .HasMaxLength(45)
+                .HasColumnName("page");
+            entity.Property(e => e.Permission).HasColumnName("permission");
+            entity.Property(e => e.UserGroup)
+                .HasDefaultValueSql("'1'")
+                .HasColumnName("user_group");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
         });
 
         OnModelCreatingPartial(modelBuilder);

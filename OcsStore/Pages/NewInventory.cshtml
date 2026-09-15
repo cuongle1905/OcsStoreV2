@@ -2,6 +2,10 @@
 @using OcsStore.Models
 @model OcsStore.Pages.NewInventoryModel
 @{
+    if (!Session.HasPermission(Request, Permission.ManageInventories))
+    {
+        Response.Redirect("/");
+    }
 }
 <style>
 </style>

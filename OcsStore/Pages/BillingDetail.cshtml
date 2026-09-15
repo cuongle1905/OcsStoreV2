@@ -2,6 +2,10 @@
 @using OcsStore.Models
 @model OcsStore.Pages.BillingDetailModel
 @{
+    if (!Session.HasPermission(Request, Permission.BillingManagement))
+    {
+        Response.Redirect("/");
+    }
 }
 <style>
 </style>

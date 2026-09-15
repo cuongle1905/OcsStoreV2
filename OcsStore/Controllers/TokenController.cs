@@ -95,6 +95,9 @@ namespace OcsStore.Controllers
             Session.SetUsername(Request, username);
             Session.SetIsAdmin(Request, isAdmin);
 
+            var permissionIds = _context.UserPermissionViews.Where(i => i.UserId == userId).Select(i => i.Permission).ToArray();
+            Session.SetPermissionIds(Request, permissionIds);
+
             var loginSession = _context.LoginSessions.FirstOrDefault().Id + 1;
 
             if (loginSession >= 2000000000)

@@ -2,6 +2,10 @@
 @using OcsStore.Models
 @model OcsStore.Pages.UsersModel
 @{
+    if (!Session.HasPermission(Request, Permission.DataManagement))
+    {
+        Response.Redirect("/");
+    }
 }
 
 @(Html.DevExtreme().DataGrid<UserManagementView>()

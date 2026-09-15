@@ -2,6 +2,10 @@
 @using OcsStore.Models
 @model OcsStore.Pages.StockModel
 @{
+    if (!Session.HasPermission(Request, Permission.ViewStock))
+    {
+        Response.Redirect("/");
+    }
 }
 <style>
     a.stock-link {

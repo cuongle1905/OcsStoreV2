@@ -2,9 +2,12 @@
 @using OcsStore.Models
 @model OcsStore.Pages.ReceivingsModel
 @{
-    bool isAdmin = Session.IsAdmin(Request);
+    if (!Session.HasPermission(Request, Permission.ViewReceivings))
+    {
+        Response.Redirect("/");
+    }
+    bool canManageReceivings = Session.HasPermission(Request, Permission.ManageReceivings);
 }
-
 <script>
     dateRangeControl.fromDate = dateRangeControl.toDate.firstDateOfMonth();
 </script>
@@ -62,14 +65,17 @@ Html.DevExtreme().DataGrid<ReceivingDetailView>()
     editDateTimeUrl = '@Url.Action("EditDateTime", "Receiving")';
     var items = @Html.Raw(Json.Serialize(Model.Items));
     var itemId = 0;
+    var canManageReceivings = @(canManageReceivings);
 
     $(function () {
         mainGrid = $("#main-grid").dxDataGrid("instance");
 
-        appendTopAddButtonToGrid({ onClick: function() {
-            location.href = "receiving/new?sourceurl=receiving";
-        }});
-
+        if (canManageReceivings) {
+            appendTopAddButtonToGrid({ onClick: function() {
+                location.href = "receiving/new?sourceurl=receiving";
+            }});
+        }
+        
         const topSection = $("#top-section");
         $("#main-grid").first().prepend(topSection);
         

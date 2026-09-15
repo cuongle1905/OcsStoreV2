@@ -1,6 +1,11 @@
 ﻿@page
+@using OcsStore.Models
 @model OcsStore.Pages.DataManagementModel
 @{
+    if (!Session.HasPermission(Request, Permission.DataManagement))
+    {
+        Response.Redirect("/");
+    }
 }
 <style>
     .container .dx-button-content {

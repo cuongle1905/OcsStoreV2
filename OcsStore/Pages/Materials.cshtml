@@ -2,6 +2,10 @@
 @using OcsStore.Models
 @model OcsStore.Pages.MaterialsModel
 @{
+    if (!Session.HasPermission(Request, Permission.DataManagement))
+    {
+        Response.Redirect("/");
+    }
 }
 <style>
     #main-grid .detail-arrow.dx-button-has-icon .dx-button-content {

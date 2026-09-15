@@ -2,8 +2,11 @@
 @using OcsStore.Models
 @model OcsStore.Pages.ItemsModel
 @{
+    if (!Session.HasPermission(Request, Permission.DataManagement))
+    {
+        Response.Redirect("/");
+    }
 }
-
 <div id="top-section" class="pb-3">
 </div>
 

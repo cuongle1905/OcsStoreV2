@@ -2,6 +2,10 @@
 @using OcsStore.Models
 @model OcsStore.Pages.UnitsModel
 @{
+    if (!Session.HasPermission(Request, Permission.DataManagement))
+    {
+        Response.Redirect("/");
+    }
 }
 
 @(Html.DevExtreme().DataGrid<UnitManagementView>()

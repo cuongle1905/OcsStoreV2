@@ -2,6 +2,11 @@
 @using OcsStore.Models
 @model OcsStore.Pages.BillModel
 @{
+    if (!Session.HasPermission(Request, Permission.ManageSales))
+    {
+        Response.Redirect("/");
+    }
+
     bool isNewBill = Model.Bill.Id == 0;
 }
 <style>
