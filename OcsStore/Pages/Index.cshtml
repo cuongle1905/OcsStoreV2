@@ -111,48 +111,50 @@
 }
 else if (Model.IsAdmin)
 {
+    <div id="top-section" class="ms-auto me-auto" style="width: 100%;">
+    </div>
     <div class="container">
         <div class="row">
             <div class="col-6">
                 <div class="widget">
                     <i class="bi bi-coin blue"></i>
                     <div class="widget-title">Tổng doanh thu:</div>
-                    <div class="widget-value">@(Model.BillTotal.ToString("N0") + " đ")</div>
+                    <div id="bill-total" class="widget-value"></div>
                 </div>
             </div>
             <div class="col-6">
                 <div class="widget">
                     <i class="bi bi-leaf green"></i>
                     <div class="widget-title">Giá trị nhân xanh:</div>
-                    <div class="widget-value">@(Model.Stock1Value.ToString("N0") + " đ")</div>
+                    <div id="stock1-value" class="widget-value"></div>
                 </div>
             </div>
             <div class="col-6">
                 <div class="widget">
                     <i class="bi bi-brightness-high brown"></i>
                     <div class="widget-title">Giá trị rang:</div>
-                    <div class="widget-value">@(Model.Stock2Value.ToString("N0") + " đ")</div>
+                    <div id="stock2-value" class="widget-value"></div>
                 </div>
             </div>
             <div class="col-6">
                 <div class="widget">
                     <i class="bi bi-book red"></i>
                     <div class="widget-title">Công nợ khách hàng:</div>
-                    <div class="widget-value">@(Model.CustomerDebtTotal.ToString("N0") + " đ")</div>
+                    <div id="customer-debt" class="widget-value"></div>
                 </div>
             </div>
             <div class="col-6">
                 <div class="widget">
                     <i class="bi bi-cash green"></i>
                     <div class="widget-title">Tổng chi:</div>
-                    <div class="widget-value">@((Model.RecevingTotalValue + Model.TotalExpense).ToString("N0") + " đ")</div>
+                    <div id="total-cost" class="widget-value"></div>
                 </div>
             </div>
             <div class="col-6">
                 <div class="widget">
                     <i class="bi bi-cash-coin blue"></i>
                     <div class="widget-title">Lợi nhuận ròng</div>
-                    <div class="widget-value">@(Model.TotalProfit.ToString("N0") + " đ")</div>
+                    <div id="total-profit" class="widget-value"></div>
                 </div>
             </div>
         </div>
@@ -164,14 +166,52 @@ else if (Model.IsAdmin)
     pageTitle = "UNI COFFEE";
     
     $(function () {
-        let textEditorContainer = $("#password .dx-texteditor-container");
-        console.log(textEditorContainer);
-        textEditorContainer.append(`<div class='d-flex align-items-center'><a id='eye-link' href='#' onclick='showHidePassword()'><i class="bi bi-eye"></i></a></div>`);
+        if (isAdmin) {
+            const topSection = $("#top-section");
+            appendDateRangeControl({ container: topSection, onValueChanged: onDateRangeChanged })
+            dateRangeControl.optionsSelectBox.option("value", 6); // Current month
 
-        setTimeout(() => {
-            updateTextBoxBackground();
-        }, "500");
+        } else {
+            let textEditorContainer = $("#password .dx-texteditor-container");
+            console.log(textEditorContainer);
+            textEditorContainer.append(`<div class='d-flex align-items-center'><a id='eye-link' href='#' onclick='showHidePassword()'><i class="bi bi-eye"></i></a></div>`);
+
+            setTimeout(() => {
+                updateTextBoxBackground();
+            }, "500");
+        }
     });
+
+    function onDateRangeChanged() {
+        loadReport();
+    }
+
+    function loadReport() {
+        console.log("loadReport", dateRangeControl.fromDate, dateRangeControl.toDate);
+        $.ajax({
+            url: '@Url.Action("GetMainReport", "Report")',
+            method: "POST",
+            data: { "fromDate": dateRangeControl.fromDate.toISOString(), "toDate": dateRangeControl.toDate.toISOString() },
+            success: function(result) {
+                console.log("Main Report: ", result);
+                displayReport(result);
+            },
+            error: function(xhr, status, error) {
+                console.log("xhr", xhr, "status", status, "error", error);
+            }
+        });
+    }
+
+    function displayReport(report) {
+        const options = { style: "decimal", maximumFractionDigits: 0, useGrouping: true };
+        const numberFormat = new Intl.NumberFormat("en-US", options);
+        $("#bill-total").text(numberFormat.format(report.BillTotal) + " đ");
+        $("#stock1-value").text(numberFormat.format(report.Stock1Value) + " đ");
+        $("#stock2-value").text(numberFormat.format(report.Stock2Value) + " đ");
+        $("#customer-debt").text(numberFormat.format(report.CustomerDebtTotal) + " đ");
+        $("#total-cost").text(numberFormat.format(report.TotalCost) + " đ");
+        $("#total-profit").text(numberFormat.format(report.TotalProfit) + " đ");
+    }
 
     function showHidePassword() {
         isShowingPassword = !isShowingPassword;

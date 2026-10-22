@@ -23,6 +23,24 @@ namespace OcsStore.Controllers
             _context = context;
         }
 
+        public IActionResult GetMainReport(DateTime fromDate, DateTime toDate)
+        {
+            var result = new MainReport();
+            result.BillTotal = _context.Bills.Where(i => i.Date >= fromDate && i.Date <= toDate && i.Deleted == false).Sum(j => j.TotalValue);
+            result.Stock1Value = GetStockValue(toDate, 1);
+            result.Stock2Value = GetStockValue(toDate, 2);
+            result.CustomerDebtTotal = _context.Bills.Where(i => i.Date >= fromDate && i.Date <= toDate && i.Deleted == false && i.Paid == false).Sum(j => j.TotalValue);
+            result.RecevingTotal = _context.ReceivingDetailViews.Where(i => i.Date >= fromDate && i.Date <= toDate).Sum(i => i.Price * i.Quantity);
+            result.TotalExpense = _context.Expenses.Where(i => i.Date >= fromDate && i.Date <= toDate).Sum(i => i.Amount);
+            return Ok(result);
+        }
+
+        private decimal GetStockValue(DateTime date, sbyte itemGroupId)
+        {
+            var stocks = DBStock.GetStocks(_context, date, itemGroupId, "");
+            return stocks.Sum(i => i.Value) ?? 0;
+        }
+
         public decimal GetBillTotal()
         {
             return _context.Bills.Where(i => i.Deleted == false).Sum(j => j.TotalValue);

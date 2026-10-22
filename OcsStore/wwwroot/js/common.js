@@ -1141,11 +1141,12 @@ var dateRangeControl = {
     dateChanging: false,
     options: [{ Id: 0, Name: "Hôm nay" }, { Id: 1, Name: "<< Ngày trước" }, { Id: 2, Name: ">> Ngày sau" }, { Id: 3, Name: "Tuần hiện tại" }, { Id: 4, Name: "<< Tuần trước" }, { Id: 5, Name: ">> Tuần sau" }, { Id: 6, Name: "Tháng hiện tại" }, { Id: 7, Name: "<< Tháng trước" }, { Id: 8, Name: ">> Tháng sau" }, { Id: 9, Name: "Năm hiện tại" }, { Id: 10, Name: "<< Năm trước" }, { Id: 11, Name: ">> Năm sau" }],
     setValues: function (date1, date2) {
-        console.log("dateRangeControl setValues", date1, date2);
+        console.log("dateRangeControl - setValues", date1, date2);
         this.dateChanging = true;
         this.fromDateBox.option("value", date1);
-        this.dateChanging = false;
         this.toDateBox.option("value", date2);
+        this.dateChanging = false;
+        dateRangeControl.onValueChanged();
     }
 };
 
@@ -1172,7 +1173,7 @@ function onDateRangeFromValueChanged(e) {
 
     if (e.value > dateRangeControl.toDate)
         dateRangeControl.toDateBox.option("value", e.value);
-    else
+    else if (!dateRangeControl.dateChanging)
         dateRangeControl.onValueChanged();
 }
 
@@ -1182,8 +1183,9 @@ function onDateRangeToValueChanged(e) {
 
     if (e.value < dateRangeControl.fromDate)
         dateRangeControl.fromDateBox.option("value", e.value);
-    else if (!dateRangeControl.dateChanging);
-    dateRangeControl.onValueChanged();
+    else if (!dateRangeControl.dateChanging)
+        dateRangeControl.onValueChanged();
+
 }
 
 function onDateRangeOptionChanged(e) {
