@@ -12,24 +12,16 @@ namespace OcsStore.Pages
     public class IndexModel : PageModel
     {
         private readonly UserController _userController;
-        private readonly ReportController _reportController;
         private readonly StockController _stockController;
         private readonly SalesController _salesController;
-        public decimal BillTotal { get; set; }
-        public decimal CustomerDebtTotal { get; set; }
-        public decimal Stock1Value { get; set; }
-        public decimal Stock2Value { get; set; }
-        public decimal RecevingTotalValue { get; set; }
-        public decimal TotalExpense { get; set; }
-        public decimal TotalProfit { get; set; }
         public string UserDefaultPage { get; set; }
         public List<UserPermissionView> UserPermissions { get; set; }
         public bool IsAdmin { get; set; }
+        public List<IdName> ReportMonths = new List<IdName>();
 
-        public IndexModel(UserController userController, ReportController controller, StockController stockController, SalesController salesController)
+        public IndexModel(UserController userController, StockController stockController, SalesController salesController)
         {
             _userController = userController;
-            _reportController = controller;
             _stockController = stockController;
             _salesController = salesController;
         }
@@ -56,15 +48,9 @@ namespace OcsStore.Pages
                     return Redirect("/" + UserDefaultPage);
                 }
 
-                BillTotal = _reportController.GetBillTotal();
-                CustomerDebtTotal = _reportController.GetCustomerDebtTotal();
-                Stock1Value = _reportController.GetStockValue(1);
-                Stock2Value = _reportController.GetStockValue(2);
-                RecevingTotalValue = _reportController.GetReceivingTotalValue();
-                TotalExpense = _reportController.GetTotalExpense();
-                TotalProfit = BillTotal - RecevingTotalValue - TotalExpense;
-
                 UserPermissions = _userController.GetUserPermissions(Request);
+
+                ReportMonths = _salesController.GetReportMonths();
             }
             return Page();
         }

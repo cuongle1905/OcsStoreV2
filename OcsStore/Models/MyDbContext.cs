@@ -366,6 +366,7 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.Quantity)
                 .HasPrecision(10, 2)
                 .HasColumnName("quantity");
+            entity.Property(e => e.QuantityPerBu).HasColumnName("quantity_per_bu");
             entity.Property(e => e.Soh)
                 .HasPrecision(10, 2)
                 .HasDefaultValueSql("'0.00'")
@@ -2173,7 +2174,9 @@ public partial class MyDbContext : DbContext
                 .HasColumnType("datetime")
                 .HasColumnName("date");
             entity.Property(e => e.GroupName)
+                .IsRequired()
                 .HasMaxLength(51)
+                .HasDefaultValueSql("''")
                 .HasColumnName("group_name")
                 .UseCollation("utf8mb3_general_ci")
                 .HasCharSet("utf8mb3");

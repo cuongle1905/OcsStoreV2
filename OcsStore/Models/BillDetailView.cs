@@ -46,4 +46,6 @@ public partial class BillDetailView
     public short? StockUnit { get; set; }
 
     public string StockUnitName { get; set; }
+
+    public double QuantityPerBu { get; set; }
 }

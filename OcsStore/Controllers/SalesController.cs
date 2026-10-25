@@ -263,5 +263,24 @@ namespace OcsStore.Controllers
             DBBilling.UpdateMissingCustomerTransactions(_context);
             DBBilling.UpdateCustomerTransactionsStatus(_context);
         }
+
+        public List<IdName> GetReportMonths()
+        {
+            List<IdName> months = new List<IdName>();
+            var minDate = _context.Bills.Min(i => i.Date);
+            int year = DateTime.Today.Year;
+            int month = DateTime.Today.Month;
+            while (year > minDate.Year || month > minDate.Month)
+            {
+                var item = new IdName() { Id = year * 100 + month, Name = month.ToString() + "/" + year.ToString() };
+                months.Add(item);
+
+                if (month == 1)
+                    year--;
+                else
+                    month--;
+            }
+            return months;
+        }
     }
 }

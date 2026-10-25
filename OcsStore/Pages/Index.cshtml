@@ -118,22 +118,22 @@ else if (Model.IsAdmin)
             <div class="col-6">
                 <div class="widget">
                     <i class="bi bi-coin blue"></i>
-                    <div class="widget-title">Tổng doanh thu:</div>
-                    <div id="bill-total" class="widget-value"></div>
+                    <div class="widget-title">Doanh thu:</div>
+                    <div id="sales-total" class="widget-value"></div>
                 </div>
             </div>
             <div class="col-6">
                 <div class="widget">
                     <i class="bi bi-leaf green"></i>
-                    <div class="widget-title">Giá trị nhân xanh:</div>
-                    <div id="stock1-value" class="widget-value"></div>
+                    <div class="widget-title">Sản lượng bán:</div>
+                    <div id="sales-quantity" class="widget-value"></div>
                 </div>
             </div>
             <div class="col-6">
                 <div class="widget">
                     <i class="bi bi-brightness-high brown"></i>
-                    <div class="widget-title">Giá trị rang:</div>
-                    <div id="stock2-value" class="widget-value"></div>
+                    <div class="widget-title">Tỉ lệ giá vốn:</div>
+                    <div id="cost-percentage" class="widget-value"></div>
                 </div>
             </div>
             <div class="col-6">
@@ -146,7 +146,7 @@ else if (Model.IsAdmin)
             <div class="col-6">
                 <div class="widget">
                     <i class="bi bi-cash green"></i>
-                    <div class="widget-title">Tổng chi:</div>
+                    <div class="widget-title">Tổng chi phí:</div>
                     <div id="total-cost" class="widget-value"></div>
                 </div>
             </div>
@@ -164,12 +164,16 @@ else if (Model.IsAdmin)
 <script>
     let isShowingPassword = false;
     pageTitle = "UNI COFFEE";
+    var reportMonths = @Html.Raw(Json.Serialize(Model.ReportMonths));
+    var month = 1;
+    var year = 2026;
+    var customerSelectBox;
     
     $(function () {
         if (isAdmin) {
             const topSection = $("#top-section");
-            appendDateRangeControl({ container: topSection, onValueChanged: onDateRangeChanged })
-            dateRangeControl.optionsSelectBox.option("value", 6); // Current month
+            customerSelectBox = appendSelectField({ id: "customer-select-box", container: topSection, width: "10.4rem", title: "Tháng", dataSource: reportMonths, onValueChanged: monthChanged });
+            customerSelectBox.option("value", reportMonths[0].Id);
 
         } else {
             let textEditorContainer = $("#password .dx-texteditor-container");
@@ -182,16 +186,20 @@ else if (Model.IsAdmin)
         }
     });
 
-    function onDateRangeChanged() {
+    function monthChanged(e) {
+        let monthString = e.value;
+        month = e.value % 100;
+        year = (e.value - month) / 100;
+        console.log("monthChanged", month, year);
         loadReport();
     }
 
     function loadReport() {
-        console.log("loadReport", dateRangeControl.fromDate, dateRangeControl.toDate);
+        console.log("loadReport", month, year);
         $.ajax({
-            url: '@Url.Action("GetMainReport", "Report")',
+            url: '@Url.Action("GetMonthReport", "Report")',
             method: "POST",
-            data: { "fromDate": dateRangeControl.fromDate.toISOString(), "toDate": dateRangeControl.toDate.toISOString() },
+            data: { "month": month, "year": year },
             success: function(result) {
                 console.log("Main Report: ", result);
                 displayReport(result);
@@ -205,9 +213,10 @@ else if (Model.IsAdmin)
     function displayReport(report) {
         const options = { style: "decimal", maximumFractionDigits: 0, useGrouping: true };
         const numberFormat = new Intl.NumberFormat("en-US", options);
-        $("#bill-total").text(numberFormat.format(report.BillTotal) + " đ");
-        $("#stock1-value").text(numberFormat.format(report.Stock1Value) + " đ");
-        $("#stock2-value").text(numberFormat.format(report.Stock2Value) + " đ");
+        $("#sales-total").text(numberFormat.format(report.SalesTotal) + " đ");
+        $("#sales-quantity").text(numberFormat.format(report.SalesQuantity) + " kg");
+        $("#cost-percentage").text(numberFormat.format(report.CostPercentage) + " %");
+
         $("#customer-debt").text(numberFormat.format(report.CustomerDebtTotal) + " đ");
         $("#total-cost").text(numberFormat.format(report.TotalCost) + " đ");
         $("#total-profit").text(numberFormat.format(report.TotalProfit) + " đ");
