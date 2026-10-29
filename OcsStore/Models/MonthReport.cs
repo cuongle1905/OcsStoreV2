@@ -2,6 +2,7 @@
 {
     public class MonthReport
     {
+        public int PrevMonth { get; set; }
         public decimal SalesTotal { get; set; }
         public decimal PrevSalesTotal { get; set; }
         public decimal SalesQuantity { get; set; }

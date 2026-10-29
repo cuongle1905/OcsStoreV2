@@ -29,6 +29,7 @@ namespace OcsStore.Controllers
             var result = new MonthReport();
             int prevMonth = (month == 1 ? 12 : month - 1);
             int prevYear = (month == 1 ? year - 1 : year);
+            result.PrevMonth = prevMonth;
 
             result.SalesTotal = _context.Bills.Where(i => i.Date.Month == month && i.Date.Year == year && i.Deleted == false).Sum(j => j.TotalValue);
             result.PrevSalesTotal = _context.Bills.Where(i => i.Date.Month == prevMonth && i.Date.Year == prevYear && i.Deleted == false).Sum(j => j.TotalValue);

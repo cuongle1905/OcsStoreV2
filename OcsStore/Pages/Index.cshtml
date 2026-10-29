@@ -117,44 +117,78 @@ else if (Model.IsAdmin)
         <div class="row">
             <div class="col-6">
                 <div class="widget">
-                    <i class="bi bi-coin blue"></i>
-                    <div class="widget-title">Doanh thu:</div>
+                    <div class="widget-title"><i class="bi bi-coin blue"></i>Doanh thu:</div>
                     <div id="sales-total" class="widget-value"></div>
+                    <div class="d-flex widget-diff">
+                        <div id="sales-total-diff" class="widget-diff-value"></div>
+                        <div id="sales-total-diff-percent" class="widget-diff-percent"></div>
+                    </div>
+                    <div class="widget-prev d-flex">
+                        <div class="widget-prev-title"></div>
+                        <div id="sales-total-prev" class="widget-prev-value"></div>
+                    </div>
                 </div>
             </div>
             <div class="col-6">
                 <div class="widget">
-                    <i class="bi bi-leaf green"></i>
-                    <div class="widget-title">Sản lượng bán:</div>
+                    <div class="widget-title"><i class="bi bi-leaf green"></i>Sản lượng bán:</div>
                     <div id="sales-quantity" class="widget-value"></div>
+                    <div class="d-flex widget-diff">
+                        <div id="sales-quantity-diff" class="widget-diff-value"></div>
+                        <div id="sales-quantity-diff-percent" class="widget-diff-percent"></div>
+                    </div>
+                    <div class="widget-prev d-flex">
+                        <div class="widget-prev-title"></div>
+                        <div id="sales-quantity-prev" class="widget-prev-value"></div>
+                    </div>
                 </div>
             </div>
             <div class="col-6">
                 <div class="widget">
-                    <i class="bi bi-brightness-high brown"></i>
-                    <div class="widget-title">Tỉ lệ giá vốn:</div>
+                    <div class="widget-title"><i class="bi bi-brightness-high brown"></i>Tỉ lệ giá vốn:</div>
                     <div id="cost-percentage" class="widget-value"></div>
+                    <div class="d-flex widget-diff">
+                        <div id="cost-percentage-diff" class="widget-diff-value"></div>
+                        <div id="cost-percentage-diff-percent" class="widget-diff-percent"></div>
+                    </div>
+                    <div class="widget-prev d-flex">
+                        <div class="widget-prev-title"></div>
+                        <div id="cost-percentage-prev" class="widget-prev-value"></div>
+                    </div>
                 </div>
             </div>
             <div class="col-6">
                 <div class="widget">
-                    <i class="bi bi-book red"></i>
-                    <div class="widget-title">Công nợ khách hàng:</div>
+                    <div class="widget-title"><i class="bi bi-book red"></i>Công nợ khách hàng:</div>
                     <div id="customer-debt" class="widget-value"></div>
                 </div>
             </div>
             <div class="col-6">
                 <div class="widget">
-                    <i class="bi bi-cash green"></i>
-                    <div class="widget-title">Tổng chi phí:</div>
+                    <div class="widget-title"><i class="bi bi-cash green"></i>Tổng chi phí:</div>
                     <div id="total-cost" class="widget-value"></div>
+                    <div class="d-flex widget-diff">
+                        <div id="total-cost-diff" class="widget-diff-value"></div>
+                        <div id="total-cost-diff-percent" class="widget-diff-percent"></div>
+                    </div>
+                    <div class="widget-prev d-flex">
+                        <div class="widget-prev-title"></div>
+                        <div id="total-cost-prev" class="widget-prev-value"></div>
+                    </div>
                 </div>
             </div>
             <div class="col-6">
                 <div class="widget">
-                    <i class="bi bi-cash-coin blue"></i>
-                    <div class="widget-title">Lợi nhuận ròng</div>
+                    <div class="widget-title"><i class="bi bi-cash-coin blue"></i>Lợi nhuận ròng</div>
                     <div id="total-profit" class="widget-value"></div>
+                    <div class="d-flex widget-diff">
+                        <div id="total-profit-diff" class="widget-diff-value"></div>
+                        <div id="total-profit-diff-percent" class="widget-diff-percent"></div>
+                    </div>
+                    <div class="widget-prev d-flex">
+                        <div class="widget-prev-title"></div>
+                        <div id="total-profit-prev" class="widget-prev-value"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -211,15 +245,88 @@ else if (Model.IsAdmin)
     }
 
     function displayReport(report) {
+        $(".widget-prev-title").text("Tháng " + report.PrevMonth);
+
         const options = { style: "decimal", maximumFractionDigits: 0, useGrouping: true };
         const numberFormat = new Intl.NumberFormat("en-US", options);
-        $("#sales-total").text(numberFormat.format(report.SalesTotal) + " đ");
-        $("#sales-quantity").text(numberFormat.format(report.SalesQuantity) + " kg");
-        $("#cost-percentage").text(numberFormat.format(report.CostPercentage) + " %");
+
+        const options1 = { style: "decimal", maximumFractionDigits: 1, useGrouping: true };
+        const numberFormat1 = new Intl.NumberFormat("en-US", options1);
+
+        $("#sales-total").html(numberFormat1.format(report.SalesTotal / 1000000) + "<span class='widget-unit'>tr</span>");
+        setDiffText($("#sales-total-diff"), report.SalesTotal / 1000000, report.PrevSalesTotal / 1000000, "tr", numberFormat1);
+        setDiffPercentText($("#sales-total-diff-percent"), report.SalesTotal, report.PrevSalesTotal, numberFormat);
+        $("#sales-total-prev").html(numberFormat1.format(report.PrevSalesTotal / 1000000) + "<span class='widget-unit'>tr</span>");
+
+        $("#sales-quantity").html(numberFormat1.format(report.SalesQuantity) + "<span class='widget-unit'>kg</span>");
+        setDiffText($("#sales-quantity-diff"), report.SalesQuantity, report.PrevSalesQuantity, "kg", numberFormat1);
+        setDiffPercentText($("#sales-quantity-diff-percent"), report.SalesQuantity, report.PrevSalesQuantity, numberFormat);
+        $("#sales-quantity-prev").html(numberFormat1.format(report.PrevSalesQuantity) + "<span class='widget-unit'>kg</span>");
+
+        $("#cost-percentage").html(numberFormat1.format(report.CostPercentage) + "<span class='widget-unit'>%</span>");
+        setDiffText($("#cost-percentage-diff"), report.CostPercentage, report.PrevCostPercentage, "điểm %", numberFormat1);
+        setDiffPercentText($("#cost-percentage-diff-percent"), report.CostPercentage, report.PrevCostPercentage, numberFormat);
+        $("#cost-percentage-prev").html(numberFormat1.format(report.PrevCostPercentage) + "<span class='widget-unit'>%</span>");
 
         $("#customer-debt").text(numberFormat.format(report.CustomerDebtTotal) + " đ");
-        $("#total-cost").text(numberFormat.format(report.TotalCost) + " đ");
-        $("#total-profit").text(numberFormat.format(report.TotalProfit) + " đ");
+
+        $("#total-cost").html(numberFormat1.format(report.TotalCost / 1000000) + "<span class='widget-unit'>tr</span>");
+        setDiffText($("#total-cost-diff"), report.TotalCost / 1000000, report.PrevTotalCost / 1000000, "tr", numberFormat1, false);
+        setDiffPercentText($("#total-cost-diff-percent"), report.TotalCost, report.PrevTotalCost, numberFormat, false);
+        $("#total-cost-prev").html(numberFormat1.format(report.PrevTotalCost / 1000000) + "<span class='widget-unit'>tr</span>");
+
+        $("#total-profit").html(numberFormat1.format(report.TotalProfit / 1000000) + "<span class='widget-unit'>tr</span>");
+        setDiffText($("#total-profit-diff"), report.TotalProfit / 1000000, report.PrevTotalProfit / 1000000, "tr", numberFormat1);
+        setDiffPercentText($("#total-profit-diff-percent"), report.TotalProfit, report.PrevTotalProfit, numberFormat);
+        $("#total-profit-prev").html(numberFormat1.format(report.PrevTotalProfit / 1000000) + "<span class='widget-unit'>tr</span>");
+    }
+
+    function setDiffText(div, currentValue, prevValue, unit, numberFormat, higherGood) {
+        if (higherGood == undefined)
+            higherGood = true;
+
+        let diff = currentValue - prevValue;
+        let text = numberFormat.format(diff);
+        div.removeClass("red");
+        div.removeClass("green");
+        if (diff > 0) {
+            text = "+" + text;
+            div.addClass(higherGood ? "green" : "red");
+        } else {
+            div.addClass(higherGood ? "red" : "green");
+        }
+        div.html(text + "<span class='widget-unit'>" + unit + "</span>");
+    }
+
+    function setDiffPercentText(div, currentValue, prevValue, numberFormat, higherGood) {
+        let diff = currentValue - prevValue;
+        let text = "";
+        if (prevValue > 0) {
+            let diffPercent = diff / prevValue * 100;
+            text = numberFormat.format(diffPercent);
+        }
+
+        div.removeClass("red");
+        div.removeClass("green");
+        if (diff > 0) {
+            if (text != "")
+                text = "+" + text;
+    
+                div.addClass(higherGood ? "green" : "red");
+        } else {
+            div.addClass(higherGood ? "red" : "green");
+        }
+
+        div.html(text + "<span class='widget-unit'>%</span>");
+    }
+
+    function formatNumber(number, fractionDigits) {
+        if (fractionDigits == undefined)
+            fractionDigits = 0;
+
+        const options = { style: "decimal", maximumFractionDigits: fractionDigits, useGrouping: true };
+        const numberFormat = new Intl.NumberFormat("en-US", options);
+        return numberFormat.format(number);
     }
 
     function showHidePassword() {

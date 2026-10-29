@@ -412,22 +412,50 @@ i.bi.bi-trash {
     border: solid #ddd 1px;
     border-radius: 10px;
     margin: 0.8rem 0.2rem;
-    padding: 1rem 0.2rem 1.5rem 0.2rem;
-    text-align: center;
+    padding: 1rem;
     filter: drop-shadow(#ddd 0px 0px 2px);
 }
 
 .widget-title {
     color: var(--gray);
     font-size: 1rem;
-    margin: 0.3rem;
 }
 .widget i {
-    font-size: 2rem;
+    font-size: 1rem;
+    margin-right: 0.4rem;
 }
 .widget-value {
-    font-size: 1.2rem;
+    margin-top: 0.2rem;
+    margin-bottom: 0.2rem;
+    font-size: 1.6rem;
     font-weight: 600;
+}
+.widget-unit {
+    font-size: 1rem;
+    margin-left: 0.2rem;
+}
+.widget-diff {
+    margin-bottom: 0.2rem;
+    font-size: 1.3rem;
+    font-weight: 600;
+}
+.widget-diff-percent {
+    margin-left: auto;
+}
+.widget-prev {
+    border-top: solid #ddd 1px;
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+}
+.widget-prev-title {
+    color: #777;
+}
+.widget-prev-value {
+    text-align: right;
+    font-size: 1.2rem;
+    margin-left: auto;
 }
 
 .widget a {
