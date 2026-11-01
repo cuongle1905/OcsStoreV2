@@ -159,8 +159,16 @@ else if (Model.IsAdmin)
             </div>
             <div class="col-6">
                 <div class="widget">
-                    <div class="widget-title"><i class="bi bi-book red"></i>Công nợ khách hàng:</div>
+                    <div class="widget-title"><i class="bi bi-book red"></i>Công nợ phải thu:</div>
                     <div id="customer-debt" class="widget-value"></div>
+                    <div class="d-flex widget-diff">
+                        <div id="customer-debt-diff" class="widget-diff-value"></div>
+                        <div id="customer-debt-diff-percent" class="widget-diff-percent"></div>
+                    </div>
+                    <div class="widget-prev d-flex">
+                        <div class="widget-prev-title"></div>
+                        <div id="customer-debt-prev" class="widget-prev-value"></div>
+                    </div>
                 </div>
             </div>
             <div class="col-6">
@@ -268,7 +276,10 @@ else if (Model.IsAdmin)
         setDiffPercentText($("#cost-percentage-diff-percent"), report.CostPercentage, report.PrevCostPercentage, numberFormat);
         $("#cost-percentage-prev").html(numberFormat1.format(report.PrevCostPercentage) + "<span class='widget-unit'>%</span>");
 
-        $("#customer-debt").text(numberFormat.format(report.CustomerDebtTotal) + " đ");
+        $("#customer-debt").html(numberFormat1.format(report.CustomerDebt / 1000000) + "<span class='widget-unit'>tr</span>");
+        setDiffText($("#customer-debt-diff"), report.CustomerDebt / 1000000, report.PrevCustomerDebt / 1000000, "tr", numberFormat1, false);
+        setDiffPercentText($("#customer-debt-diff-percent"), report.CustomerDebt, report.PrevCustomerDebt, numberFormat, false);
+        $("#customer-debt-prev").html(numberFormat1.format(report.PrevCustomerDebt / 1000000) + "<span class='widget-unit'>tr</span>");
 
         $("#total-cost").html(numberFormat1.format(report.TotalCost / 1000000) + "<span class='widget-unit'>tr</span>");
         setDiffText($("#total-cost-diff"), report.TotalCost / 1000000, report.PrevTotalCost / 1000000, "tr", numberFormat1, false);

@@ -178,7 +178,7 @@ function editRowDateTime(rowIndex) {
             data[dataRowKeyParamNames[i]] = rowData[dataRowKeyFields[i]];
         }
     }
-    console.log("editRowDateTime", rowIndex, data);
+    console.log("Call editRowDateTime", rowIndex, rowData, new Date(rowData.Date), rowData.Time);
     editDateTimeRowData = data;
 
     let popupContainer = $("#edit-date-time-popup");
@@ -204,7 +204,7 @@ function editRowDateTime(rowIndex) {
             },
             contentTemplate: function () {
                 const container = $("<div />");
-                appendDateTimeFields({ container: container, width: "18rem", idPrefix: "edit-popup", direction: "vertical" });
+                appendDateTimeFields({ container: container, date: new Date(rowData.Date), time: rowData.Time, width: "18rem", idPrefix: "edit-popup", direction: "vertical" });
                 return container;
             },
             toolbarItems: [{
@@ -681,8 +681,8 @@ function addDateOverlay(e, dateDiv) {
 // containerId, idPrefix, dateWidth, timeWidth, height, onDateChanged
 function appendDateTimeFields(e) {
     const div = appendFlexContainer(e);
-    const dateBox = appendDateField({ container: div, idPrefix: e.idPrefix, width: (e.dateWidth ?? e.width), height: e.height, disabled: e.disabled, onValueChanged: e.onDateChanged });
-    const timeBox = appendTimeField({ container: div, idPrefix: e.idPrefix, width: (e.timeWidth ?? e.width), height: e.height, disabled: e.disabled, onValueChanged: e.onTimeChanged });
+    const dateBox = appendDateField({ container: div, value: e.date, idPrefix: e.idPrefix, width: (e.dateWidth ?? e.width), height: e.height, disabled: e.disabled, onValueChanged: e.onDateChanged });
+    const timeBox = appendTimeField({ container: div, value: e.time, idPrefix: e.idPrefix, width: (e.timeWidth ?? e.width), height: e.height, disabled: e.disabled, onValueChanged: e.onTimeChanged });
     return { dateBox: dateBox, timeBox: timeBox };
 }
 
@@ -722,7 +722,7 @@ function appendTimeField(e) {
 
     appendFieldTitle({ container: dataField, title: e.title })
 
-    return appendTimeBox({ container: dataField, idPrefix: e.idPrefix, idPostfix: "time-box", width: e.width, height: e.height, disabled: e.disabled, onValueChanged: e.onValueChanged })
+    return appendTimeBox({ container: dataField, idPrefix: e.idPrefix, idPostfix: "time-box", width: e.width, height: e.height, disabled: e.disabled, value: e.value, onValueChanged: e.onValueChanged })
 }
 
 function appendDataFieldContainer(e) {
@@ -766,7 +766,7 @@ function appendTimeBox(e) {
         width: e.width,
         height: e.height ?? "24px",
         type: "time",
-        value: new Date(),
+        value: e.value ?? new Date(),
         displayFormat: "HH:mm"
     });
     return div.dxDateBox("instance");

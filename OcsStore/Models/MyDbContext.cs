@@ -651,8 +651,13 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.Amount)
                 .HasPrecision(15)
                 .HasColumnName("amount");
+            entity.Property(e => e.BillPaid)
+                .HasDefaultValueSql("'1'")
+                .HasColumnName("bill_paid");
             entity.Property(e => e.Customer).HasColumnName("customer");
-            entity.Property(e => e.Date).HasColumnName("date");
+            entity.Property(e => e.Date)
+                .HasColumnType("datetime")
+                .HasColumnName("date");
             entity.Property(e => e.Debt)
                 .HasPrecision(15)
                 .HasColumnName("debt");

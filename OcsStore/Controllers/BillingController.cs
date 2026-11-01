@@ -46,5 +46,51 @@ namespace OcsStore.Controllers
             return Ok(result);
         }
 
+        [HttpPost]
+        public IActionResult EditPaymentTransactionDateTime(int id, DateTime date, string time)
+        {
+            date = TimeZoneInfo.ConvertTimeFromUtc(date, TimeZoneInfo.Local);
+            date = new DateTime(date.Year, date.Month, date.Day);
+            DateOnly dateOnly = new DateOnly(date.Year, date.Month, date.Day);
+
+            var customerTran = _context.CustomerTransactions.FirstOrDefault(i => i.Type == CustomerTransactionType.Payment && i.Id == id);
+            if (customerTran != null)
+            {
+                var paymentId = customerTran.MainId;
+                var payment = _context.Payments.FirstOrDefault(i => i.Id == paymentId);
+                if (payment != null)
+                {
+                    var paymentDetails = _context.PaymentDetails.Where(i => i.Payment == paymentId).ToArray();
+                    foreach (PaymentDetail d in paymentDetails)
+                    {
+                        var bill = _context.Bills.FirstOrDefault(i => i.Id == d.Bill);
+                        if (bill != null)
+                        {
+                            if (bill.Date > date)
+                                return BadRequest("Payment date < Bill date");
+
+                            if (bill.Date == date && bill.Time.CompareTo(time) > 0)
+                                return BadRequest("Payment time < Bill time");
+                        }
+                    }
+
+                    _context.Database.BeginTransaction();
+                    customerTran.Date = dateOnly;
+                    customerTran.Time = time;
+                    customerTran.Ordinal = DB.GetNewTransactionOrdinal(_context, date, time, customerTran.Id);
+                    _context.CustomerTransactions.Update(customerTran);
+                    _context.SaveChanges();
+                    DBBilling.UpdateCustomerTransactionDebt(_context, customerTran.Customer, 0);
+
+                    payment.Date = dateOnly;
+                    payment.Time = time;
+                    _context.Payments.Update(payment);
+                    _context.SaveChanges();
+                    _context.Database.CommitTransaction();
+                }
+            }
+            return Ok();
+        }
+
     }
 }

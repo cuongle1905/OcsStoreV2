@@ -19,7 +19,7 @@ public partial class CustomerTransactionView
 
     public decimal Debt { get; set; }
 
-    public DateOnly Date { get; set; }
+    public DateTime? Date { get; set; }
 
     public string Time { get; set; }
 
@@ -28,4 +28,6 @@ public partial class CustomerTransactionView
     public long Ordinal { get; set; }
 
     public bool IsCompleted { get; set; }
+
+    public bool? BillPaid { get; set; }
 }

@@ -40,11 +40,23 @@ namespace OcsStore.Controllers
             result.CostPercentage = GetCostPercentage(month, year);
             result.PrevCostPercentage = GetCostPercentage(prevMonth, prevYear);
 
-            //result.CustomerDebtTotal = _context.Bills.Where(i => i.Date >= fromDate && i.Date <= toDate && i.Deleted == false && i.Paid == false).Sum(j => j.TotalValue);
+            DateTime endDate = new DateTime(year, month, 1).AddMonths(1);
+            result.CustomerDebt = GetCustomerDebtTotal(endDate);
+
+            DateTime prevEndDate = new DateTime(prevYear, prevMonth, 1).AddMonths(1);
+            result.PrevCustomerDebt = GetCustomerDebtTotal(prevEndDate);
+
             result.TotalCost = GetTotalCost(month, year);
             result.PrevTotalCost = GetTotalCost(prevMonth, prevYear);
 
             return Ok(result);
+        }
+
+        public decimal GetCustomerDebtTotal(DateTime endDate)
+        {
+            var billTotal = _context.Bills.Where(i => i.Date < endDate && i.Deleted == false).Sum(j => j.TotalValue);
+            var paymentTotal = _context.Payments.Where(i => i.Date.ToDateTime(TimeOnly.MinValue) < endDate).Sum(j => j.Amount);
+            return billTotal - paymentTotal;
         }
 
         private decimal GetCostPercentage(int month, int year)
