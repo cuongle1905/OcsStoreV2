@@ -32,6 +32,13 @@ namespace OcsStore.Controllers
             return Ok(result);
         }
 
+        [HttpPost]
+        public IActionResult GetCustomer(int id)
+        {
+            var data = _context.Customers.FirstOrDefault(i => i.Id == id);
+            return Ok(data);
+        }
+
         public List<Customer> GetCustomers()
         {
             var data = _context.Customers.ToList();
@@ -92,5 +99,34 @@ namespace OcsStore.Controllers
             return Ok();
         }
 
+        [HttpPost]
+        public IActionResult SaveCustomerPayment(int customerId, DateTime date, string time)
+        {
+            date = TimeZoneInfo.ConvertTimeFromUtc(date, TimeZoneInfo.Local);
+            date = new DateTime(date.Year, date.Month, date.Day);
+
+            var bills = _context.Bills.Where(i => !i.Deleted && !(i.Paid ?? false) && i.Customer == customerId).ToArray();
+            var userId = Session.UserId(Request);
+            foreach (Bill bill in bills)
+            {
+                DBBilling.CreatePayment(_context, bill, userId, date, time);
+            }
+            return Ok();
+        }
+
+        [HttpPost]
+        public IActionResult SaveBillPayment(int billId, DateTime date, string time)
+        {
+            date = TimeZoneInfo.ConvertTimeFromUtc(date, TimeZoneInfo.Local);
+            date = new DateTime(date.Year, date.Month, date.Day);
+
+            var bill = _context.Bills.FirstOrDefault(i => !i.Deleted && !(i.Paid ?? false) && i.Id == billId);
+            if (bill != null)
+            {
+                var userId = Session.UserId(Request);
+                DBBilling.CreatePayment(_context, bill, userId, date, time);
+            }
+            return Ok();
+        }
     }
 }

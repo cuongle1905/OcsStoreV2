@@ -103,9 +103,14 @@ namespace OcsStore
 
         public static Payment CreatePayment(MyDbContext _context, IBill b, short userId, int paymentId = 0)
         {
-            var id = (paymentId > 0 ? paymentId : DB.GetNewId(_context, "payment"));
             DateTime date = DateTime.Today;
             string time = DateTime.Now.ToString("HH:mm");
+            return CreatePayment(_context, b, userId, date, time, paymentId);
+        }
+
+        public static Payment CreatePayment(MyDbContext _context, IBill b, short userId, DateTime date, string time, int paymentId = 0)
+        {
+            var id = (paymentId > 0 ? paymentId : DB.GetNewId(_context, "payment"));
             var payment = new Payment() { Id = id, Customer = b.Customer, Date = DateOnly.FromDateTime(date), Time = time, Amount = b.TotalValue, UserCreated = b.UserPaid ?? 1 };
             payment.DateCreated = payment.Date;
             payment.TimeCreated = payment.Time;

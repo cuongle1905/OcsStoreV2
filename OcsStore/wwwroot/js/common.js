@@ -181,6 +181,10 @@ function editRowDateTime(rowIndex) {
     console.log("Call editRowDateTime", rowIndex, rowData, new Date(rowData.Date), rowData.Time);
     editDateTimeRowData = data;
 
+    showEditDateTimePopup({ title: "Sửa ngày giờ", date: new Date(rowData.Date), time: rowData.Time });
+}
+
+function showEditDateTimePopup(e) {
     let popupContainer = $("#edit-date-time-popup");
     if (popupContainer.length == 0) {
         popupContainer = $(`<div id="edit-date-time-popup" />`)
@@ -204,7 +208,7 @@ function editRowDateTime(rowIndex) {
             },
             contentTemplate: function () {
                 const container = $("<div />");
-                appendDateTimeFields({ container: container, date: new Date(rowData.Date), time: rowData.Time, width: "18rem", idPrefix: "edit-popup", direction: "vertical" });
+                appendDateTimeFields({ container: container, date: e.date, time: e.time, width: "18rem", idPrefix: "edit-popup", direction: "vertical" });
                 return container;
             },
             toolbarItems: [{
@@ -226,6 +230,7 @@ function editRowDateTime(rowIndex) {
                 location: "center",
                 options: {
                     width: "auto",
+                    id: "edit-popup-date-time-save-button",
                     height: "auto",
                     text: "Lưu",
                     stylingMode: "contained",
@@ -234,6 +239,15 @@ function editRowDateTime(rowIndex) {
             }]
         }).dxPopup("instance");
     }
+
+    if (e.title != undefined)
+        editDateTimePopup.option("title", e.title);
+
+    let toolbarItems = editDateTimePopup.option("toolbarItems");
+    toolbarItems[1].options.onClick = e.onClick ?? editRowDateTimeData;
+
+    editDateTimePopup.option("toolbarItems", toolbarItems);
+
     editDateTimePopup.show();
 }
 
@@ -393,8 +407,8 @@ function gridButtonContainer(e) {
 }
 
 function normalizeButtonParam(e) {
-    if (e.action == undefined)
-        e.action = "add";
+    // if (e.action == undefined)
+    //     e.action = "add";
 
     if (e.idPrefix == undefined)
         e.idPrefix = e.action;
@@ -949,6 +963,21 @@ function appendLabelField(e) {
 
     const div = $(`<div style='margin-top: 7px;'>`);
     dataField.append(div);
+    return div;
+}
+
+function appendButtonField(e) {
+    normalizeContainerParam(e);
+    const dataField = appendDataFieldContainer({ container: e.container });
+
+    appendFieldTitle({ container: dataField, title: e.title });
+
+    let e1 = e;
+    e1.container = dataField;
+
+    normalizeButtonParam(e1);
+
+    const div = appendButton(e1);
     return div;
 }
 

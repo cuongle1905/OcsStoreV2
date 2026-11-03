@@ -21,9 +21,7 @@ Html.DevExtreme().DataGrid<CustomerTransactionView>()
     .ShowRowLines(true)
     .WordWrapEnabled(true)
     .Sorting(s => s.Mode(GridSortingMode.None))
-    .OnContentReady("defaultOnGridContentReady")
-    .FocusedRowEnabled(true)
-    .OnFocusedRowChanged("focusedRowChanged")
+    .OnContentReady("onGridContentReady")
     .Columns(columns =>
     {
         columns.AddFor(m => m.Date).Caption("Ngày").Width(80).Alignment(HorizontalAlignment.Center).Format("dd/MM/yyyy").CellTemplate(new JS("billingCellTemplate"));
@@ -44,6 +42,9 @@ Html.DevExtreme().DataGrid<CustomerTransactionView>()
     var mainGrid;
     var customerSelectBox;
     var debtDiv;
+    var paymentButton;
+    var billId;
+    var shouldGoToLastPage = true;
     editDateTimeUrl = '@Url.Action("EditPaymentTransactionDateTime", "Billing")';
 
     $(function () {
@@ -57,6 +58,8 @@ Html.DevExtreme().DataGrid<CustomerTransactionView>()
         debtDiv = appendLabelField({ container: flexContainer, title: "Công nợ" });
         debtDiv.addClass("bold");
 
+        paymentButton = appendButtonField({ id: "payment-button", container: flexContainer, text: "Thanh toán", onClick: paymentClick });
+        console.log("paymentButton", paymentButton);
         console.log(customerId);
         if (customerId > 0) {
             customerSelectBox.option("value", customerId);
@@ -68,10 +71,71 @@ Html.DevExtreme().DataGrid<CustomerTransactionView>()
     function customerChanged(e) {
         console.log(e);
         customerId = e.value;
+        shouldGoToLastPage = true;
+        loadCustomerBilling();
+    }
 
-        var customer = e.component.option("selectedItem");
-        debtDiv.html(customer.Debt.toLocaleString())
+    function loadCustomerBilling() {
+        $.ajax({
+            url: '@Url.Action("GetCustomer", "Billing")', method: "POST", "data": { "id": customerId },
+            success: function (result) {
+                let customerDebt = result.Debt;
+                debtDiv.html(customerDebt.toLocaleString())
+
+                paymentButton.option("visible", customerDebt > 0);
+            },
+            error: handleAjaxError
+        });
+
         mainGrid.refresh();
+        console.log("mainGrid.pageCount()", mainGrid.pageCount());
+    }
+
+    function paymentClick(e) {
+        showEditDateTimePopup({ title: "Thanh toán công nợ", onClick: savePayment });
+    }
+
+    function savePayment() {
+        let data = { customerId: customerId };
+        data.date = $("#edit-popup-date-box").dxDateBox("instance").option("value").toISOString();
+        data.time = $("#edit-popup-time-box").dxDateBox("instance").option("text");
+        console.log("savePayment", data);
+        $.ajax({
+            url: '@Url.Action("SaveCustomerPayment", "Billing")', method: "POST", "data": data,
+            success: function (result) {
+                editDateTimePopup.hide();
+                loadCustomerBilling();
+            },
+            error: handleAjaxError
+        });
+    }
+
+    function clickBillPayment(id) {
+        billId = id;
+        showEditDateTimePopup({ title: "Thanh toán hóa đơn", onClick: saveBillPayment });
+    }
+
+    function saveBillPayment() {
+        let data = { billId: billId };
+        data.date = $("#edit-popup-date-box").dxDateBox("instance").option("value").toISOString();
+        data.time = $("#edit-popup-time-box").dxDateBox("instance").option("text");
+        console.log("saveBillPayment", data);
+        $.ajax({
+            url: '@Url.Action("SaveBillPayment", "Billing")', method: "POST", "data": data,
+            success: function (result) {
+                editDateTimePopup.hide();
+                loadCustomerBilling();
+            },
+            error: handleAjaxError
+        });
+    }
+
+    function onGridContentReady(e) {
+        defaultOnGridContentReady(e);
+        if (shouldGoToLastPage) {
+            mainGrid.pageIndex(mainGrid.pageCount() - 1);
+            shouldGoToLastPage = false;
+        }
     }
 
     function billingCellTemplate(container, options) {
@@ -82,25 +146,25 @@ Html.DevExtreme().DataGrid<CustomerTransactionView>()
             container.addClass("bg-bill-completed");
         }
 
-        if (options.column.dataField == "Date" || options.column.dataField == "Time")
+        if (isPayment && (options.column.dataField == "Date" || options.column.dataField == "Time"))
             editTimeCellTemplate(container, options);
-        else
+        else if (!isPayment) {
+            const mainId = options.data.MainId;
+
+            if (options.column.dataField == "Amount" && !options.data.BillPaid) {
+                container.html(`<a href='#' class='text-link' onClick='clickBillPayment(${mainId})'>${options.text}</a>`)
+            } else {
+                const paramsData = {
+                    sourceUrl: "billingdetail?customer=" + customerId,
+                    id: mainId
+                };
+
+                // 2. Pass it to URLSearchParams
+                const queryString = new URLSearchParams(paramsData).toString();
+                const link = "/bill?" + queryString;
+                container.html(`<a href='${link}' class='text-link'>${options.text}</a>`)
+            }
+        } else
             container.html(options.text);
-    }
-
-    function focusedRowChanged(e) {
-        var isBill = (e.row.data.Type == 1);
-        if (isBill) {
-            const mainId = e.row.data.MainId;
-            const paramsData = {
-                sourceUrl: "billingdetail?customer=" + customerId,
-                id: mainId
-            };
-
-            // 2. Pass it to URLSearchParams
-            const queryString = new URLSearchParams(paramsData).toString();
-
-            location.href = "/bill?" + queryString;
-        }
     }
 </script>

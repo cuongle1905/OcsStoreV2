@@ -477,3 +477,7 @@ i.bi.bi-trash {
 #login-button {
     margin-top: 2rem;
 }
+
+.dx-popup-title.dx-toolbar .dx-toolbar-label {
+    font-size: 14px;
+}
