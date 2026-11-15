@@ -589,6 +589,9 @@ public partial class MyDbContext : DbContext
                 .UseCollation("utf8mb3_general_ci")
                 .HasCharSet("utf8mb3");
             entity.Property(e => e.AllowDelete).HasColumnName("allow_delete");
+            entity.Property(e => e.Debt)
+                .HasPrecision(15)
+                .HasColumnName("debt");
             entity.Property(e => e.Email)
                 .HasMaxLength(50)
                 .HasColumnName("email")

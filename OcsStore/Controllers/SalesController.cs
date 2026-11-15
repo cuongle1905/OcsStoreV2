@@ -172,24 +172,24 @@ namespace OcsStore.Controllers
             return Ok();
         }
 
-        private void SaveCustomer(Customer unit)
+        private void SaveCustomer(Customer customer)
         {
-            if (unit.Id == 0)
+            if (customer.Id == 0)
             {
                 try
                 {
-                    unit.Id = (short)(_context.Customers.Max(i => i.Id) + 1);
+                    customer.Id = (short)(_context.Customers.Max(i => i.Id) + 1);
                 }
                 catch
                 {
-                    unit.Id = 1;
+                    customer.Id = 1;
                 }
 
-                _context.Customers.Add(unit);
+                _context.Customers.Add(customer);
             }
             else
             {
-                _context.Customers.Update(unit);
+                _context.Customers.Update(customer);
             }
             _context.SaveChanges();
         }

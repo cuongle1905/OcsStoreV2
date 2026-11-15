@@ -19,6 +19,8 @@ public partial class CustomerManagementView
 
     public bool Inactive { get; set; }
 
+    public decimal Debt { get; set; }
+
     public bool? Used { get; set; }
 
     public bool? AllowDelete { get; set; }
