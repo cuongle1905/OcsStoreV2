@@ -54,7 +54,7 @@ Html.DevExtreme().DataGrid<BillDetailView>()
     .Summary(s => s
         .TotalItems(items =>
         {
-            items.AddFor(m => m.Value)
+            items.AddFor(m => m.Value).Name("ValueSummary")
                  .SummaryType(SummaryType.Sum)
                  .DisplayFormat("{0}")
                  .ValueFormat("#,##0");
@@ -218,7 +218,13 @@ Html.DevExtreme().DataGrid<SaleItemView>()
     }
 
     function updateTotal() {
-        const sum = billDetails.reduce((total, detail) => total + detail.Value, 0);
+        let sum = 0;
+        try {
+            sum = grid.getTotalSummaryValue("ValueSummary")
+        } catch {
+            sum = billDetails.reduce((total, detail) => total + detail.Value, 0);
+        }
+
         const vat = Math.round(sum * vatPercent / 100);
         vatDiv.text(vat.toLocaleString());
         const total = sum + vat;
@@ -265,6 +271,8 @@ Html.DevExtreme().DataGrid<SaleItemView>()
 
         // 3. Set the calculated field
         newData.Value = quantity * price;
+
+        setTimeout(function () { updateTotal(); }, 300);
     }
 
     function save() {
